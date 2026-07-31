@@ -56,10 +56,18 @@ export async function onRequestPost(context) {
     const passwordHash = await hashPassword(password);
     const coupleName = `${partner1} & ${partner2}`;
 
+    // 生成6位随机参与码（纯数字，不重复）
+    let participationCode = '';
+    let codeAttempts = 0;
+    do {
+      participationCode = String(Math.floor(100000 + Math.random() * 900000));
+      codeAttempts++;
+    } while (codeAttempts < 20 && await env.DB.prepare('SELECT id FROM users WHERE participation_code = ?').bind(participationCode).first());
+
     const result = await env.DB.prepare(
-      `INSERT INTO users (username, password_hash, couple_name, partner1, partner2, wedding_date, wedding_venue, slug)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
-    ).bind(username, passwordHash, coupleName, partner1 || '', partner2 || '', wedding_date || '', wedding_venue || '', slug).run();
+      `INSERT INTO users (username, password_hash, couple_name, partner1, partner2, wedding_date, wedding_venue, slug, participation_code)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
+    ).bind(username, passwordHash, coupleName, partner1 || '', partner2 || '', wedding_date || '', wedding_venue || '', slug, participationCode).run();
 
     const userId = result.meta.last_row_id;
     const token = await createToken(userId, env);

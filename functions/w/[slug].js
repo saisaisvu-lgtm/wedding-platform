@@ -288,6 +288,12 @@ export async function onRequest(context) {
           <div class="ic-thanks">诚挚邀请您出席我们的婚礼<br>见证我们人生中最重要的时刻</div>
           <div class="ic-qr" id="ic-qr"></div>
           <div class="ic-qr-tip">扫码查看婚礼现场</div>
+          ${WEDDING.participation_code ? `
+          <div style="margin-top:12px;text-align:center;">
+            <div style="font-size:10px;color:rgba(212,175,55,0.5);letter-spacing:0.08em;">参与码</div>
+            <div style="font-family:monospace;font-size:18px;color:#d4af37;letter-spacing:0.2em;margin-top:4px;">${WEDDING.participation_code}</div>
+            <div style="font-size:9px;color:rgba(212,175,55,0.35);margin-top:3px;">请截图保存，用于后续活动参与</div>
+          </div>` : ''}
           <div class="ic-bottom">
             <div class="ic-bottom-xi">囍</div>
             <div class="ic-bottom-text">永结同心 · 百年好合</div>
@@ -298,6 +304,7 @@ export async function onRequest(context) {
         <button class="btn-invite-save" onclick="saveInvite()">💾 保存请帖</button>
         <button class="btn-invite-enter" onclick="enterFromInvite()">进入婚礼现场 →</button>
       </div>
+      <div style="text-align:center;margin-top:10px;font-size:11px;color:rgba(212,175,55,0.5);letter-spacing:0.05em;">💡 请保存请帖截图，参与码可用于后续抽奖活动</div>
     </div>
   </div>
 
@@ -477,6 +484,20 @@ export async function onRequest(context) {
           qr.addData(location.href); qr.make();
           const svg = qr.createSvgTag({ cellSize: 3, margin: 0 });
           box.innerHTML = svg;
+          // 设置金色主题
+          const svgEl = box.querySelector('svg');
+          if (svgEl) {
+            const rects = svgEl.querySelectorAll('rect');
+            rects.forEach(r => {
+              const fill = r.getAttribute('fill');
+              if (fill === '#000000' || fill === '#000' || fill === 'black') {
+                r.setAttribute('fill', '#d4af37');
+              } else if (fill === '#ffffff' || fill === '#fff' || fill === 'white' || !fill || fill === 'none') {
+                r.setAttribute('fill', 'transparent');
+              }
+            });
+            svgEl.style.background = 'transparent';
+          }
         }
       } catch (e) {}
     }

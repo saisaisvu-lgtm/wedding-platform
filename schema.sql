@@ -14,6 +14,7 @@ CREATE TABLE IF NOT EXISTS users (
   arrival_options TEXT NOT NULL DEFAULT '[]',
   transport_options TEXT NOT NULL DEFAULT '[]',
   slug TEXT NOT NULL UNIQUE,
+  participation_code TEXT NOT NULL DEFAULT '',
   created_at TEXT DEFAULT (datetime('now'))
 );
 
@@ -95,6 +96,7 @@ CREATE TABLE IF NOT EXISTS songs (
 
 -- 索引
 CREATE INDEX IF NOT EXISTS idx_users_slug ON users(slug);
+CREATE INDEX IF NOT EXISTS idx_users_participation ON users(participation_code);
 CREATE INDEX IF NOT EXISTS idx_orders_status ON purchase_orders(status);
 CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);
 CREATE INDEX IF NOT EXISTS idx_images_user ON images(user_id, category);

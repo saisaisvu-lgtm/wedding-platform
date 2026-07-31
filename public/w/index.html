@@ -1943,10 +1943,21 @@
       border-radius: 4px;
       min-width: 112px;
       min-height: 112px;
+      background: rgba(255,255,255,0.1);
     }
     .invite-card .ic-qr-box canvas {
       display: block;
       margin: 0 auto;
+    }
+    .invite-card .ic-qr-box svg rect[fill="#000000"],
+    .invite-card .ic-qr-box svg rect[fill="#000"],
+    .invite-card .ic-qr-box svg rect[fill="black"] {
+      fill: #d4af37 !important;
+    }
+    .invite-card .ic-qr-box svg rect[fill="#ffffff"],
+    .invite-card .ic-qr-box svg rect[fill="#fff"],
+    .invite-card .ic-qr-box svg rect[fill="white"] {
+      fill: transparent !important;
     }
     .invite-card .ic-qr-tip {
       font-size: 10px;
@@ -2057,6 +2068,11 @@
         <div class="ic-qr-section">
           <div class="ic-qr-box" id="invite-qr-box"></div>
           <div class="ic-qr-tip">扫码查看婚礼现场</div>
+          <div id="invite-participation" style="display:none;margin-top:12px;text-align:center;">
+            <div style="font-size:10px;color:rgba(212,175,55,0.5);letter-spacing:0.08em;">参与码</div>
+            <div id="invite-participation-code" style="font-family:monospace;font-size:18px;color:#d4af37;letter-spacing:0.2em;margin-top:4px;"></div>
+            <div style="font-size:9px;color:rgba(212,175,55,0.35);margin-top:3px;">请截图保存，用于后续活动参与</div>
+          </div>
         </div>
         <div class="ic-bottom">
           <div class="ic-bottom-xi">囍</div>
@@ -2068,6 +2084,7 @@
       <button class="btn-invite-save" id="btn-invite-save" onclick="saveInvite()">💾 保存请帖</button>
       <button class="btn-invite-enter" onclick="enterFromInvite()">进入婚礼现场 →</button>
     </div>
+    <div style="text-align:center;margin-top:10px;font-size:11px;color:rgba(212,175,55,0.5);letter-spacing:0.05em;">💡 请保存请帖截图，参与码可用于后续抽奖活动</div>
   </div>
 
   <div id="loading-screen">
@@ -3293,7 +3310,8 @@
           canvas.width = size;
           canvas.height = size;
           var ctx = canvas.getContext('2d');
-          ctx.fillStyle = '#000000';
+          ctx.fillStyle = '#d4af37';
+          ctx.globalAlpha = 0.9;
           for (var row = 0; row < qr.getModuleCount(); row++) {
             for (var col = 0; col < qr.getModuleCount(); col++) {
               if (qr.isDark(row, col)) {
@@ -3443,6 +3461,11 @@
         const infoArr = [];
         if (WEDDING.wedding_venue) infoArr.push('<div class="ic-info-row">婚礼地点：' + WEDDING.wedding_venue + '</div>');
         document.getElementById('ic-info').innerHTML = infoArr.join('');
+        // 参与码
+        if (WEDDING.participation_code) {
+          document.getElementById('invite-participation').style.display = 'block';
+          document.getElementById('invite-participation-code').textContent = WEDDING.participation_code;
+        }
         // Sing bar
         if (AVATAR_FILES[0]) document.getElementById('sing-avatar-1').src = AVATAR_FILES[0];
         if (AVATAR_FILES[1]) document.getElementById('sing-avatar-2').src = AVATAR_FILES[1] || AVATAR_FILES[0];

@@ -23,6 +23,7 @@
       <div class="stat-card"><div class="num" id="statGallery">0</div><div class="label">婚纱照</div></div>
       <div class="stat-card"><div class="num" id="statRsvp">0</div><div class="label">回执</div></div>
       <div class="stat-card"><div class="num" id="statGuests">0</div><div class="label">总人数</div></div>
+      <div class="stat-card" id="participationCard" style="display:none;cursor:pointer;" onclick="copyParticipationCode()" title="点击复制参与码"><div class="num" id="statParticipation" style="font-size:22px;letter-spacing:0.1em;">-</div><div class="label">参与码 📋</div></div>
     </div>
 
     <!-- Tabs -->
@@ -278,7 +279,25 @@
       const transportOpts = currentUser.transport_options || [];
       document.getElementById('s_transport_options').value = Array.isArray(transportOpts) ? transportOpts.join('\n') : '';
       document.getElementById('previewLink').href = `/w/${currentUser.slug}`;
+      // 参与码
+      if (currentUser.participation_code) {
+        document.getElementById('participationCard').style.display = '';
+        document.getElementById('statParticipation').textContent = currentUser.participation_code;
+      }
     }
+
+    window.copyParticipationCode = function() {
+      const code = currentUser?.participation_code;
+      if (!code) return;
+      navigator.clipboard.writeText(code).then(() => {
+        const el = document.getElementById('statParticipation');
+        const orig = el.textContent;
+        el.textContent = '已复制 ✓';
+        setTimeout(() => { el.textContent = orig; }, 1500);
+      }).catch(() => {
+        prompt('参与码：', code);
+      });
+    };
 
     function renderImages() {
       const categories = ['avatar', 'credits', 'gallery'];
