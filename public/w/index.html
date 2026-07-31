@@ -1,0 +1,3475 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, shrink-to-fit=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>囍 · 光影婚礼墙</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Ma+Shan+Zheng&family=Liu+Jian+Mao+Cao&family=Zhi+Mang+Xing&family=Long+Cang&display=swap" rel="stylesheet">
+  <style>
+    *,
+    *::before,
+    *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      font-family: 'Noto Serif SC', 'Songti SC', 'STSong', '华文楷体', serif;
+      background: #faf9f7;
+      color: #fff;
+      -webkit-tap-highlight-color: transparent;
+      -webkit-font-smoothing: antialiased;
+      -webkit-overflow-scrolling: touch;
+      touch-action: manipulation;
+      -webkit-user-select: none;
+      user-select: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+    }
+
+    .controls {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      padding: 8px 8px;
+      padding-top: max(8px, env(safe-area-inset-top));
+      background: rgba(255,255,255,0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(184,134,11,0.1);
+      opacity: 1;
+      transition: opacity 0.4s ease, transform 0.4s ease;
+      flex-wrap: wrap;
+      min-height: 44px;
+      pointer-events: auto;
+    }
+    
+    .controls.fullscreen-mode {
+      opacity: 0;
+      transform: translateY(-100%);
+      transition: opacity 0.3s ease, transform 0.3s ease;
+      pointer-events: none;
+    }
+    
+    .controls.fullscreen-mode.visible {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+    
+    @media (max-width: 768px) {
+      .controls {
+        opacity: 0;
+        transform: translateY(-100%);
+        pointer-events: none;
+      }
+      
+      .controls.visible {
+        opacity: 1;
+        transform: translateY(0);
+        pointer-events: auto;
+      }
+    }
+    
+    body:hover .controls:not(.fullscreen-mode) { 
+      opacity: 1; 
+    }
+    
+    .controls button {
+      background: rgba(184,134,11,0.08);
+      border: 1px solid rgba(184,134,11,0.25);
+      color: #6b5a4a;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 11px;
+      cursor: pointer;
+      transition: all 0.3s;
+      font-family: inherit;
+      backdrop-filter: blur(4px);
+      white-space: nowrap;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+      min-height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .controls button:active { background: rgba(184,134,11,0.2); border-color: #b8860b; transform: scale(0.95); transition: all 0.1s; }
+    
+    .controls button.active { background: rgba(184,134,11,0.2); border-color: #b8860b; color: #8b6914; }
+    
+    .controls .sep { 
+      width: 1px; 
+      height: 14px; 
+      background: rgba(255, 255, 200, 0.3); 
+      margin: 0 2px;
+    }
+    
+    .controls .speed-label { 
+      font-size: 10px; 
+      color: rgba(255, 245, 220, 0.9); 
+      margin-left: 2px; 
+    }
+
+    .hotzone-indicator {
+      position: fixed;
+      top: 0; left: 50%;
+      transform: translateX(-50%);
+      width: 60px; height: 3px;
+      background: rgba(184,134,11,0.3);
+      border-radius: 0 0 3px 3px;
+      z-index: 101;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      pointer-events: none;
+    }
+    
+    .hotzone-indicator.visible {
+      opacity: 1;
+    }
+
+    #loading-screen {
+      position: fixed;
+      inset: 0;
+      z-index: 200;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(160deg, #fdf2f0 0%, #f5e6e0 30%, #f0d6cc 60%, #e8c4b8 100%);
+      transition: opacity 0.8s ease;
+      padding: 20px;
+      padding-top: max(20px, env(safe-area-inset-top));
+      padding-bottom: max(20px, env(safe-area-inset-bottom));
+      overflow: hidden;
+    }
+    #loading-screen::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: radial-gradient(circle at 30% 20%, rgba(255,255,255,0.4) 0%, transparent 50%),
+                  radial-gradient(circle at 70% 80%, rgba(255,255,255,0.3) 0%, transparent 40%);
+      pointer-events: none;
+    }
+    #loading-screen::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 30% 20%, rgba(255,255,255,0.3) 0%, transparent 50%),
+                  radial-gradient(circle at 70% 80%, rgba(255,255,255,0.2) 0%, transparent 40%);
+      pointer-events: none;
+    }
+    
+    #loading-screen .xi {
+      font-family: 'Ma Shan Zheng', cursive, serif;
+      font-size: min(22vw, 22vh, 100px);
+      color: #c41e3a;
+      text-shadow: 0 0 40px rgba(196,30,58,0.3);
+      animation: xiPulse 2s ease-in-out infinite;
+      line-height: 1;
+      position: relative;
+      z-index: 1;
+    }
+    
+    #loading-screen .title {
+      font-family: 'Noto Serif SC', 'Songti SC', serif;
+      font-size: clamp(18px, 5vw, 28px);
+      color: #8b6914;
+      letter-spacing: 0.4em;
+      margin-top: 2vh;
+      text-align: center;
+      position: relative;
+      z-index: 1;
+      font-weight: 600;
+    }
+    #loading-screen .title-line {
+      width: clamp(60px, 20vw, 120px);
+      height: 1px;
+      background: linear-gradient(90deg, transparent, #b8860b, transparent);
+      margin: 1.5vh auto;
+      position: relative;
+      z-index: 1;
+    }
+    
+    #loading-screen .countdown {
+      margin-top: 2vh;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      gap: clamp(12px, 3vw, 24px);
+      opacity: 0;
+      animation: countdownFadeIn 1s ease 0.5s forwards;
+      position: relative;
+      z-index: 1;
+    }
+    @keyframes countdownFadeIn {
+      to { opacity: 1; }
+    }
+    #loading-screen .countdown .cd-block {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      min-width: clamp(48px, 12vw, 80px);
+    }
+    #loading-screen .countdown .cd-num {
+      font-family: 'Noto Serif SC', 'Songti SC', 'Georgia', serif;
+      font-size: clamp(36px, 10vw, 64px);
+      color: #8b6914;
+      line-height: 1;
+      font-weight: 700;
+      min-width: 1.4em;
+      text-align: center;
+    }
+    #loading-screen .countdown .cd-label {
+      font-family: 'Noto Serif SC', serif;
+      font-size: clamp(10px, 2.5vw, 14px);
+      color: #a08060;
+      letter-spacing: 0.15em;
+      text-transform: lowercase;
+    }
+    #loading-screen .countdown .cd-sep {
+      font-family: 'Noto Serif SC', serif;
+      font-size: clamp(24px, 6vw, 40px);
+      color: #b8860b;
+      margin-top: 2px;
+      font-weight: 300;
+    }
+    #loading-screen .countdown .cd-date-label {
+      width: 100%;
+      text-align: center;
+      font-family: 'Noto Serif SC', serif;
+      font-size: clamp(13px, 3vw, 16px);
+      color: #a08060;
+      letter-spacing: 0.3em;
+      margin-top: 2vh;
+    }
+
+    #loading-screen .save-date {
+      font-family: 'Noto Serif SC', 'Songti SC', serif;
+      font-size: clamp(14px, 3.5vw, 20px);
+      color: #8b6914;
+      letter-spacing: 0.3em;
+      margin-top: 3vh;
+      position: relative;
+      z-index: 1;
+      font-weight: 600;
+    }
+    #loading-screen .save-date-num {
+      font-family: 'Noto Serif SC', 'Georgia', serif;
+      font-size: clamp(16px, 4vw, 22px);
+      color: #a08060;
+      letter-spacing: 0.4em;
+      margin-top: 1vh;
+      position: relative;
+      z-index: 1;
+    }
+
+    #loading-screen .progress-container {
+      margin-top: 3vh;
+      width: min(70%, 320px);
+      height: 3px;
+      background: rgba(184,134,11,0.15);
+      border-radius: 2px;
+      overflow: hidden;
+      position: relative;
+      z-index: 1;
+    }
+    
+    #loading-screen .progress-bar {
+      width: 0%;
+      height: 100%;
+      background: linear-gradient(90deg, #b8860b, #d4a843);
+      border-radius: 2px;
+      transition: width 0.3s ease;
+      will-change: width;
+    }
+    
+    #loading-screen .progress-text {
+      margin-top: 1.5vh;
+      font-size: 12px;
+      color: #a08060;
+      letter-spacing: 0.1em;
+      text-align: center;
+      position: relative;
+      z-index: 1;
+    }
+    
+    #loading-screen .enter-buttons {
+      display: none;
+      margin-top: 3vh;
+      gap: 12px;
+      opacity: 0;
+      transition: opacity 0.5s ease;
+      flex-wrap: wrap;
+      justify-content: center;
+      padding: 0 20px;
+      position: relative;
+      z-index: 1;
+    }
+    
+    #loading-screen .enter-buttons.show { 
+      display: flex; 
+      opacity: 1; 
+    }
+    
+    #loading-screen .enter-buttons button {
+      background: rgba(184, 134, 11, 0.12);
+      border: 1px solid rgba(184, 134, 11, 0.5);
+      color: #8b6914;
+      padding: 12px 28px;
+      border-radius: 30px;
+      font-size: 15px;
+      cursor: pointer;
+      transition: all 0.3s;
+      font-family: inherit;
+      letter-spacing: 0.1em;
+      min-width: 130px;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+      font-weight: 500;
+    }
+    
+    #loading-screen .enter-buttons button:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+    
+    #loading-screen .enter-buttons button:hover {
+      background: rgba(184, 134, 11, 0.25);
+      transform: translateY(-1px);
+    }
+    
+    #loading-screen .enter-buttons button:active { 
+      background: rgba(184, 134, 11, 0.35);
+      transform: scale(0.96); 
+      transition: all 0.1s;
+    }
+    
+    @keyframes xiPulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.04); }
+    }
+
+    #gridwall {
+      position: fixed;
+      inset: 0;
+      z-index: 10;
+      overflow: hidden;
+      background: #f5f3ef;
+      display: none;
+    }
+    
+    #gridwall .grid-track {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      animation: gridScrollUp 50s linear infinite;
+      will-change: transform;
+    }
+    
+    #gridwall .grid-row {
+      display: flex;
+      gap: 3px;
+      height: 22vh;
+      flex-shrink: 0;
+    }
+    
+    #gridwall .grid-row:nth-child(even) { animation: gridScrollL 40s linear infinite; }
+    #gridwall .grid-row:nth-child(odd) { animation: gridScrollR 40s linear infinite; }
+    
+    #gridwall .grid-item {
+      flex: none;
+      height: 100%;
+      aspect-ratio: 3/2;
+      border-radius: 6px;
+      overflow: hidden;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #1a1a1a;
+      contain: layout style;
+    }
+    
+    #gridwall .grid-item .blur-fill {
+      position: absolute;
+      inset: -15px;
+      background-size: cover;
+      background-position: center;
+      filter: blur(20px) brightness(0.9);
+      z-index: 0;
+    }
+    
+    #gridwall .grid-item img {
+      position: relative;
+      z-index: 2;
+      max-width: 92%;
+      max-height: 92%;
+      object-fit: contain;
+      border-radius: 3px;
+      -webkit-user-drag: none;
+    }
+    
+    @keyframes gridScrollL {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+    
+    @keyframes gridScrollR {
+      0% { transform: translateX(-50%); }
+      100% { transform: translateX(0); }
+    }
+    
+    @keyframes gridScrollUp {
+      0% { transform: translateY(0); }
+      100% { transform: translateY(-50%); }
+    }
+
+    #magazine {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      z-index: 10;
+      display: none;
+      overflow: hidden;
+      background: #f5f3ef;
+      touch-action: pan-x;
+    }
+    
+    .mag-page {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      opacity: 0;
+      transform: translateX(30px);
+      transition: all 0.5s cubic-bezier(0.4, 0.0, 0.2, 1);
+    }
+    .mag-page.active {
+      opacity: 1;
+      transform: translateX(0);
+      z-index: 2;
+    }
+    
+    .mag-page.prev {
+      opacity: 0;
+      transform: translateX(-30px);
+      z-index: 1;
+    }
+    
+    .mag-page.next {
+      opacity: 0;
+      transform: translateX(30px);
+      z-index: 1;
+    }
+    
+    @media (min-width: 769px) {
+      #magazine {
+        perspective: 2000px;
+      }
+      
+      .mag-page {
+        transform: rotateY(0deg);
+        transition: none;
+      }
+      
+      .mag-page.active {
+        z-index: 3;
+        opacity: 1;
+        transform: rotateY(0deg);
+      }
+      
+      .mag-page.next {
+        z-index: 2;
+        opacity: 1;
+        transform: rotateY(0deg);
+      }
+      
+      .mag-page.prev {
+        z-index: 1;
+        opacity: 0;
+        transform: rotateY(-30deg);
+      }
+      
+      .mag-page.flip-out-left {
+        animation: flipOutLeft 0.8s cubic-bezier(0.4, 0.0, 0.2, 1) forwards;
+        z-index: 4;
+      }
+      
+      .mag-page.flip-in-right {
+        animation: flipInRight 0.8s cubic-bezier(0.4, 0.0, 0.2, 1) forwards;
+        z-index: 3;
+      }
+      
+      .mag-page.flip-out-right {
+        animation: flipOutRight 0.8s cubic-bezier(0.4, 0.0, 0.2, 1) forwards;
+        z-index: 4;
+      }
+      
+      .mag-page.flip-in-left {
+        animation: flipInLeft 0.8s cubic-bezier(0.4, 0.0, 0.2, 1) forwards;
+        z-index: 3;
+      }
+      
+      @keyframes flipOutLeft {
+        0% { transform: rotateY(0deg); opacity: 1; }
+        100% { transform: rotateY(-90deg); opacity: 0.3; }
+      }
+      
+      @keyframes flipInRight {
+        0% { transform: rotateY(90deg); opacity: 0.3; }
+        100% { transform: rotateY(0deg); opacity: 1; }
+      }
+      
+      @keyframes flipOutRight {
+        0% { transform: rotateY(0deg); opacity: 1; }
+        100% { transform: rotateY(90deg); opacity: 0.3; }
+      }
+      
+      @keyframes flipInLeft {
+        0% { transform: rotateY(-90deg); opacity: 0.3; }
+        100% { transform: rotateY(0deg); opacity: 1; }
+      }
+      
+      .mag-page::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, 
+          transparent 0%, 
+          rgba(212, 175, 55, 0.1) 40%, 
+          rgba(212, 175, 55, 0.2) 50%, 
+          rgba(212, 175, 55, 0.1) 60%, 
+          transparent 100%);
+        pointer-events: none;
+        z-index: 10;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+      }
+      
+      .mag-page.flip-out-left::after,
+      .mag-page.flip-in-right::after,
+      .mag-page.flip-out-right::after,
+      .mag-page.flip-in-left::after {
+        opacity: 1;
+        animation: shimmer 0.8s ease;
+      }
+      
+      @keyframes shimmer {
+        0%, 100% { opacity: 0; }
+        50% { opacity: 1; }
+      }
+    }
+    
+    .mag-page .mag-img {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+      min-width: 0;
+      min-height: 200px;
+    }
+
+    /* ===== Wedding Bubbles ===== */
+    .wedding-bubble {
+      position: absolute;
+      z-index: 5;
+      padding: 6px 14px;
+      background: linear-gradient(135deg, rgba(196,30,58,0.85), rgba(178,34,52,0.8));
+      border: 1px solid rgba(212,175,55,0.6);
+      border-radius: 20px;
+      color: #fff;
+      font-family: 'ZCOOL KuaiLe', 'Ma Shan Zheng', cursive, sans-serif;
+      font-size: clamp(12px, 1.8vh, 16px);
+      white-space: nowrap;
+      pointer-events: none;
+      box-shadow: 0 3px 12px rgba(0,0,0,0.3), 0 0 8px rgba(196,30,58,0.2);
+      animation: bubbleFloat 3s ease-in-out infinite;
+      opacity: 0;
+      transform: scale(0.6);
+      transition: opacity 0.5s ease, transform 0.5s ease;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.3);
+      letter-spacing: 0.05em;
+      line-height: 1.4;
+    }
+    .wedding-bubble.show {
+      opacity: 1;
+      transform: scale(1);
+    }
+    .wedding-bubble::after {
+      content: '';
+      position: absolute;
+      bottom: -5px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 6px solid transparent;
+      border-right: 6px solid transparent;
+      border-top: 6px solid rgba(178,34,52,0.85);
+    }
+    @keyframes bubbleFloat {
+      0%, 100% { transform: translateY(0) scale(1); }
+      50% { transform: translateY(-6px) scale(1.03); }
+    }
+    .wedding-bubble:nth-child(odd) { animation-delay: -1.5s; }
+    .wedding-bubble:nth-child(3n) { animation-duration: 3.5s; }
+    .wedding-bubble:nth-child(4n) { animation-duration: 2.8s; }
+    .wedding-bubble:nth-child(5n) {
+      background: linear-gradient(135deg, rgba(212,175,55,0.85), rgba(180,150,40,0.8));
+      border-color: rgba(196,30,58,0.5);
+      color: #2a1a0a;
+      text-shadow: none;
+    }
+    .wedding-bubble:nth-child(5n)::after {
+      border-top-color: rgba(180,150,40,0.85);
+    }
+    .wedding-bubble:nth-child(7n) {
+      font-size: clamp(10px, 1.5vh, 14px);
+      padding: 4px 10px;
+    }
+    .wedding-bubble:nth-child(3n+1) {
+      transform: rotate(-2deg);
+    }
+    .wedding-bubble:nth-child(3n+2) {
+      transform: rotate(1.5deg);
+    }
+    
+    .blur-bg {
+      position: absolute;
+      inset: 0;
+      background-size: cover;
+      background-position: center;
+      filter: blur(50px) brightness(0.8) saturate(0.8);
+      transform: scale(1.2);
+      z-index: 0;
+    }
+    
+    #magazine .mag-page .mag-img img {
+      max-width: 90%;
+      max-height: 90%;
+      object-fit: contain;
+      z-index: 2;
+      position: relative;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.4);
+      border-radius: 6px;
+      -webkit-user-drag: none;
+    }
+
+    #magazine .mag-page .mag-text {
+      flex: 0 0 38%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2vh 2vw;
+      background: linear-gradient(160deg, #fdf6e3 0%, #f5ede0 40%, #ede1d0 100%);
+      color: #3a2a1a;
+      position: relative;
+      gap: 0.8vh;
+      min-width: 0;
+      overflow: hidden;
+    }
+    #magazine .mag-page .mag-text .text-blur-bg {
+      position: absolute; inset: -20px;
+      background-size: cover;
+      background-position: center;
+      filter: blur(60px) brightness(0.8) saturate(0.6);
+      opacity: 0.3;
+      z-index: 0;
+    }
+    #magazine .mag-page .mag-text > *:not(.text-blur-bg) {
+      position: relative;
+      z-index: 1;
+    }
+
+    #magazine .mag-page .mag-text .text-blur-bg {
+      position: absolute;
+      inset: -20px;
+      background-size: cover;
+      background-position: center;
+      filter: blur(50px) brightness(0.3) saturate(1.3);
+      z-index: 0;
+    }
+
+    #magazine .mag-page .mag-text > *:not(.text-blur-bg) {
+      position: relative;
+      z-index: 1;
+    }
+
+    #magazine .mag-page .mag-text::before {
+      content: '';
+      position: absolute;
+      top: 5%;
+      left: 10%;
+      right: 10%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, #d4af37, transparent);
+    }
+    
+    #magazine .mag-page .mag-text::after {
+      content: '';
+      position: absolute;
+      bottom: 5%;
+      left: 10%;
+      right: 10%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, #d4af37, transparent);
+    }
+
+    #magazine .mag-page .mag-text .mag-xi {
+      font-family: 'ZCOOL KuaiLe', 'Ma Shan Zheng', 'Liu Jian Mao Cao', 'Zhi Mang Xing', 'Long Cang', cursive, sans-serif;
+      font-size: clamp(60px, 14vh, 120px);
+      color: #b8860b;
+      line-height: 1;
+      text-shadow: 0 2px 8px rgba(184,134,11,0.15), 0 0 20px rgba(212,175,55,0.2);
+      font-weight: normal;
+      letter-spacing: 0.05em;
+      transition: transform 0.3s ease;
+      animation: xiBounce 3s ease-in-out infinite;
+      flex-shrink: 0;
+    }
+    
+    @keyframes xiBounce {
+      0%, 100% { transform: translateY(0) rotate(-2deg); }
+      50% { transform: translateY(-8px) rotate(2deg); }
+    }
+    
+    #magazine .mag-page .mag-text .mag-quote {
+      font-size: clamp(13px, 2vh, 18px);
+      line-height: 1.8;
+      color: #5a4a3a;
+      text-align: center;
+      letter-spacing: 0.1em;
+      font-style: italic;
+      max-width: 95%;
+      padding: 0.8vh 1.5vw;
+      background: rgba(184,134,11,0.06);
+      border-radius: 8px;
+      border-left: 3px solid #b8860b;
+      word-break: keep-all;
+      overflow-wrap: break-word;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    #magazine .mag-page .mag-text .avatar-container {
+      display: flex;
+      gap: clamp(10px, 2vw, 20px);
+      align-items: center;
+      justify-content: center;
+      margin-top: 0.3vh;
+      position: relative;
+      flex-shrink: 0;
+    }
+
+    #magazine .mag-page .mag-text .avatar-container::before {
+      content: '♥';
+      position: absolute;
+      font-family: 'ZCOOL KuaiLe', 'Ma Shan Zheng', cursive, sans-serif;
+      font-size: clamp(22px, 4vh, 36px);
+      color: #b8860b;
+      z-index: 3;
+      animation: heartBeat 1.2s ease-in-out infinite;
+      text-shadow: 0 0 15px rgba(196,30,58,0.5);
+    }
+    
+    @keyframes heartBeat {
+      0%, 100% { transform: scale(1); }
+      15% { transform: scale(1.3); }
+      30% { transform: scale(1); }
+    }
+
+    #magazine .mag-page .mag-text .avatar-container .avatar {
+      width: clamp(90px, 18vh, 150px);
+      height: clamp(90px, 18vh, 150px);
+      border-radius: 50%;
+      object-fit: cover;
+      border: 3px solid #b8860b;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.1), 0 0 12px rgba(184,134,11,0.15);
+      transition: all 0.4s ease;
+      background: #f5f0e8;
+      -webkit-user-drag: none;
+      position: relative;
+      z-index: 1;
+    }
+    
+    #magazine .mag-page .mag-text .avatar-container .avatar:hover {
+      transform: scale(1.05) rotate(3deg);
+      border-color: #c41e3a;
+      box-shadow: 0 10px 30px rgba(196,30,58,0.4), 0 0 25px rgba(212,175,55,0.5);
+    }
+
+    #magazine .mag-page .mag-text .names-label {
+      font-family: 'ZCOOL KuaiLe', 'Ma Shan Zheng', cursive, sans-serif;
+      font-size: clamp(15px, 2.2vh, 22px);
+      color: #8b6914;
+      letter-spacing: 0.2em;
+      font-weight: normal;
+      margin-top: 0.3vh;
+      padding: 0.6vh 3vw;
+      background: rgba(184,134,11,0.08);
+      border-radius: 20px;
+      border: 1px solid rgba(184,134,11,0.2);
+      flex-shrink: 0;
+    }
+
+    #magazine .mag-page .mag-text .mag-thanks {
+      font-family: 'Noto Serif SC', 'Songti SC', serif;
+      font-size: clamp(11px, 1.6vh, 14px);
+      color: #a08060;
+      letter-spacing: 0.15em;
+      text-align: center;
+      font-style: italic;
+      flex-shrink: 0;
+      opacity: 0.8;
+    }
+
+    #magazine .mag-page.reverse { flex-direction: row-reverse; }
+
+    .page-particles {
+      position: fixed;
+      pointer-events: none;
+      z-index: 20;
+      display: none;
+    }
+    
+    @media (min-width: 769px) {
+      .page-particles {
+        display: block;
+      }
+    }
+    
+    .page-particle {
+      position: absolute;
+      width: 3px; height: 3px;
+      background: #b8860b;
+      border-radius: 50%;
+      animation: particleBurst 1s ease-out forwards;
+    }
+    
+    @keyframes particleBurst {
+      0% {
+        transform: translate(0, 0) scale(1);
+        opacity: 1;
+      }
+      100% {
+        transform: translate(var(--tx), var(--ty)) scale(0);
+        opacity: 0;
+      }
+    }
+
+    .particles {
+      position: fixed; inset: 0;
+      z-index: 5;
+      pointer-events: none;
+      overflow: hidden;
+      display: none;
+    }
+    
+    .particles span {
+      position: absolute;
+      display: block;
+      width: 2px;
+      height: 2px;
+      background: rgba(212,175,55,0.3);
+      border-radius: 50%;
+      animation: float linear infinite;
+    }
+    
+    @keyframes float {
+      0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+      10% { opacity: 0.7; }
+      90% { opacity: 0.7; }
+      100% { transform: translateY(-10vh) rotate(720deg); opacity: 0; }
+    }
+
+    @media (max-width: 768px) {
+      .controls { 
+        gap: 3px; 
+        padding: 6px 6px; 
+        padding-top: max(6px, env(safe-area-inset-top));
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        justify-content: flex-start;
+      }
+      
+      .controls button { 
+        padding: 5px 10px; 
+        font-size: 10px; 
+        border-radius: 16px; 
+        min-height: 30px;
+        flex-shrink: 0;
+      }
+      
+      .controls .sep { 
+        height: 12px; 
+        margin: 0 1px; 
+        flex-shrink: 0;
+      }
+      
+      .controls .speed-label { 
+        font-size: 9px; 
+        flex-shrink: 0;
+      }
+      
+      #loading-screen .xi { font-size: min(35vw, 30vh, 100px); }
+      #loading-screen .title { font-size: clamp(14px, 5vw, 18px); letter-spacing: 0.25em; }
+      #loading-screen .countdown .cd-num { font-size: clamp(22px, 6vw, 36px); }
+      #loading-screen .countdown .cd-sep { font-size: clamp(16px, 4vw, 24px); }
+      #loading-screen .countdown .cd-date-label { font-size: clamp(10px, 2.5vw, 12px); }
+
+      #loading-screen .progress-container { width: 85%; height: 4px; }
+      #loading-screen .progress-text { font-size: 12px; }
+      #loading-screen .enter-buttons { gap: 10px; }
+      #loading-screen .enter-buttons button { 
+        padding: 10px 20px; 
+        font-size: 13px; 
+        min-width: 100px; 
+      }
+      
+      #gridwall .grid-row { 
+        height: 16vh; 
+        gap: 2px; 
+      }
+      
+      #gridwall .grid-track { gap: 2px; }
+      
+      #magazine .mag-page { 
+        flex-direction: column !important; 
+      }
+      
+      #magazine .mag-page .mag-img { 
+        flex: 1;
+        min-height: 45vh;
+      }
+      
+      #magazine .mag-page .mag-text { 
+        flex: 0 0 auto;
+        padding: 1.5vh 2vw; 
+        gap: 0.5vh;
+        min-height: 120px;
+        max-height: 42vh;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+      
+      #magazine .mag-page .mag-text .mag-xi { 
+        font-size: clamp(40px, 8vh, 60px); 
+      }
+      
+      #magazine .mag-page .mag-text .mag-quote { 
+        font-size: clamp(11px, 1.6vh, 14px); 
+        line-height: 1.6; 
+        padding: 0.5vh 2vw;
+        max-width: 98%;
+        -webkit-line-clamp: 3;
+      }
+      
+      #magazine .mag-page .mag-text .avatar-container { 
+        gap: 3vw; 
+      }
+      
+      #magazine .mag-page .mag-text .avatar-container .avatar { 
+        width: clamp(64px, 18vw, 100px); 
+        height: clamp(64px, 18vw, 100px); 
+        border-width: 2px; 
+      }
+      
+      #magazine .mag-page .mag-text .avatar-container::before {
+        font-size: clamp(16px, 3vh, 24px);
+      }
+      
+      #magazine .mag-page .mag-text .names-label { 
+        font-size: clamp(13px, 1.8vh, 16px); 
+        padding: 0.5vh 4vw; 
+      }
+      
+      /* Reduce blur on mobile for performance */
+      .blur-bg {
+        filter: blur(15px) brightness(0.4);
+      }
+    }
+
+    @media (max-width: 380px) {
+      .controls button { 
+        padding: 4px 8px; 
+        font-size: 9px; 
+        min-height: 28px;
+      }
+      
+      #magazine .mag-page .mag-text { 
+        padding: 1vh 1.5vw; 
+        min-height: 100px;
+        max-height: 38vh;
+        gap: 0.3vh;
+      }
+      
+      #magazine .mag-page .mag-text .mag-xi { 
+        font-size: clamp(36px, 7vh, 50px); 
+      }
+      
+      #magazine .mag-page .mag-text .mag-quote { 
+        font-size: clamp(10px, 1.4vh, 12px);
+        padding: 0.3vh 1.5vw;
+      }
+      
+      #magazine .mag-page .mag-text .avatar-container { 
+        gap: 2vw; 
+      }
+      
+      #magazine .mag-page .mag-text .avatar-container .avatar { 
+        width: clamp(52px, 16vw, 80px); 
+        height: clamp(52px, 16vw, 80px); 
+      }
+      
+      #magazine .mag-page .mag-text .names-label { 
+        font-size: clamp(11px, 1.6vh, 14px); 
+      }
+    }
+
+    @media (max-width: 768px) and (orientation: landscape) {
+      #magazine .mag-page { 
+        flex-direction: row !important; 
+      }
+      
+      #magazine .mag-page .mag-text { 
+        flex: 0 0 40%;
+        min-height: 0;
+        padding: 1.5vh 1.5vw;
+        gap: 0.4vh;
+        overflow-y: auto;
+      }
+      
+      #magazine .mag-page .mag-text .mag-xi { 
+        font-size: clamp(32px, 6vh, 45px); 
+      }
+      
+      #magazine .mag-page .mag-text .avatar-container .avatar { 
+        width: clamp(50px, 12vh, 80px); 
+        height: clamp(50px, 12vh, 80px); 
+      }
+      
+      #magazine .mag-page .mag-text .mag-quote {
+        font-size: clamp(10px, 1.5vh, 13px);
+        -webkit-line-clamp: 2;
+      }
+    }
+    /* ===== Music Player & Lyrics ===== */
+    
+    /* --- Singing Bar (bottom) --- */
+    .sing-bar {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      z-index: 90;
+      height: 120px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+      background: linear-gradient(0deg, rgba(253,246,227,0.9) 0%, rgba(253,246,227,0.4) 60%, transparent 100%);
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+    .sing-bar.active {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    
+    /* --- Singing side (avatar + lyrics pair) --- */
+    .sing-side {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex: 1;
+      min-width: 0;
+      padding: 0 10px;
+    }
+    .sing-side.left {
+      flex-direction: row;
+      justify-content: flex-end;
+      padding-right: 20px;
+    }
+    .sing-side.right {
+      flex-direction: row-reverse;
+      justify-content: flex-end;
+      padding-left: 20px;
+    }
+    
+    .sing-avatar-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      flex-shrink: 0;
+    }
+    
+    .sing-avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid rgba(212, 175, 55, 0.7);
+      box-shadow: 0 2px 12px rgba(0,0,0,0.4);
+      opacity: 0;
+      transform: scale(0.6);
+      transition: opacity 0.5s ease, transform 0.5s ease;
+    }
+    .sing-avatar.show {
+      opacity: 1;
+      transform: scale(1);
+    }
+    .sing-avatar.singing {
+      animation: singBounce 0.5s ease-in-out infinite alternate;
+    }
+    
+    .mic-icon {
+      font-size: 13px;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    .mic-icon.show {
+      opacity: 1;
+      animation: micPulse 0.8s ease-in-out infinite alternate;
+    }
+    
+    .avatar-name {
+      font-family: 'ZCOOL KuaiLe', cursive, sans-serif;
+      font-size: 10px;
+      color: rgba(212,175,55,0.8);
+      letter-spacing: 0.1em;
+      opacity: 0;
+      transition: opacity 0.4s ease;
+    }
+    .avatar-name.show { opacity: 1; }
+    
+    @keyframes singBounce {
+      0% { transform: scale(1) translateY(0) rotate(-3deg); }
+      100% { transform: scale(1.08) translateY(-4px) rotate(3deg); }
+    }
+    @keyframes micPulse {
+      0% { transform: scale(1); opacity: 0.7; }
+      100% { transform: scale(1.2); opacity: 1; }
+    }
+    
+    /* --- Lyrics text --- */
+    .lyrics-area {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      align-items: center;
+    }
+    .sing-side.left .lyrics-area {
+      justify-content: flex-start;
+    }
+    .sing-side.right .lyrics-area {
+      justify-content: flex-end;
+    }
+    
+    .lyrics-text {
+      font-family: 'ZCOOL KuaiLe', 'Ma Shan Zheng', cursive, sans-serif;
+      font-size: clamp(17px, 2.8vh, 26px);
+      color: #3a2a1a;
+      text-shadow: 0 1px 4px rgba(255,255,255,0.8);
+      letter-spacing: 0.08em;
+      line-height: 1.5;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 100%;
+    }
+    
+    .lyrics-text .char {
+      display: inline-block;
+      opacity: 0;
+      transform: translateY(6px);
+      transition: opacity 0.12s ease, transform 0.12s ease;
+    }
+    .lyrics-text .char.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    
+    .lyrics-text .cursor {
+      display: inline-block;
+      width: 2px;
+      height: 1em;
+      background: #d4af37;
+      margin-left: 2px;
+      vertical-align: middle;
+      animation: blink 0.6s step-end infinite;
+    }
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
+    }
+    
+    /* --- Mobile --- */
+    @media (max-width: 768px) {
+      .sing-bar { height: 100px; }
+      .sing-avatar { width: 38px; height: 38px; }
+      .mic-icon { font-size: 11px; }
+      .avatar-name { font-size: 9px; }
+      .lyrics-text { font-size: clamp(15px, 2.4vh, 22px); }
+      .sing-side.left { padding-right: 10px; }
+      .sing-side.right { padding-left: 10px; }
+    }
+    
+    @media (max-width: 380px) {
+      .sing-bar { height: 85px; }
+      .sing-avatar { width: 32px; height: 32px; }
+      .lyrics-text { font-size: clamp(13px, 2vh, 18px); }
+    }
+    
+    /* ===== Credits Mode ===== */
+    #credits {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      z-index: 160;
+      display: none;
+      background: #faf9f7;
+    }
+    #credits.active { display: block; }
+
+    .credits-photos {
+      position: absolute;
+      top: 0; left: 0;
+      width: 42%; height: 100%;
+      overflow: hidden;
+      background: #0a0a0a;
+    }
+    .credits-slide {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0;
+      transform: scale(1.05);
+      transition: opacity 1.2s ease, transform 1.2s ease;
+    }
+    .credits-slide.active { opacity: 1; transform: scale(1); }
+    .credits-slide .credits-slide-bg {
+      position: absolute; top: -20px; left: -20px; right: -20px; bottom: -20px;
+      background-size: cover; background-position: center;
+      filter: blur(25px) brightness(0.4); transform: scale(1.1);
+    }
+    .credits-slide img {
+      position: relative; z-index: 2;
+      max-width: 88%; max-height: 88%;
+      object-fit: contain; border-radius: 8px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+    }
+
+    .credits-right {
+      position: absolute;
+      top: 0; left: 42%; right: 0; bottom: 0;
+      overflow: hidden;
+      background: linear-gradient(135deg, #fdf6e3 0%, #f5ede0 50%, #ede1d0 100%);
+    }
+    .credits-list {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      display: flex; flex-direction: column; align-items: center;
+      padding: 0 30px;
+      animation: creditsScrollUp linear forwards;
+    }
+    @keyframes creditsScrollUp {
+      0% { transform: translateY(100vh); }
+      100% { transform: translateY(-100%); }
+    }
+
+    .credits-pwd-modal {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      z-index: 170; display: none;
+      align-items: center; justify-content: center;
+      background: rgba(0,0,0,0.4);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+    .credits-pwd-modal.show { display: flex; }
+    .credits-pwd-box {
+      display: flex; flex-direction: column; align-items: center; gap: 16px;
+      background: #ffffff;
+      border: 1px solid rgba(184,134,11,0.2);
+      border-radius: 16px;
+      padding: 36px 32px;
+      max-width: 320px; width: 85%;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+    }
+    .credits-pwd-box .pwd-title {
+      font-family: 'ZCOOL KuaiLe', cursive, sans-serif;
+      font-size: 18px; color: #8b6914;
+      letter-spacing: 0.2em;
+    }
+    .credits-pwd-box input {
+      width: 100%; padding: 12px 16px;
+      background: #faf9f7;
+      border: 1px solid rgba(184,134,11,0.3);
+      border-radius: 8px;
+      color: #3a2a1a; font-size: 16px;
+      text-align: center; letter-spacing: 0.3em;
+      outline: none; font-family: inherit;
+    }
+    .credits-pwd-box input:focus {
+      border-color: #d4af37;
+    }
+    .credits-pwd-box input::placeholder {
+      color: #b0a090; letter-spacing: 0.1em;
+    }
+    .credits-pwd-box .pwd-btn {
+      width: 100%; padding: 10px;
+      background: rgba(184,134,11,0.1);
+      border: 1px solid rgba(184,134,11,0.4);
+      border-radius: 8px;
+      color: #8b6914; font-size: 14px;
+      cursor: pointer; font-family: inherit;
+      letter-spacing: 0.15em;
+      transition: all 0.3s ease;
+    }
+    .credits-pwd-box .pwd-btn:active {
+      background: rgba(180,50,50,0.6); border-color: #c41e3a;
+    }
+    .credits-pwd-box .pwd-hint {
+      font-size: 12px; color: rgba(196,30,58,0.8);
+      min-height: 16px;
+    }
+
+    .credits-final {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      padding: 30px;
+    }
+    .credits-final.show { display: flex; }
+    .credits-final .f-thanks {
+      font-family: 'ZCOOL KuaiLe', 'Ma Shan Zheng', cursive, sans-serif;
+      font-size: clamp(18px, 3vh, 28px);
+      color: #5a4a3a;
+      text-align: center;
+      line-height: 2.2;
+      letter-spacing: 0.15em;
+    }
+    .credits-final .f-xi {
+      font-family: 'ZCOOL KuaiLe', 'Ma Shan Zheng', cursive, sans-serif;
+      font-size: clamp(50px, 12vh, 100px);
+      color: #b8860b;
+      text-shadow: 0 0 30px rgba(184,134,11,0.2);
+    }
+    .credits-final .f-sign {
+      font-family: 'ZCOOL KuaiLe', 'Ma Shan Zheng', cursive, sans-serif;
+      font-size: clamp(20px, 3.5vh, 32px);
+      color: #8b6914;
+      letter-spacing: 0.2em;
+    }
+    .credits-final .f-divider {
+      width: 80px; height: 1px;
+      background: linear-gradient(90deg, transparent, #d4af37, transparent);
+    }
+    .credits-list .cr-item {
+      flex-shrink: 0;
+    }
+
+    .credits-list .c-xi {
+      font-family: 'ZCOOL KuaiLe', 'Ma Shan Zheng', cursive, sans-serif;
+      font-size: clamp(60px, 14vh, 130px); color: #b8860b;
+      text-shadow: 0 0 30px rgba(184,134,11,0.2);
+      margin-bottom: 16px;
+    }
+    .credits-list .c-title {
+      font-family: 'ZCOOL KuaiLe', cursive, sans-serif;
+      font-size: clamp(22px, 4vh, 38px); color: #8b6914;
+      letter-spacing: 0.3em; margin-bottom: 24px;
+    }
+    .credits-list .c-section {
+      font-family: 'ZCOOL KuaiLe', cursive, sans-serif;
+      font-size: clamp(14px, 2.2vh, 20px); color: rgba(139,105,20,0.6);
+      letter-spacing: 0.2em; margin-top: 24px; margin-bottom: 6px;
+    }
+    .credits-list .c-name {
+      font-family: 'ZCOOL KuaiLe', 'Ma Shan Zheng', cursive, sans-serif;
+      font-size: clamp(16px, 2.6vh, 24px); color: #3a2a1a;
+      letter-spacing: 0.15em; line-height: 2;
+    }
+    .credits-list .c-thanks {
+      font-family: 'ZCOOL KuaiLe', 'Ma Shan Zheng', cursive, sans-serif;
+      font-size: clamp(15px, 2.4vh, 22px); color: #5a4a3a;
+      text-align: center; line-height: 2.2; letter-spacing: 0.1em;
+      max-width: 90%; margin-top: 16px;
+    }
+    .credits-list .c-divider {
+      width: 60px; height: 1px;
+      background: linear-gradient(90deg, transparent, #d4af37, transparent);
+      margin: 14px 0;
+    }
+    .credits-list .c-end {
+      font-family: 'ZCOOL KuaiLe', cursive, sans-serif;
+      font-size: clamp(18px, 3vh, 28px); color: #b8860b;
+      letter-spacing: 0.2em; margin-top: 30px;
+    }
+
+    .credits-divider {
+      position: absolute; top: 0; left: 42%;
+      width: 1px; height: 100%;
+      background: linear-gradient(180deg, transparent, rgba(184,134,11,0.3), rgba(184,134,11,0.5), rgba(184,134,11,0.3), transparent);
+      z-index: 2;
+    }
+    .credits-close {
+      position: absolute; top: 15px; right: 15px; z-index: 10;
+      background: rgba(255,255,255,0.8); border: 1px solid rgba(184,134,11,0.3);
+      color: #8b6914; width: 36px; height: 36px; border-radius: 50%;
+      font-size: 18px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      backdrop-filter: blur(8px); transition: all 0.3s ease;
+    }
+    .credits-close:active { background: rgba(180,50,50,0.6); border-color: #c41e3a; transform: scale(0.9); }
+
+    @media (max-width: 768px) {
+      .credits-photos { width: 100%; height: 40%; }
+      .credits-right { top: 40%; left: 0; }
+      .credits-list { padding: 20px 15px 40px; }
+      .credits-divider { left: 0; right: 0; top: 40%; width: 100%; height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(212,175,55,0.5), transparent); }
+    }
+
+        /* ===== ICP Filing ===== */
+    .icp-footer {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      z-index: 999;
+      text-align: center;
+      padding: 6px 10px;
+      padding-bottom: max(6px, env(safe-area-inset-bottom));
+      background: linear-gradient(0deg, rgba(253,246,227,0.8) 0%, rgba(253,246,227,0.3) 70%, transparent 100%);
+      pointer-events: none;
+    }
+    .icp-footer a {
+      color: rgba(139,105,20,0.4);
+      font-size: 11px;
+      text-decoration: none;
+      letter-spacing: 0.08em;
+      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+      transition: color 0.3s;
+      pointer-events: auto;
+    }
+    .icp-footer a:hover { color: rgba(139,105,20,0.7); }
+    .icp-footer a:hover {
+      color: #8b7a6a;
+    }
+
+    /* ===== Anti-download / Anti-screenshot ===== */
+    img {
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      user-select: none;
+      pointer-events: none;
+      -webkit-user-drag: none;
+    }
+    
+    .mag-page .mag-img,
+    .grid-item {
+      position: relative;
+    }
+    
+    .mag-page .mag-img::after,
+    .grid-item::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      z-index: 100;
+      background: transparent;
+    }
+    
+    @media print {
+      body { display: none !important; }
+    }
+    /* ===== RSVP Attendance Form ===== */
+    #rsvp-screen {
+      position: fixed; inset: 0;
+      z-index: 300;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(160deg, #fdf6e3 0%, #f5ede0 40%, #ede1d0 100%);
+      padding: 20px;
+      padding-top: max(20px, env(safe-area-inset-top));
+      padding-bottom: max(20px, env(safe-area-inset-bottom));
+      overflow-y: scroll;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior: contain;
+    }
+    #rsvp-screen .rsvp-card {
+      width: 100%;
+      max-width: 420px;
+      background: #ffffff;
+      border: 1px solid rgba(184,134,11,0.15);
+      border-radius: 20px;
+      padding: 32px 28px;
+      position: relative;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+    }
+    .rsvp-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 10%; right: 10%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, #d4af37, transparent);
+    }
+    .rsvp-card::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 10%; right: 10%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, #d4af37, transparent);
+    }
+    .rsvp-xi {
+      font-family: 'Ma Shan Zheng', cursive, serif;
+      font-size: clamp(48px, 12vw, 72px);
+      color: #b8860b;
+      text-align: center;
+      line-height: 1;
+      text-shadow: 0 0 30px rgba(184,134,11,0.2);
+      animation: xiPulse 2s ease-in-out infinite;
+    }
+    .rsvp-title {
+      text-align: center;
+      font-family: 'ZCOOL KuaiLe', cursive, sans-serif;
+      font-size: clamp(16px, 4vw, 22px);
+      color: #8b6914;
+      letter-spacing: 0.25em;
+      margin-top: 8px;
+    }
+    .rsvp-subtitle {
+      text-align: center;
+      font-size: clamp(12px, 3vw, 14px);
+      color: #8b7a6a;
+      margin-top: 6px;
+      letter-spacing: 0.1em;
+    }
+    .rsvp-form {
+      margin-top: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+    .rsvp-field label {
+      display: block;
+      font-size: 13px;
+      color: #8b6914;
+      margin-bottom: 8px;
+      letter-spacing: 0.15em;
+      font-weight: 500;
+    }
+    .rsvp-field input,
+    .rsvp-field textarea {
+      width: 100%;
+      padding: 12px 16px;
+      background: #faf9f7;
+      border: 1px solid rgba(184,134,11,0.2);
+      border-radius: 10px;
+      color: #3a2a1a;
+      font-size: 15px;
+      font-family: inherit;
+      outline: none;
+      transition: all 0.3s ease;
+    }
+    .rsvp-field input:hover,
+    .rsvp-field textarea:hover {
+      border-color: rgba(212,175,55,0.5);
+    }
+    .rsvp-field input:focus,
+    .rsvp-field textarea:focus { border-color: #b8860b; box-shadow: 0 0 0 3px rgba(184,134,11,0.1); }
+    .rsvp-field input::placeholder,
+    .rsvp-field textarea::placeholder { color: #b0a090; }
+    .rsvp-field textarea { resize: none; height: 60px; }
+    .rsvp-field input[type="date"] {
+      color-scheme: dark;
+      -webkit-appearance: none;
+    }
+    .rsvp-field input[type="date"]::-webkit-calendar-picker-indicator {
+      filter: invert(0.8) sepia(1) hue-rotate(0deg) saturate(3);
+      cursor: pointer;
+    }
+    .rsvp-field select {
+      width: 100%;
+      padding: 12px 16px;
+      background: #faf9f7;
+      border: 1px solid rgba(184,134,11,0.2);
+      border-radius: 10px;
+      color: #3a2a1a;
+      font-size: 15px;
+      font-family: inherit;
+      outline: none;
+      transition: all 0.3s ease;
+      -webkit-appearance: none;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='10'%3E%3Cpath d='M1 1l6 6 6-6' stroke='%23b8860b' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 14px center;
+      padding-right: 40px;
+      cursor: pointer;
+    }
+    .rsvp-field select:hover {
+      border-color: rgba(212,175,55,0.5);
+      background-color: rgba(255,255,255,0.08);
+    }
+    .rsvp-field select:focus {
+      border-color: #d4af37;
+      box-shadow: 0 0 12px rgba(212,175,55,0.15);
+    }
+    .rsvp-field select option { background: #fff; color: #3a2a1a; }
+    .rsvp-field select option:checked {
+      background: rgba(212,175,55,0.2);
+    }
+    .rsvp-field select option:hover {
+      background: rgba(212,175,55,0.3);
+    }
+    .rsvp-field select:invalid {
+      color: #a09080;
+    }
+    .rsvp-field-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .rsvp-field.rsvp-field-row label {
+      display: inline-block;
+      flex-shrink: 0;
+      margin-bottom: 0;
+      white-space: nowrap;
+      min-width: 65px;
+      color: #8b6914;
+    }
+    .rsvp-field.rsvp-field-row select {
+      flex: 1;
+      min-width: 0;
+    }
+      filter: invert(0.8) sepia(1) hue-rotate(0deg) saturate(3);
+      cursor: pointer;
+    }
+    .rsvp-attend-group {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .rsvp-attend-btn {
+      flex: 1;
+      min-width: calc(50% - 5px);
+      padding: 12px 8px;
+      border-radius: 10px;
+      border: 1px solid rgba(212,175,55,0.4);
+      background: rgba(255,255,255,0.04);
+      color: #3a2a1a;
+      font-size: 15px;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all 0.3s;
+      text-align: center;
+    }
+    .rsvp-attend-btn.selected-yes {
+      background: rgba(34,139,34,0.25);
+      border-color: rgba(34,139,34,0.7);
+      color: #7ddf7d;
+    }
+    .rsvp-attend-btn.selected-no {
+      background: rgba(196,30,58,0.2);
+      border-color: rgba(196,30,58,0.6);
+      color: #e88;
+    }
+    .rsvp-guests-row {
+      display: none;
+      align-items: center;
+      gap: 10px;
+    }
+    .rsvp-guests-row.show { display: flex; }
+    .rsvp-guests-row label { margin-bottom: 0; white-space: nowrap; }
+    .rsvp-guests-row input {
+      width: 70px;
+      text-align: center;
+      padding: 8px;
+    }
+    .rsvp-submit {
+      padding: 14px;
+      border-radius: 25px;
+      border: 1px solid rgba(184,134,11,0.5);
+      background: linear-gradient(135deg, #b8860b, #d4a843);
+      color: #fff;
+      font-size: 16px;
+      font-family: 'ZCOOL KuaiLe', cursive, sans-serif;
+      letter-spacing: 0.2em;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-top: 4px;
+      font-weight: 500;
+    }
+    .rsvp-submit:hover {
+      background: linear-gradient(135deg, rgba(196,30,58,0.5), rgba(178,34,52,0.4));
+      box-shadow: 0 4px 15px rgba(196,30,58,0.2);
+      transform: translateY(-1px);
+    }
+    .rsvp-submit:active { transform: scale(0.97); }
+    .rsvp-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+    .rsvp-msg {
+      text-align: center;
+      font-size: 14px;
+      min-height: 20px;
+      margin-top: 4px;
+    }
+    .rsvp-msg.ok { color: #16a34a; }
+    .rsvp-msg.err { color: #dc2626; }
+    .rsvp-skip {
+      text-align: center;
+      margin-top: 12px;
+    }
+    .rsvp-skip a {
+      color: #a09080;
+      font-size: 13px;
+      text-decoration: none;
+      border-bottom: 1px solid rgba(255,245,220,0.2);
+      padding-bottom: 2px;
+      transition: color 0.3s;
+      cursor: pointer;
+    }
+    .rsvp-skip a:hover { color: #6b5a4a; }
+    .rsvp-names {
+      text-align: center;
+      font-family: 'ZCOOL KuaiLe', cursive, sans-serif;
+      font-size: clamp(13px, 3vw, 15px);
+      color: rgba(212,175,55,0.6);
+      letter-spacing: 0.2em;
+      margin-top: 16px;
+    }
+	    @media (min-width: 481px) and (max-height: 700px) {
+      #rsvp-screen { justify-content: flex-start; }
+      #rsvp-screen .rsvp-card { margin-top: 20px; margin-bottom: 20px; }
+    }
+    @media (max-width: 480px) {
+      #rsvp-screen { justify-content: flex-start; }
+      #rsvp-screen .rsvp-card { margin-top: 10px; margin-bottom: 10px; }
+      .rsvp-card { padding: 24px 18px; max-width: 100%; }
+      .rsvp-form { gap: 14px; }
+      .rsvp-field input,
+      .rsvp-field textarea,
+      .rsvp-field input[type="date"],
+      .rsvp-field select { padding: 14px 16px; font-size: 16px; border-radius: 12px; }
+      .rsvp-field.rsvp-field-row { gap: 10px; }
+      .rsvp-field.rsvp-field-row label { min-width: 56px; font-size: 12px; }
+      .rsvp-attend-group { gap: 8px; }
+      .rsvp-attend-btn { min-width: calc(50% - 4px); padding: 14px 8px; font-size: 14px; }
+      .rsvp-submit { padding: 16px; font-size: 17px; }
+    }
+
+
+    /* ===== 请帖样式 ===== */
+    .invite-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.9);
+      z-index: 350;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 16px;
+      padding: 20px;
+      overflow-y: auto;
+    }
+    .invite-overlay.show { display: flex; }
+
+    .invite-card {
+      width: 360px;
+      background: #7a0e0e;
+      position: relative;
+      overflow: hidden;
+      border-radius: 4px;
+      flex-shrink: 0;
+    }
+    .invite-card .ic-border {
+      position: absolute;
+      top: 10px; left: 10px; right: 10px; bottom: 10px;
+      border: 1.5px solid #d4af37;
+      pointer-events: none;
+      z-index: 2;
+    }
+    .invite-card .ic-content {
+      position: relative;
+      z-index: 3;
+      padding: 32px 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .invite-card .ic-xi {
+      font-family: 'ZCOOL KuaiLe', 'Ma Shan Zheng', cursive, sans-serif;
+      font-size: 48px;
+      color: #d4af37;
+      line-height: 1;
+      margin-bottom: 6px;
+    }
+    .invite-card .ic-title {
+      font-size: 14px;
+      color: #d4af37;
+      letter-spacing: 0.4em;
+      margin-bottom: 16px;
+    }
+    .invite-card .ic-divider {
+      width: 50%;
+      height: 1px;
+      background: rgba(212,175,55,0.4);
+      margin-bottom: 16px;
+    }
+    .invite-card .ic-avatars {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 12px;
+    }
+    .invite-card .ic-avatar {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid #d4af37;
+      background: #5a0a0a;
+    }
+    .invite-card .ic-heart {
+      font-size: 24px;
+      color: #d4af37;
+    }
+    .invite-card .ic-names {
+      font-family: 'ZCOOL KuaiLe', 'Ma Shan Zheng', cursive, sans-serif;
+      font-size: 20px;
+      color: #d4af37;
+      letter-spacing: 0.3em;
+      margin-bottom: 4px;
+    }
+    .invite-card .ic-names-en {
+      font-size: 10px;
+      color: rgba(212,175,55,0.5);
+      letter-spacing: 0.12em;
+      margin-bottom: 16px;
+    }
+    .invite-card .ic-date-box {
+      background: rgba(0,0,0,0.12);
+      border: 1px solid rgba(212,175,55,0.3);
+      border-radius: 4px;
+      padding: 10px 20px;
+      text-align: center;
+      margin-bottom: 12px;
+    }
+    .invite-card .ic-date {
+      font-size: 16px;
+      color: #d4af37;
+      letter-spacing: 0.2em;
+    }
+    .invite-card .ic-date-sub {
+      font-size: 10px;
+      color: rgba(212,175,55,0.5);
+      margin-top: 3px;
+    }
+    .invite-card .ic-info {
+      text-align: center;
+      margin-bottom: 12px;
+    }
+    .invite-card .ic-info-row {
+      font-size: 12px;
+      color: #d4af37;
+      opacity: 0.7;
+      letter-spacing: 0.1em;
+      line-height: 2;
+    }
+    .invite-card .ic-msg {
+      font-size: 11px;
+      color: rgba(212,175,55,0.55);
+      text-align: center;
+      line-height: 1.8;
+      letter-spacing: 0.06em;
+      margin-bottom: 16px;
+    }
+    .invite-card .ic-bottom {
+      text-align: center;
+    }
+    .invite-card .ic-bottom-xi {
+      font-family: 'ZCOOL KuaiLe', 'Ma Shan Zheng', cursive, sans-serif;
+      font-size: 22px;
+      color: rgba(212,175,55,0.3);
+    }
+    .invite-card .ic-bottom-text {
+      font-size: 10px;
+      color: rgba(212,175,55,0.35);
+      letter-spacing: 0.15em;
+      margin-top: 3px;
+    }
+    .invite-card .ic-qr-section {
+      text-align: center;
+      margin: 12px 0;
+    }
+    .invite-card .ic-qr-box {
+      display: inline-block;
+      padding: 6px;
+      border-radius: 4px;
+      min-width: 112px;
+      min-height: 112px;
+    }
+    .invite-card .ic-qr-box canvas {
+      display: block;
+      margin: 0 auto;
+    }
+    .invite-card .ic-qr-tip {
+      font-size: 10px;
+      color: rgba(212,175,55,0.45);
+      margin-top: 4px;
+      letter-spacing: 0.08em;
+    }
+    .invite-actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .invite-actions button {
+      padding: 12px 28px;
+      border-radius: 25px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.3s;
+      font-family: inherit;
+      letter-spacing: 0.1em;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+    .btn-invite-save {
+      background: rgba(212,175,55,0.25);
+      border: 1px solid rgba(212,175,55,0.7);
+      color: #3a2a1a;
+    }
+    .btn-invite-save:active { background: rgba(180,50,50,0.5); border-color: #c41e3a; }
+    .btn-invite-enter {
+      background: rgba(196,30,58,0.3);
+      border: 1px solid rgba(196,30,58,0.6);
+      color: #3a2a1a;
+    }
+    .btn-invite-enter:active { background: rgba(180,50,50,0.6); border-color: #c41e3a; }
+    .btn-invite-save:disabled { opacity: 0.5; cursor: not-allowed; }
+    @media (max-width: 400px) {
+      .invite-card { width: 100%; }
+      .invite-card .ic-avatar { width: 60px; height: 60px; }
+      .invite-card .ic-names { font-size: 18px; }
+    }
+
+  </style>
+</head>
+<body onselectstart="return false" oncopy="return false" oncut="return false" onpaste="return false">
+  <div class="hotzone-indicator" id="hotzone-indicator"></div>
+
+  <!-- RSVP Attendance Screen -->
+  <div id="rsvp-screen">
+    <div class="rsvp-card">
+      <div class="rsvp-xi">囍</div>
+      <div class="rsvp-title">诚邀您的出席</div>
+      <div class="rsvp-subtitle" id="rsvp-subtitle"></div>
+      <form class="rsvp-form" id="rsvp-form" onsubmit="return false;">
+        <div class="rsvp-field">
+          <label>您的姓名</label>
+          <input type="text" id="rsvp-name" placeholder="请输入您的姓名" maxlength="20" required>
+        </div>
+        <div class="rsvp-field">
+          <label>联系电话</label>
+          <input type="tel" id="rsvp-phone" placeholder="请输入您的手机号" maxlength="20" required>
+        </div>
+        <div class="rsvp-field">
+          <label>出席人数</label>
+          <input type="number" id="rsvp-guests" value="1" min="1" max="20">
+        </div>
+        <div class="rsvp-field rsvp-field-row">
+          <label>到达时间</label>
+          <select id="rsvp-arrival" required>
+            <option value="" disabled selected>请选择</option>
+          </select>
+        </div>
+        <div class="rsvp-field rsvp-field-row">
+          <label>出行方式</label>
+          <select id="rsvp-transport" required>
+            <option value="" disabled selected>请选择</option>
+          </select>
+        </div>
+        <button type="submit" class="rsvp-submit" id="rsvp-submit" onclick="submitRSVP()">确认提交</button>
+        <div class="rsvp-msg" id="rsvp-msg"></div>
+      </form>
+      <div class="rsvp-skip"><a onclick="skipRSVP()">直接进入婚礼现场 →</a></div>
+      <div class="rsvp-names" id="rsvp-names"></div>
+    </div>
+  </div>
+
+  <!-- 请帖弹窗 -->
+  <div class="invite-overlay" id="invite-overlay">
+    <div class="invite-card" id="invite-card">
+      <div class="ic-border"></div>
+      <div class="ic-content">
+        <div class="ic-xi">囍</div>
+        <div class="ic-title">婚 礼 请 帖</div>
+        <div class="ic-divider"></div>
+        <div class="ic-avatars" id="ic-avatars"></div>
+        <div class="ic-names" id="ic-names"></div>
+        <div class="ic-names-en" id="ic-names-en"></div>
+        <div class="ic-date-box">
+          <div class="ic-date" id="ic-date"></div>
+          <div class="ic-date-sub" id="ic-date-sub"></div>
+        </div>
+        <div class="ic-info" id="ic-info"></div>
+        <div class="ic-msg">
+          诚挚邀请您出席我们的婚礼<br>
+          见证我们人生中最重要的时刻
+        </div>
+        <div class="ic-qr-section">
+          <div class="ic-qr-box" id="invite-qr-box"></div>
+          <div class="ic-qr-tip">扫码查看婚礼现场</div>
+        </div>
+        <div class="ic-bottom">
+          <div class="ic-bottom-xi">囍</div>
+          <div class="ic-bottom-text">永结同心 · 百年好合</div>
+        </div>
+      </div>
+    </div>
+    <div class="invite-actions">
+      <button class="btn-invite-save" id="btn-invite-save" onclick="saveInvite()">💾 保存请帖</button>
+      <button class="btn-invite-enter" onclick="enterFromInvite()">进入婚礼现场 →</button>
+    </div>
+  </div>
+
+  <div id="loading-screen">
+    <div class="xi">囍</div>
+    <div class="title-line"></div>
+    <div class="title">WEDDING DAY</div>
+    <div class="title-line"></div>
+    <div class="countdown" id="countdown">
+      <div class="cd-block">
+        <span class="cd-num" id="cd-days">--</span>
+        <span class="cd-label">days</span>
+      </div>
+      <span class="cd-sep">:</span>
+      <div class="cd-block">
+        <span class="cd-num" id="cd-hours">--</span>
+        <span class="cd-label">hrs</span>
+      </div>
+      <span class="cd-sep">:</span>
+      <div class="cd-block">
+        <span class="cd-num" id="cd-mins">--</span>
+        <span class="cd-label">min</span>
+      </div>
+      <span class="cd-sep">:</span>
+      <div class="cd-block">
+        <span class="cd-num" id="cd-secs">--</span>
+        <span class="cd-label">sec</span>
+      </div>
+      <div class="cd-date-label" id="cd-date-label">距离婚礼</div>
+    <div class="save-date">Save the Date</div>
+    <div class="save-date-num" id="save-date-num"></div>
+    </div>
+    <div class="progress-container">
+      <div class="progress-bar" id="progress-bar"></div>
+    </div>
+    <div class="progress-text" id="progress-text">正在准备您的回忆… 0%</div>
+    <div class="enter-buttons" id="enter-buttons">
+      <button id="btn-enter-gridwall" onclick="enterMode('gridwall')">🧱 照片墙</button>
+      <button id="btn-enter-magazine" onclick="enterMode('magazine')">📖 杂志</button>
+    </div>
+  </div>
+
+  <div class="controls" id="controls-bar">
+    <button id="btn-gridwall" class="active" onclick="switchMode('gridwall',this)">🧱 照片墙</button>
+    <button id="btn-magazine" onclick="switchMode('magazine',this)">📖 杂志</button>
+    <div class="sep"></div>
+    <button onclick="togglePause()" id="btnPause">⏸</button>
+    <div class="sep"></div>
+    <span class="speed-label">节奏</span>
+    <button onclick="setSpeed(0.5,this)" class="speed-btn active" id="speedSlow">慢</button>
+    <button onclick="setSpeed(1,this)" class="speed-btn" id="speedNormal">正常</button>
+    <button onclick="setSpeed(2,this)" class="speed-btn">快</button>
+    <div class="sep"></div>
+    <button onclick="toggleMusic()" id="btnMusic">🎵 音乐</button>
+    <button onclick="showCredits()" id="btnCredits">🎬 致谢</button>
+  </div>
+
+  <div class="particles" id="particles"></div>
+  <div id="gridwall"></div>
+  <div id="magazine"></div>
+  
+  <div class="sing-bar" id="sing-bar">
+    <div class="sing-side left">
+      <div class="sing-avatar-wrap">
+        <span class="mic-icon">🎤</span>
+        <img class="sing-avatar" id="sing-avatar-1" src="" alt="">
+        <span class="avatar-name" id="avatar-name-1"></span>
+      </div>
+      <div class="lyrics-area">
+        <div class="lyrics-text" id="lyrics-left"></div>
+      </div>
+    </div>
+    <div class="sing-side right">
+      <div class="sing-avatar-wrap">
+        <span class="mic-icon">🎤</span>
+        <img class="sing-avatar" id="sing-avatar-2" src="" alt="">
+        <span class="avatar-name" id="avatar-name-2"></span>
+      </div>
+      <div class="lyrics-area">
+        <div class="lyrics-text" id="lyrics-right"></div>
+      </div>
+    </div>
+  </div>
+  <audio id="bgm" loop preload="auto">
+    <source src="music/bgm.mp3" type="audio/mpeg">
+  </audio>
+  
+  <div class="credits-pwd-modal" id="credits-pwd-modal">
+    <div class="credits-pwd-box">
+      <div class="pwd-title">请输入密码</div>
+      <input type="password" id="credits-pwd-input" placeholder="致谢页访问密码" maxlength="20">
+      <div class="pwd-hint" id="pwd-hint"></div>
+      <button class="pwd-btn" id="pwd-btn-ok">确 认</button>
+      <button class="pwd-btn" id="pwd-btn-cancel" style="background:transparent;border-color:rgba(255,255,255,0.2);">返 回</button>
+    </div>
+  </div>
+
+  <div id="credits">
+    <button class="credits-close" onclick="hideCredits()">✕</button>
+    <div class="credits-photos" id="credits-photos"></div>
+    <div class="credits-divider"></div>
+    <div class="credits-right" id="credits-right">
+      <div class="credits-list" id="credits-list"></div>
+      <div class="credits-final" id="credits-final">
+        <div class="f-xi">囍</div>
+        <div class="f-divider"></div>
+        <div class="f-thanks">感谢每一位亲朋好友<br>在这个特别的日子里<br>见证我们的婚礼</div>
+        <div class="f-sign" id="f-sign"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function() {
+      'use strict';
+
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 769;
+
+      /* ==========================================================
+         📸 照片路径配置
+         把你的照片放入 photos/ 文件夹，然后在这里列出文件名
+         文件名必须和实际文件完全一致（区分大小写）
+      ========================================================== */
+      let PHOTO_FILES = [];
+
+      /* 🎬 致谢照片路径配置（放入 credits-photos/ 文件夹） */
+      let CREDITS_PHOTO_FILES = [];
+
+      /* 👤 头像路径配置（放入 avatars/ 文件夹） */
+      let AVATAR_FILES = [];
+
+      const ALL_QUOTES = [
+        "愿得一心人，白首不相离",
+        "执子之手，与子偕老",
+        "两情若是久长时，又岂在朝朝暮暮",
+        "在天愿作比翼鸟，在地愿为连理枝",
+        "春风十里不如你",
+        "往后余生，风雪是你，平淡是你",
+        "一生一世一双人",
+        "你是我最美的风景",
+        "山有木兮木有枝，心悦君兮君不知",
+        "只缘感君一回顾，使我思君朝与暮",
+        "曾经沧海难为水，除却巫山不是云",
+        "身无彩凤双飞翼，心有灵犀一点通",
+        "衣带渐宽终不悔，为伊消得人憔悴",
+        "众里寻他千百度，蓦然回首，那人却在灯火阑珊处",
+        "此情可待成追忆，只是当时已惘然",
+        "人生若只如初见，何事秋风悲画扇",
+        "玲珑骰子安红豆，入骨相思知不知",
+        "天涯地角有穷时，只有相思无尽处",
+        "似此星辰非昨夜，为谁风露立中宵",
+        "愿我如星君如月，夜夜流光相皎洁",
+        "结发为夫妻，恩爱两不疑",
+        "君当作磐石，妾当作蒲苇",
+        "蒲苇纫如丝，磐石无转移",
+        "月上柳梢头，人约黄昏后",
+        "金风玉露一相逢，便胜却人间无数",
+        "柔情似水，佳期如梦",
+        "相思一夜梅花发，忽到窗前疑是君",
+        "若似月轮终皎洁，不辞冰雪为卿热",
+        "海底月是天上月，眼前人是心上人",
+        "死生契阔，与子成说"
+      ];
+
+      let PHOTOS = PHOTO_FILES.map((url, idx) => ({
+        src: url,
+        label: `永恒瞬间 ${idx + 1}`,
+        quote: ALL_QUOTES[idx % ALL_QUOTES.length]
+      }));
+
+      console.log(`✅ 已加载 ${PHOTOS.length} 张照片`);
+
+      /* ===== State ===== */
+      let currentMode = 'gridwall';
+      let currentIndex = 0;
+      let isPaused = false;
+      let speed = 0.5;
+      let timer = null;
+      const BASE_INTERVAL = 4200;
+      let allImagesLoaded = false;
+      let isAnimating = false;
+      let isFullscreen = false;
+      
+      const imageCache = new Map();
+      const controlsBar = document.getElementById('controls-bar');
+      const hotzoneIndicator = document.getElementById('hotzone-indicator');
+      let controlsTimeout;
+      let mobileTouchHandler = null;
+
+      /* ===== Utilities ===== */
+      function getCachedSrc(url) {
+        return imageCache.has(url) ? imageCache.get(url) : url;
+      }
+
+      function isFullscreenMode() {
+        return !!(document.fullscreenElement || 
+                  document.webkitFullscreenElement || 
+                  document.mozFullScreenElement ||
+                  document.msFullscreenElement);
+      }
+
+      function showControls() {
+        if (isMobile) {
+          controlsBar.classList.add('visible');
+        } else if (isFullscreen) {
+          controlsBar.classList.add('visible');
+          hotzoneIndicator.classList.remove('visible');
+        }
+        clearTimeout(controlsTimeout);
+        controlsTimeout = setTimeout(hideControls, 3000);
+      }
+
+      function hideControls() {
+        controlsBar.classList.remove('visible');
+      }
+
+      function updateFullscreenState() {
+        const wasFullscreen = isFullscreen;
+        isFullscreen = isFullscreenMode();
+        
+        if (isFullscreen && !wasFullscreen) {
+          controlsBar.classList.add('fullscreen-mode');
+          controlsBar.classList.remove('visible');
+          hotzoneIndicator.classList.add('visible');
+          document.addEventListener('mousemove', handleMouseMove, { passive: true });
+        } else if (!isFullscreen && wasFullscreen) {
+          controlsBar.classList.remove('fullscreen-mode', 'visible');
+          hotzoneIndicator.classList.remove('visible');
+          document.removeEventListener('mousemove', handleMouseMove);
+          clearTimeout(controlsTimeout);
+        }
+      }
+
+      function handleMouseMove(e) {
+        if (!isFullscreen) return;
+        if (e.clientY <= 50) showControls();
+        else if (e.clientY > 100) { clearTimeout(controlsTimeout); hideControls(); }
+      }
+
+      document.addEventListener('fullscreenchange', updateFullscreenState);
+      document.addEventListener('webkitfullscreenchange', updateFullscreenState);
+
+      controlsBar.addEventListener('mouseenter', () => {
+        if (isFullscreen) clearTimeout(controlsTimeout);
+      });
+      controlsBar.addEventListener('mouseleave', () => {
+        if (isFullscreen) controlsTimeout = setTimeout(hideControls, 1000);
+      });
+
+      function setupMobileControls() {
+        if (!isMobile || mobileTouchHandler) return;
+        let hideTimeout;
+        const show = () => {
+          controlsBar.classList.add('visible');
+          clearTimeout(hideTimeout);
+          hideTimeout = setTimeout(() => controlsBar.classList.remove('visible'), 3000);
+        };
+        mobileTouchHandler = (e) => {
+          if (!e.target.closest('button')) show();
+        };
+        document.addEventListener('touchstart', mobileTouchHandler, { passive: true });
+        show();
+      }
+
+      /* ===== Preload ===== */
+      async function preloadImages() {
+        const progressBar = document.getElementById('progress-bar');
+        const progressText = document.getElementById('progress-text');
+        const enterButtons = document.getElementById('enter-buttons');
+        const btnGridwall = document.getElementById('btn-enter-gridwall');
+        const btnMagazine = document.getElementById('btn-enter-magazine');
+        
+        const allUrls = [...PHOTO_FILES, ...AVATAR_FILES, ...CREDITS_PHOTO_FILES];
+        const total = allUrls.length;
+        let loadedCount = 0;
+
+        btnGridwall.disabled = true;
+        btnMagazine.disabled = true;
+
+        const updateUI = () => {
+          const percent = Math.round((loadedCount / total) * 100);
+          progressBar.style.width = percent + '%';
+          progressText.textContent = `正在准备您的回忆… ${percent}% (${loadedCount}/${total})`;
+        };
+
+        const loadImage = (url) => new Promise((resolve) => {
+          if (imageCache.has(url)) { loadedCount++; updateUI(); return resolve(); }
+          const img = new Image();
+          const timeout = setTimeout(() => {
+            if (!imageCache.has(url)) { loadedCount++; updateUI(); }
+            resolve();
+          }, 8000);
+          img.onload = () => {
+            clearTimeout(timeout);
+            if (img.naturalWidth > 0) imageCache.set(url, img.src);
+            loadedCount++; updateUI(); resolve();
+          };
+          img.onerror = () => {
+            clearTimeout(timeout);
+            loadedCount++; updateUI(); resolve();
+          };
+          img.src = url;
+        });
+
+        const queue = [...allUrls];
+        while (queue.length > 0) {
+          const batch = queue.splice(0, isMobile ? 4 : 6);
+          await Promise.all(batch.map(loadImage));
+        }
+
+        allImagesLoaded = true;
+        progressText.textContent = '一切就绪，点击下方进入';
+        progressBar.style.width = '100%';
+        enterButtons.classList.add('show');
+        btnGridwall.disabled = false;
+        btnMagazine.disabled = false;
+      }
+
+      /* ===== Enter Mode ===== */
+      window.enterMode = function(mode) {
+        if (!allImagesLoaded) return;
+        const ls = document.getElementById('loading-screen');
+        ls.style.opacity = '0';
+        setTimeout(() => { ls.style.display = 'none'; }, 800);
+        controlsBar.style.display = 'flex';
+        updateFullscreenState();
+        if (isMobile) setupMobileControls();
+        else if (!isFullscreen) { controlsBar.classList.remove('fullscreen-mode'); controlsBar.style.opacity = '1'; }
+        
+        document.getElementById('particles').style.display = 'block';
+        initParticles();
+        
+        if (mode === 'gridwall') {
+          buildGridwall();
+          document.getElementById('gridwall').style.display = 'block';
+          document.getElementById('btn-gridwall').classList.add('active');
+          document.getElementById('btn-magazine').classList.remove('active');
+        } else {
+          buildMagazine();
+          document.getElementById('magazine').style.display = 'block';
+          document.getElementById('btn-magazine').classList.add('active');
+          document.getElementById('btn-gridwall').classList.remove('active');
+        }
+        currentMode = mode;
+        startAutoPlay();
+      };
+
+      function initParticles() {
+        const c = document.getElementById('particles');
+        c.innerHTML = '';
+        const frag = document.createDocumentFragment();
+        for (let i = 0; i < (isMobile ? 15 : 32); i++) {
+          const s = document.createElement('span');
+          s.style.left = Math.random() * 100 + '%';
+          s.style.width = s.style.height = (2 + Math.random() * 3) + 'px';
+          s.style.animationDuration = (7 + Math.random() * 14) + 's';
+          s.style.animationDelay = Math.random() * 9 + 's';
+          s.style.background = `rgba(${200+Math.random()*55},${165+Math.random()*45},${30+Math.random()*35},${0.2+Math.random()*0.25})`;
+          frag.appendChild(s);
+        }
+        c.appendChild(frag);
+      }
+
+      /* ===== Build Gridwall ===== */
+      function buildGridwall() {
+        const el = document.getElementById('gridwall');
+        el.innerHTML = '';
+        const track = document.createElement('div');
+        track.className = 'grid-track';
+        const perRow = isMobile ? 4 : 6;
+        const rowsNeeded = Math.ceil(PHOTOS.length / perRow);
+        
+        for (let rep = 0; rep < 2; rep++) {
+          for (let r = 0; r < rowsNeeded; r++) {
+            const row = document.createElement('div');
+            row.className = 'grid-row';
+            const startIdx = (r * perRow) % PHOTOS.length;
+            for (let dup = 0; dup < 2; dup++) {
+              for (let j = 0; j < perRow; j++) {
+                const photo = PHOTOS[(startIdx + j) % PHOTOS.length];
+                const item = document.createElement('div');
+                item.className = 'grid-item';
+                const blurFill = document.createElement('div');
+                blurFill.className = 'blur-fill';
+                blurFill.style.backgroundImage = `url(${getCachedSrc(photo.src)})`;
+                item.appendChild(blurFill);
+                const img = document.createElement('img');
+                img.src = getCachedSrc(photo.src);
+                img.alt = photo.label;
+                img.loading = 'lazy';
+                item.appendChild(img);
+                row.appendChild(item);
+              }
+            }
+            track.appendChild(row);
+          }
+        }
+        el.appendChild(track);
+      }
+
+      /* ===== Build Magazine ===== */
+      function buildMagazine() {
+        const el = document.getElementById('magazine');
+        el.innerHTML = '';
+        const frag = document.createDocumentFragment();
+        
+        PHOTOS.forEach((p, i) => {
+          const page = document.createElement('div');
+          page.className = 'mag-page' + (i % 2 === 1 ? ' reverse' : '');
+          page.dataset.index = i;
+          
+          const imgDiv = document.createElement('div');
+          imgDiv.className = 'mag-img';
+          const blurBg = document.createElement('div');
+          blurBg.className = 'blur-bg';
+          blurBg.style.backgroundImage = `url(${getCachedSrc(p.src)})`;
+          imgDiv.appendChild(blurBg);
+          const img = document.createElement('img');
+          img.src = getCachedSrc(p.src);
+          img.alt = p.label;
+          img.loading = 'lazy';
+          imgDiv.appendChild(img);
+          
+          const textDiv = document.createElement('div');
+          textDiv.className = 'mag-text';
+          textDiv.innerHTML = `
+            <div class="text-blur-bg" style="background-image:url(${getCachedSrc(p.src)})"></div>
+            <div class="mag-xi">囍</div>
+            <div class="mag-quote">${p.quote}</div>
+            <div class="avatar-container">
+              <img class="avatar" src="${getCachedSrc(AVATAR_FILES[0])}" alt="" loading="lazy">
+              <img class="avatar" src="${getCachedSrc(AVATAR_FILES[1] || AVATAR_FILES[0])}" alt="" loading="lazy">
+            </div>
+            <div class="names-label">${WEDDING ? WEDDING.partner1 + " & " + WEDDING.partner2 : ""}</div>
+            <div class="mag-thanks">感谢每一位见证我们幸福的你</div>
+          `;
+          
+          page.appendChild(imgDiv);
+          page.appendChild(textDiv);
+          frag.appendChild(page);
+        });
+
+        el.appendChild(frag);
+        const first = el.querySelector('.mag-page');
+        if (first) {
+          first.classList.add('active');
+          first.style.opacity = '1';
+          first.style.transform = isMobile ? 'translateX(0)' : 'rotateY(0deg)';
+        }
+        // Add wedding bubbles to each page
+        addWeddingBubbles();
+      }
+
+      /* ===== Wedding Bubbles ===== */
+      const BUBBLE_PHRASES = [
+        // 甜系
+        '好甜好甜 🍯', '甜齁了 💗', '甜到我了 🥰', '太甜了吧 🍬',
+        '糖分超标 🍭', '齁到了 😍', '有被甜到 💖', '甜到掉牙 🦷',
+        '撒糖啦 🍬', '甜度爆表 💘', '这谁顶得住啊 😩',
+        // 搞笑系
+        '锁死！🔒', '请原地锁死 🔐', '我磕的CP成真了 🎉',
+        '这狗粮我干了 🐶', '被喂了一嘴狗粮 🦮', '又相信爱情了 💘',
+        '恋爱脑犯了 🤪', '死去的恋爱脑攻击我 💀', '全员恋爱脑 🧠',
+        '秀我一脸 😳', '我先酸为敬 🍋', '柠檬树上柠檬果 🍋',
+        '羡慕哭了 😭', '眼睛尿尿了 🥺', '我也想结婚了 💒',
+        '单身狗受到暴击 🐕', '民政局给你们盖章了 📄',
+        '注意看 这个女人叫小美 👀', '有点无聊 结个婚吧 😏',
+        '什么婚礼还要本小姐亲自参加 🙄', '吾婚 干饭 来！！🍚',
+        // 祝福系
+        '百年好合 🎎', '永结同心 🤝', '早生贵子 👶',
+        '白头偕老 👴👵', '天作之合 🌙', '神仙爱情 🧚',
+        '绝配！✨', '太般配了 💕', '郎才女貌 🌹',
+        '佳偶天成 🏮', '天生一对 💫', '幸福久久 🥂',
+        '相爱一生 💞', '携手到老 🚶‍♂️🚶‍♀️', '爱情万岁 🎊',
+        // 打call系
+        '在一起！在一起！🫶', '原地结婚 💍', '官宣！💍',
+        '冲冲冲！🦆', '好嗑！🤤', '嗑到了 🫠',
+        '绝绝子 ✨', '赢麻了 🏆', '太好嗑了 🫠',
+        '啊啊啊好配 😆', '我尖叫了 📢', 'DNA动了 🧬',
+        // 搞怪系
+        '份子钱准备好了吗 🧧', '随份子啦 🎁', '礼金备好 💰',
+        '份子钱到位 🧧', '今天我最美 👑', '搂席去！🍖',
+        '干饭人集合 🍚', '开席了！🎊', '今天管饱 🍜',
+        '吃好喝好 🥂', '来都来了 🤷', '红包拿来 🧧',
+        '份子钱打八折 💸', '你饿了吗 🍲', '赴一场喜宴 🏮',
+        // 氛围系
+        '太浪漫了 🌹', '心动的感觉 💓', '这就是爱情吧 💝',
+        '被治愈了 🌈', '好幸福啊 ☀️', '人生赢家 🥇',
+        '双向奔赴 🏃‍♂️🏃‍♀️', '命中注定 🎯', '爱情的模样 📸',
+        '好会啊 😏', '心动暴击 💢', '一整个爱住 💌',
+        '小两口真甜 🫶', '好想谈恋爱 💭', '今天也是为别人��情流泪的一天 😢'
+      ];
+
+      function addWeddingBubbles() {
+        const pages = document.querySelectorAll('#magazine .mag-page');
+        pages.forEach((page, pageIdx) => {
+          const imgDiv = page.querySelector('.mag-img');
+          if (!imgDiv) return;
+          // Each page gets 4-6 bubbles
+          const count = 4 + Math.floor(Math.random() * 3);
+          // Shuffle phrases for this page
+          const shuffled = [...BUBBLE_PHRASES].sort(() => Math.random() - 0.5);
+          // Position: wedding photos have people CENTERED.
+          // Faces ≈ horizontal 25%-75%, vertical 5%-30%.
+          // ALL bubbles go to the outer rim to stay clear of faces.
+          const zones = [
+            // ── Top edge (above heads) ──
+            { top: () => (2 + Math.random() * 6) + '%', left: () => (3 + Math.random() * 12) + '%' },
+            { top: () => (2 + Math.random() * 6) + '%', left: () => (20 + Math.random() * 25) + '%' },
+            { top: () => (2 + Math.random() * 6) + '%', right: () => (3 + Math.random() * 12) + '%' },
+            { top: () => (2 + Math.random() * 6) + '%', right: () => (20 + Math.random() * 25) + '%' },
+            // ── Left edge (left of subjects) ──
+            { top: () => (12 + Math.random() * 20) + '%', left: () => (2 + Math.random() * 8) + '%' },
+            { top: () => (35 + Math.random() * 20) + '%', left: () => (2 + Math.random() * 8) + '%' },
+            // ── Right edge (right of subjects) ──
+            { top: () => (12 + Math.random() * 20) + '%', right: () => (2 + Math.random() * 8) + '%' },
+            { top: () => (35 + Math.random() * 20) + '%', right: () => (2 + Math.random() * 8) + '%' },
+            // ── Bottom corners (below chest / waist area) ──
+            { top: () => (70 + Math.random() * 15) + '%', left: () => (3 + Math.random() * 12) + '%' },
+            { top: () => (70 + Math.random() * 15) + '%', right: () => (3 + Math.random() * 12) + '%' },
+            // ── Bottom center (below hands / bouquet area) ──
+            { top: () => (75 + Math.random() * 12) + '%', left: () => (25 + Math.random() * 20) + '%' },
+            { top: () => (75 + Math.random() * 12) + '%', right: () => (25 + Math.random() * 20) + '%' }
+          ].sort(() => Math.random() - 0.5);
+
+          for (let i = 0; i < count; i++) {
+            const bubble = document.createElement('div');
+            bubble.className = 'wedding-bubble';
+            bubble.textContent = shuffled[i];
+            const zone = zones[i];
+            if (zone.top) bubble.style.top = zone.top();
+            if (zone.left) bubble.style.left = zone.left();
+            if (zone.right) bubble.style.right = zone.right();
+            // Stagger appearance
+            setTimeout(() => {
+              imgDiv.appendChild(bubble);
+              requestAnimationFrame(() => bubble.classList.add('show'));
+            }, 300 + i * 200);
+          }
+        });
+      }
+
+      /* ===== Magazine Navigation ===== */
+      async function magazineNext(direction) {
+        if (isAnimating) return;
+        const pages = document.querySelectorAll('#magazine .mag-page');
+        if (!pages.length) return;
+        isAnimating = true;
+        
+        const currentPage = pages[currentIndex];
+        const nextIndex = direction === 'next'
+          ? (currentIndex + 1) % pages.length
+          : (currentIndex - 1 + pages.length) % pages.length;
+        const nextPage = pages[nextIndex];
+        const cleanup = ['flip-out-left','flip-in-right','flip-out-right','flip-in-left','prev','next'];
+        
+        if (isMobile) {
+          currentPage.classList.remove('active');
+          currentPage.classList.add(direction === 'next' ? 'prev' : 'next');
+          nextPage.classList.remove('prev', 'next');
+          nextPage.classList.add('active');
+          await new Promise(r => setTimeout(r, 500));
+          currentPage.classList.remove('prev', 'next');
+          currentPage.style.opacity = '0';
+          currentPage.style.transform = direction === 'next' ? 'translateX(-30px)' : 'translateX(30px)';
+        } else {
+          // Random animation selection
+          const animations = [
+            { out: 'flip-out-left', in: 'flip-in-right', initOut: 'rotateY(0deg)', initIn: 'rotateY(90deg)', finalOut: 'rotateY(-90deg)', finalIn: 'rotateY(0deg)' },
+            { out: 'flip-out-right', in: 'flip-in-left', initOut: 'rotateY(0deg)', initIn: 'rotateY(-90deg)', finalOut: 'rotateY(90deg)', finalIn: 'rotateY(0deg)' },
+          ];
+          const anim = animations[Math.floor(Math.random() * animations.length)];
+          pages.forEach(p => p.classList.remove(...cleanup));
+          nextPage.style.opacity = '1';
+          nextPage.style.transform = anim.initIn;
+          requestAnimationFrame(() => {
+            currentPage.classList.add(anim.out);
+            nextPage.classList.add(anim.in);
+          });
+          const rect = currentPage.getBoundingClientRect();
+          createPageParticles(rect.left + rect.width / 2, rect.top + rect.height / 2);
+          await new Promise(r => setTimeout(r, 800));
+          currentPage.classList.remove(...cleanup, 'active');
+          currentPage.style.opacity = '0';
+          currentPage.style.transform = anim.finalOut;
+          nextPage.classList.remove(...cleanup);
+          nextPage.classList.add('active');
+          nextPage.style.transform = anim.finalIn;
+          nextPage.style.opacity = '1';
+        }
+        currentIndex = nextIndex;
+        isAnimating = false;
+      }
+
+      function createPageParticles(x, y) {
+        if (isMobile) return;
+        const container = document.createElement('div');
+        container.className = 'page-particles';
+        container.style.left = x + 'px';
+        container.style.top = y + 'px';
+        for (let i = 0; i < 12; i++) {
+          const p = document.createElement('div');
+          p.className = 'page-particle';
+          const angle = (Math.PI * 2 * i) / 12;
+          const dist = 40 + Math.random() * 60;
+          p.style.setProperty('--tx', Math.cos(angle) * dist + 'px');
+          p.style.setProperty('--ty', Math.sin(angle) * dist + 'px');
+          p.style.animationDelay = Math.random() * 0.2 + 's';
+          container.appendChild(p);
+        }
+        document.body.appendChild(container);
+        setTimeout(() => container.remove(), 1200);
+      }
+
+      /* ===== Controls ===== */
+      window.switchMode = function(mode, btn) {
+        document.getElementById('gridwall').style.display = 'none';
+        document.getElementById('magazine').style.display = 'none';
+        document.getElementById(mode).style.display = 'block';
+        document.querySelectorAll('.controls button').forEach(b => {
+          if (b.id !== 'btnPause' && !b.classList.contains('speed-btn')) b.classList.remove('active');
+        });
+        if (btn) btn.classList.add('active');
+        currentIndex = 0;
+        currentMode = mode;
+        isAnimating = false;
+        if (mode === 'gridwall') buildGridwall();
+        else buildMagazine();
+        startAutoPlay();
+      };
+
+      function startAutoPlay() {
+        stopAutoPlay();
+        if (currentMode !== 'magazine') return;
+        timer = setInterval(() => {
+          if (!isPaused && !isAnimating && currentMode === 'magazine') magazineNext('next');
+        }, BASE_INTERVAL / speed);
+      }
+
+      function stopAutoPlay() { if (timer) { clearInterval(timer); timer = null; } }
+
+      window.togglePause = function() {
+        isPaused = !isPaused;
+        document.getElementById('btnPause').textContent = isPaused ? '▶' : '⏸';
+      };
+      
+      window.setSpeed = function(s, btn) {
+        speed = s;
+        document.querySelectorAll('.speed-btn').forEach(b => b.classList.remove('active'));
+        if (btn) btn.classList.add('active');
+        startAutoPlay();
+      };
+
+      /* ===== Events ===== */
+      document.addEventListener('keydown', e => {
+        if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); if (currentMode === 'magazine') magazineNext('next'); }
+        else if (e.key === 'ArrowLeft') { e.preventDefault(); if (currentMode === 'magazine') magazineNext('prev'); }
+        else if (e.key === 'p' || e.key === 'P') togglePause();
+      });
+
+      document.addEventListener('dblclick', (e) => {
+        if (isMobile) { e.preventDefault(); return; }
+        if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => {});
+        else document.exitFullscreen();
+      });
+
+      let touchStartX = 0, touchStartY = 0, touchStartTime = 0;
+      document.addEventListener('touchstart', e => {
+        if (e.target.closest('button')) return;
+        touchStartX = e.touches[0].clientX;
+        touchStartY = e.touches[0].clientY;
+        touchStartTime = Date.now();
+      }, { passive: true });
+      
+      document.addEventListener('touchend', e => {
+        if (currentMode !== 'magazine' || isAnimating) return;
+        const dx = e.changedTouches[0].clientX - touchStartX;
+        const dy = e.changedTouches[0].clientY - touchStartY;
+        const dt = Date.now() - touchStartTime;
+        if (Math.abs(dx) > Math.abs(dy) && ((dt < 300 && Math.abs(dx) > 30) || Math.abs(dx) > 80)) {
+          if (dx < -30) magazineNext('next');
+          else if (dx > 30) magazineNext('prev');
+        }
+      });
+
+      let resizeTimeout;
+      window.addEventListener('resize', () => {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(() => { if (currentMode === 'gridwall') buildGridwall(); }, 250);
+      });
+
+      /* ===== Music & Lyrics ===== */
+      const LRC_DATA = [
+        { t: 11.90, text: 'I got a ring 看着你眼睛说我愿意' },
+        { t: 17.09, text: '这颗心 交给你 希望你好好珍惜' },
+        { t: 22.51, text: 'I got a ring 因为幸福喜极而泣' },
+        { t: 27.86, text: '答应你 从今起' },
+        { t: 30.59, text: '做你的妻和你永不分离' },
+        { t: 34.65, text: '已经很难动心在我这样的年纪' },
+        { t: 37.33, text: '有时会回避也有时候逢场作戏' },
+        { t: 39.91, text: '成年人的默契 酒精麻痹过去' },
+        { t: 42.56, text: '经历了几段情让一颗心慢慢封闭' },
+        { t: 45.26, text: '也许这正是天意老天让我遇见了你' },
+        { t: 48.02, text: '像一只春天的小鹿撞进了我的怀里' },
+        { t: 50.71, text: '夏日海风的热情 融化了我这块冰' },
+        { t: 53.48, text: '冬季柔软的围巾天冷了会把我抱紧' },
+        { t: 56.11, text: '幸运却害怕失去 对爱情不再相信' },
+        { t: 58.81, text: '你触摸我的犹豫 你抚慰我的忧郁' },
+        { t: 61.50, text: '曾经我心如灰烬 却因你泛起涟漪' },
+        { t: 64.16, text: '从那一刻你吻我趁我还来不及反应' },
+        { t: 66.91, text: '每当我慢慢的' },
+        { t: 67.90, text: '靠近鼻翼或脸颊的回应' },
+        { t: 69.77, text: '当我越来越接近 你眼神如此的肯定' },
+        { t: 72.47, text: '将你捧在我掌心 这一生为你all in' },
+        { t: 75.16, text: 'Baby我愿为你付出一切 包括我的命' },
+        { t: 76.54, text: 'I got a ring 看着你眼睛说我愿意' },
+        { t: 81.77, text: '这颗心 交给你 希望你好好珍惜' },
+        { t: 87.20, text: 'I got a ring 因为幸福喜极而泣' },
+        { t: 92.64, text: '答应你 从今起' },
+        { t: 95.34, text: '做你的妻和你永不分离' },
+        { t: 99.10, text: '习惯亲吻你额头 习惯了牵着手' },
+        { t: 101.96, text: '习惯了互相依靠 月光下慢慢走' },
+        { t: 104.64, text: '有你的日子之后 我不再出去喝酒' },
+        { t: 107.32, text: '我学会珍惜感情 学会感恩这所有' },
+        { t: 110.03, text: '春天公园的小路看着樱花散步回家' },
+        { t: 112.66, text: '夏日清凉的午夜试着帮你吹干头发' },
+        { t: 115.40, text: '冬天你泡着热茶 我陪你窝在沙发' },
+        { t: 118.13, text: '相濡以沫成了彼此生命中的牵挂' },
+        { t: 120.85, text: '何德何能 我能拥有如此温柔的女人' },
+        { t: 123.68, text: '在最低沉的时候陪伴我让我再启程' },
+        { t: 126.31, text: '用你最好的青春安慰我躁郁的灵魂' },
+        { t: 128.85, text: '一颗心渐渐地安稳' },
+        { t: 130.21, text: '因为你一次次包容' },
+        { t: 131.81, text: 'Oh my babe 对你说声感谢' },
+        { t: 133.68, text: '有了你 这世界从此不再凛冽' },
+        { t: 136.42, text: '答应你 我一定爱得更加热切' },
+        { t: 139.15, text: '爱到底 就算整个宇宙毁灭' },
+        { t: 141.41, text: '穿过漫长的岁月' },
+        { t: 144.07, text: '终于站在你面前' },
+        { t: 146.83, text: '无论健康与否 富贵贫贱' },
+        { t: 150.18, text: '我会永远在你身边' },
+        { t: 153.25, text: '看你为我带上婚戒' },
+        { t: 156.01, text: '听你说出爱的誓言' },
+        { t: 158.69, text: '手相牵' },
+        { t: 159.99, text: '我们的爱到永远' },
+        { t: 162.63, text: 'I got a ring 看着你眼睛说我愿意' },
+        { t: 168.10, text: '这颗心 交给你 希望你好好珍惜' },
+        { t: 173.47, text: 'I got a ring 因为幸福喜极而泣' },
+        { t: 178.92, text: '答应你 从今起' },
+        { t: 181.63, text: '做你的妻和你永不分离' }
+      ];
+      
+      const bgm = document.getElementById('bgm');
+      const singBar = document.getElementById('sing-bar');
+      const avatar1 = document.getElementById('sing-avatar-1');
+      const avatar2 = document.getElementById('sing-avatar-2');
+      const mic1 = avatar1.parentElement.querySelector('.mic-icon');
+      const mic2 = avatar2.parentElement.querySelector('.mic-icon');
+      const name1 = document.getElementById('avatar-name-1');
+      const name2 = document.getElementById('avatar-name-2');
+      const lyricsLeft = document.getElementById('lyrics-left');
+      const lyricsRight = document.getElementById('lyrics-right');
+      const btnMusic = document.getElementById('btnMusic');
+      
+      let musicPlaying = false;
+      let currentLrcIdx = -1;
+      let typewriterTimer = null;
+      let leftCharEls = [];
+      let rightCharEls = [];
+      
+      // 'm'=男(左), 'f'=女(右), 'd'=合唱(双侧)
+      const LRC_SIDE = [
+        'd','d','d','f','f',  // I got a ring... 做你的妻
+        'm','m','m','m','m','m','m','m','m','m','m','m','m','m','m','m','m',  // 男rap
+        'd','d','d','f','f',  // I got a ring...
+        'm','m','m','m','m','m','m','m','m','m','m','m','m','f','f','f','f',  // 第二段
+        'd','d','d','f','f'   // 结尾 I got a ring
+      ];
+      
+      function findLrcIndex(time) {
+        for (let i = LRC_DATA.length - 1; i >= 0; i--) {
+          if (time >= LRC_DATA[i].t) return i;
+        }
+        return -1;
+      }
+      
+      function clearTypewriter() {
+        if (typewriterTimer) { clearInterval(typewriterTimer); typewriterTimer = null; }
+        lyricsLeft.innerHTML = '';
+        lyricsRight.innerHTML = '';
+        leftCharEls = [];
+        rightCharEls = [];
+      }
+      
+      function typewriterShow(text, targetEl, charArr) {
+        targetEl.innerHTML = '';
+        charArr.length = 0;
+        for (let i = 0; i < text.length; i++) {
+          const span = document.createElement('span');
+          span.className = 'char';
+          span.textContent = text[i];
+          targetEl.appendChild(span);
+          charArr.push(span);
+        }
+        const cursor = document.createElement('span');
+        cursor.className = 'cursor';
+        targetEl.appendChild(cursor);
+        
+        let idx = 0;
+        const interval = Math.max(35, Math.min(70, 1800 / text.length));
+        const timer = setInterval(() => {
+          if (idx < charArr.length) {
+            charArr[idx].classList.add('visible');
+            idx++;
+          } else {
+            clearInterval(timer);
+            setTimeout(() => { cursor.style.opacity = '0'; }, 600);
+          }
+        }, interval);
+        return timer;
+      }
+      
+      /* Set active singer */
+      function setActiveSinger(side) {
+        // side: 'm' = left male, 'f' = right female, 'd' = both
+        avatar1.classList.remove('singing');
+        avatar2.classList.remove('singing');
+        mic1.classList.remove('show');
+        mic2.classList.remove('show');
+        
+        if (side === 'm' || side === 'd') {
+          avatar1.classList.add('singing');
+          mic1.classList.add('show');
+        }
+        if (side === 'f' || side === 'd') {
+          avatar2.classList.add('singing');
+          mic2.classList.add('show');
+        }
+      }
+      
+      function showSingBar(show) {
+        if (show) {
+          singBar.classList.add('active');
+          avatar1.classList.add('show');
+          avatar2.classList.add('show');
+          name1.classList.add('show');
+          name2.classList.add('show');
+        } else {
+          singBar.classList.remove('active');
+          avatar1.classList.remove('show', 'singing');
+          avatar2.classList.remove('show', 'singing');
+          mic1.classList.remove('show');
+          mic2.classList.remove('show');
+          name1.classList.remove('show');
+          name2.classList.remove('show');
+        }
+      }
+      
+      function updateLyrics() {
+        if (!musicPlaying || !bgm.currentTime) return;
+        const idx = findLrcIndex(bgm.currentTime);
+        if (idx !== currentLrcIdx && idx >= 0) {
+          currentLrcIdx = idx;
+          const side = LRC_SIDE[idx] || 'd';
+          const text = LRC_DATA[idx].text;
+          
+          clearTypewriter();
+          setActiveSinger(side);
+          
+          if (side === 'm') {
+            typewriterTimer = typewriterShow(text, lyricsLeft, leftCharEls);
+          } else if (side === 'f') {
+            typewriterTimer = typewriterShow(text, lyricsRight, rightCharEls);
+          } else {
+            // duet: show on both sides
+            typewriterTimer = typewriterShow(text, lyricsLeft, leftCharEls);
+            typewriterShow(text, lyricsRight, rightCharEls);
+          }
+        }
+      }
+      
+      bgm.addEventListener('timeupdate', updateLyrics);
+      
+      bgm.addEventListener('playing', () => {
+        musicPlaying = true;
+        btnMusic.classList.add('active');
+        btnMusic.textContent = '⏸ 音乐';
+        showSingBar(true);
+      });
+      
+      bgm.addEventListener('pause', () => {
+        musicPlaying = false;
+        btnMusic.classList.remove('active');
+        btnMusic.textContent = '🎵 音乐';
+        showSingBar(false);
+      });
+      
+      bgm.addEventListener('ended', () => {
+        musicPlaying = false;
+        btnMusic.classList.remove('active');
+        btnMusic.textContent = '🎵 音乐';
+        showSingBar(false);
+        clearTypewriter();
+      });
+      
+      window.toggleMusic = function() {
+        if (musicPlaying) {
+          bgm.pause();
+        } else {
+          bgm.volume = 0.6;
+          bgm.play().catch(() => {});
+        }
+      };
+      
+      // Auto-play on first interaction
+      function tryAutoPlay() {
+        if (!musicPlaying && bgm.paused) {
+          bgm.volume = 0.6;
+          bgm.play().catch(() => {});
+        }
+        document.removeEventListener('touchstart', tryAutoPlay);
+        document.removeEventListener('click', tryAutoPlay);
+      }
+      document.addEventListener('touchstart', tryAutoPlay, { once: true });
+      document.addEventListener('click', tryAutoPlay, { once: true });
+      
+      /* ===== Credits Mode ===== */
+      let creditsSlideTimer = null;
+      let creditsRevealTimer = null;
+      let creditsSlideIdx = 0;
+
+      function buildCredits() {
+        var photosEl = document.getElementById('credits-photos');
+        photosEl.innerHTML = '';
+        var creditsPhotos = CREDITS_PHOTO_FILES.map(function(url, i) { return { src: url }; });
+
+        creditsPhotos.forEach(function(p, i) {
+          var slide = document.createElement('div');
+          slide.className = 'credits-slide' + (i === 0 ? ' active' : '');
+          var bg = document.createElement('div');
+          bg.className = 'credits-slide-bg';
+          bg.style.backgroundImage = 'url(' + getCachedSrc(p.src) + ')';
+          slide.appendChild(bg);
+          var img = document.createElement('img');
+          img.src = getCachedSrc(p.src);
+          img.alt = '';
+          img.loading = 'lazy';
+          slide.appendChild(img);
+          photosEl.appendChild(slide);
+        });
+
+        creditsSlideIdx = 0;
+        if (creditsSlideTimer) clearInterval(creditsSlideTimer);
+        creditsSlideTimer = setInterval(function() {
+          var slides = photosEl.querySelectorAll('.credits-slide');
+          if (slides.length === 0) return;
+          slides[creditsSlideIdx].classList.remove('active');
+          creditsSlideIdx = (creditsSlideIdx + 1) % slides.length;
+          slides[creditsSlideIdx].classList.add('active');
+        }, 3500);
+
+        var list = document.getElementById('credits-list');
+        list.innerHTML = '';
+
+        var creditsData = [
+          { type: 'xi', text: '\u56CD' },
+          { type: 'title', text: '\u611F\u8C22\u60A8\u7684\u5230\u6765' },
+          { type: 'divider' },
+          { type: 'section', text: '\u65B0  \u90CE' },
+          { type: 'name', text: '\u9773\u5148\u751F' },
+          { type: 'section', text: '\u65B0  \u5A18' },
+          { type: 'name', text: '\u5F20\u5C0F\u59D0' },
+          { type: 'divider' },
+          { type: 'section', text: '\u4E3B \u5A5A \u4EBA' },
+          { type: 'name', text: '\uFF08\u5F85\u586B\u5199\uFF09' },
+          { type: 'section', text: '\u8BC1 \u5A5A \u4EBA' },
+          { type: 'name', text: '\uFF08\u5F85\u586B\u5199\uFF09' },
+          { type: 'divider' },
+          { type: 'section', text: '\u4F34  \u90CE' },
+          { type: 'name', text: '\uFF08\u5F85\u586B\u5199\uFF09' },
+          { type: 'section', text: '\u4F34  \u5A18' },
+          { type: 'name', text: '\uFF08\u5F85\u586B\u5199\uFF09' },
+          { type: 'divider' },
+          { type: 'section', text: '\u53CC \u65B9 \u7236 \u6BCD' },
+          { type: 'name', text: '\u9773\u7236 \u00B7 \u9773\u6BCD' },
+          { type: 'name', text: '\u5F20\u7236 \u00B7 \u5F20\u6BCD' },
+          { type: 'divider' },
+          { type: 'section', text: '\u5A5A \u793C \u7B56 \u5212' },
+          { type: 'name', text: '\uFF08\u5F85\u586B\u5199\uFF09' },
+          { type: 'section', text: '\u6444 \u5F71 \u56E2 \u961F' },
+          { type: 'name', text: '\uFF08\u5F85\u586B\u5199\uFF09' },
+          { type: 'section', text: '\u6444 \u50CF \u56E2 \u961F' },
+          { type: 'name', text: '\uFF08\u5F85\u586B\u5199\uFF09' },
+          { type: 'section', text: '\u5316 \u5986 \u9020 \u578B' },
+          { type: 'name', text: '\uFF08\u5F85\u586B\u5199\uFF09' },
+          { type: 'section', text: '\u4E3B \u6301 \u4EBA' },
+          { type: 'name', text: '\uFF08\u5F85\u586B\u5199\uFF09' },
+          { type: 'divider' },
+          { type: 'thanks', text: '\u611F\u8C22\u6BCF\u4E00\u4F4D\u4EB2\u670B\u597D\u53CB<br>\u5728\u8FD9\u4E2A\u7279\u522B\u7684\u65E5\u5B50\u91CC<br>\u89C1\u8BC1\u6211\u4EEC\u7684\u7231\u60C5<br>\u4E0E\u6211\u4EEC\u5171\u540C\u5206\u4EAB\u8FD9\u4EFD\u559C\u60A6' },
+          { type: 'divider' },
+          { type: 'thanks', text: '\u613F\u6240\u6709\u7F8E\u597D\u4E0E\u60A8\u540C\u5728<br>\u613F\u7231\u4E0E\u5E78\u798F\u5E38\u4F34\u5DE6\u53F3' },
+          { type: 'divider' },
+          { type: 'end', text: '\u2014 \u6C38\u7ED3\u540C\u5FC3 \u767E\u5E74\u597D\u5408 \u2014' },
+          { type: 'divider' },
+          { type: 'xi', text: '\u56CD' },
+          { type: 'name', text: '\u9773\u5148\u751F & \u5F20\u5C0F\u59D0' }
+        ];
+
+        creditsData.forEach(function(item) {
+          var el = document.createElement('div');
+          el.className = 'cr-item c-' + item.type;
+          el.innerHTML = item.text || '';
+          list.appendChild(el);
+        });
+
+        var totalH = list.scrollHeight;
+        var boxH = document.getElementById('credits-right').clientHeight;
+        var duration = Math.max(15, Math.round((totalH + boxH) / 18));
+        list.style.animationDuration = duration + 's';
+        list.addEventListener('animationend', function() {
+          list.style.display = 'none';
+          document.getElementById('credits-final').classList.add('show');
+        }, { once: true });
+      }
+
+      window.showCredits = function() {
+        var modal = document.getElementById('credits-pwd-modal');
+        var input = document.getElementById('credits-pwd-input');
+        var hint = document.getElementById('pwd-hint');
+        input.value = '';
+        hint.textContent = '';
+        modal.classList.add('show');
+        setTimeout(function() { input.focus(); }, 100);
+      };
+
+      document.getElementById('pwd-btn-ok').addEventListener('click', function() {
+        var input = document.getElementById('credits-pwd-input');
+        var hint = document.getElementById('pwd-hint');
+        if (input.value === (WEDDING ? WEDDING.wedding_date.replace(/-/g, '') : '20261002')) {
+          document.getElementById('credits-pwd-modal').classList.remove('show');
+          buildCredits();
+          document.getElementById('credits').classList.add('active');
+          controlsBar.style.display = 'none';
+        } else {
+          hint.textContent = '密码错误，请重试';
+          input.value = '';
+          input.focus();
+        }
+      });
+
+      document.getElementById('credits-pwd-input').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') document.getElementById('pwd-btn-ok').click();
+      });
+
+      document.getElementById('pwd-btn-cancel').addEventListener('click', function() {
+        document.getElementById('credits-pwd-modal').classList.remove('show');
+      });
+
+      window.hideCredits = function() {
+        document.getElementById('credits').classList.remove('active');
+        controlsBar.style.display = 'flex';
+        if (creditsSlideTimer) { clearInterval(creditsSlideTimer); creditsSlideTimer = null; }
+        if (creditsRevealTimer) { clearInterval(creditsRevealTimer); creditsRevealTimer = null; }
+      };
+
+            /* ===== Content Protection ===== */
+      
+      // Disable right-click context menu
+      document.addEventListener('contextmenu', e => {
+        e.preventDefault();
+        return false;
+      });
+      
+      // Disable image dragging
+      document.addEventListener('dragstart', e => {
+        if (e.target.tagName === 'IMG') {
+          e.preventDefault();
+          return false;
+        }
+      });
+      
+      // Disable keyboard shortcuts: Ctrl+S, Ctrl+U, Ctrl+Shift+I, F12, PrintScreen, Ctrl+P
+      document.addEventListener('keydown', e => {
+        // Ctrl+S (Save)
+        if (e.ctrlKey && e.key === 's') { e.preventDefault(); return false; }
+        // Ctrl+U (View Source)
+        if (e.ctrlKey && e.key === 'u') { e.preventDefault(); return false; }
+        // Ctrl+P (Print)
+        if (e.ctrlKey && e.key === 'p') { e.preventDefault(); return false; }
+        // Ctrl+Shift+I (DevTools)
+        if (e.ctrlKey && e.shiftKey && e.key === 'I') { e.preventDefault(); return false; }
+        // Ctrl+Shift+J (DevTools Console)
+        if (e.ctrlKey && e.shiftKey && e.key === 'J') { e.preventDefault(); return false; }
+        // Ctrl+Shift+C (Element Inspector)
+        if (e.ctrlKey && e.shiftKey && e.key === 'C') { e.preventDefault(); return false; }
+        // F12 (DevTools)
+        if (e.key === 'F12') { e.preventDefault(); return false; }
+        // PrintScreen
+        if (e.key === 'PrintScreen') {
+          navigator.clipboard.writeText('');
+          e.preventDefault();
+          return false;
+        }
+      });
+      
+      // Disable PrintScreen via clipboard API
+      document.addEventListener('keyup', e => {
+        if (e.key === 'PrintScreen') {
+          navigator.clipboard.writeText('').catch(() => {});
+        }
+      });
+      
+      // Clear canvas to prevent canvas-based screenshot APIs
+      const blockCanvasScreenshot = () => {
+        const canvases = document.querySelectorAll('canvas');
+        canvases.forEach(c => {
+          const ctx = c.getContext('2d');
+          if (ctx) ctx.clearRect(0, 0, c.width, c.height);
+        });
+      };
+      
+      // Disable iOS screenshot gestures (visual viewport shrink)
+      if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+        document.addEventListener('gesturestart', e => e.preventDefault());
+        let lastTouchEnd = 0;
+        document.addEventListener('touchend', e => {
+          const now = Date.now();
+          if (now - lastTouchEnd <= 300) e.preventDefault();
+          lastTouchEnd = now;
+        }, { passive: false });
+      }
+      
+      // DevTools detection (simple timing-based)
+      (function detectDevTools() {
+        const threshold = 160;
+        let open = false;
+        setInterval(() => {
+          const start = performance.now();
+          debugger;
+          const end = performance.now();
+          if (end - start > threshold && !open) {
+            open = true;
+            document.body.innerHTML = '<div style="position:fixed;inset:0;background:#0c0c0c;display:flex;align-items:center;justify-content:center;color:#c41e3a;font-size:24px;z-index:9999;font-family:sans-serif;">请关闭开发者工具后刷新页面</div>';
+          } else if (end - start <= threshold) {
+            open = false;
+          }
+        }, 2000);
+      })();
+      
+      /* ===== RSVP ===== */
+      window.submitRSVP = async function() {
+        const name = document.getElementById('rsvp-name').value.trim();
+        const phone = document.getElementById('rsvp-phone').value.trim();
+        const msgEl = document.getElementById('rsvp-msg');
+        const btn = document.getElementById('rsvp-submit');
+
+        if (!name) { msgEl.className = 'rsvp-msg err'; msgEl.textContent = '请输入您的姓名'; return; }
+        if (!phone) { msgEl.className = 'rsvp-msg err'; msgEl.textContent = '请输入联系电话'; return; }
+
+        btn.disabled = true;
+        btn.textContent = '提交中...';
+        msgEl.textContent = '';
+
+        try {
+          const res = await fetch('/api/rsvp', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              slug: SLUG,
+              name,
+              phone,
+              guests: parseInt(document.getElementById('rsvp-guests').value) || 1,
+              arrival_time: document.getElementById('rsvp-arrival').value,
+              transport: document.getElementById('rsvp-transport').value
+            })
+          });
+          const data = await res.json();
+          if (data.ok) {
+            msgEl.className = 'rsvp-msg ok';
+            msgEl.textContent = data.message;
+            setTimeout(() => showInviteCard(), 1200);
+          } else {
+            msgEl.className = 'rsvp-msg err';
+            msgEl.textContent = data.error || '提交失败';
+          }
+        } catch (e) {
+          msgEl.className = 'rsvp-msg err';
+          msgEl.textContent = '网络错误，请稍后重试';
+        } finally {
+          btn.disabled = false;
+          btn.textContent = '确认提交';
+        }
+      };
+
+      window.skipRSVP = function() {
+        enterRSVPDone();
+      };
+
+      /* ===== 请帖功能 ===== */
+      function showInviteCard() {
+        const rsvpEl = document.getElementById('rsvp-screen');
+        rsvpEl.style.transition = 'opacity 0.5s ease';
+        rsvpEl.style.opacity = '0';
+        setTimeout(() => {
+          rsvpEl.classList.add('hidden');
+          document.getElementById('invite-overlay').classList.add('show');
+          generateQRCode();
+        }, 500);
+      }
+
+      function generateQRCode() {
+        var box = document.getElementById('invite-qr-box');
+        if (!box) return;
+        box.innerHTML = '';
+        try {
+          var qr = qrcode(0, 'M');
+          var weddingUrl = window.location.origin + window.location.pathname;
+          qr.addData(weddingUrl);
+          qr.make();
+          var size = 100;
+          var cellSize = Math.floor(size / qr.getModuleCount());
+          var margin = Math.floor((size - cellSize * qr.getModuleCount()) / 2);
+          var canvas = document.createElement('canvas');
+          canvas.width = size;
+          canvas.height = size;
+          var ctx = canvas.getContext('2d');
+          ctx.fillStyle = '#000000';
+          for (var row = 0; row < qr.getModuleCount(); row++) {
+            for (var col = 0; col < qr.getModuleCount(); col++) {
+              if (qr.isDark(row, col)) {
+                ctx.fillRect(
+                  margin + col * cellSize,
+                  margin + row * cellSize,
+                  cellSize,
+                  cellSize
+                );
+              }
+            }
+          }
+          box.appendChild(canvas);
+        } catch (e) {
+          console.log('QR generation failed:', e);
+        }
+      }
+
+      window.saveInvite = function() {
+        const btn = document.getElementById('btn-invite-save');
+        btn.disabled = true;
+        btn.textContent = '生成中...';
+
+        const card = document.getElementById('invite-card');
+
+        html2canvas(card, {
+          scale: 3,
+          backgroundColor: '#7a0e0e',
+          useCORS: true,
+          allowTaint: true,
+          logging: false
+        }).then(function(canvas) {
+          const link = document.createElement('a');
+          link.download = 'wedding-invitation.png';
+          link.href = canvas.toDataURL('image/png');
+          link.click();
+          btn.disabled = false;
+          btn.textContent = '💾 保存请帖';
+        }).catch(function() {
+          alert('保存失败，请截图保存');
+          btn.disabled = false;
+          btn.textContent = '💾 保存请帖';
+        });
+      };
+
+      window.enterFromInvite = function() {
+        const el = document.getElementById('invite-overlay');
+        el.style.transition = 'opacity 0.5s ease';
+        el.style.opacity = '0';
+        setTimeout(() => {
+          el.classList.remove('show');
+          el.style.opacity = '';
+          enterRSVPDone();
+        }, 500);
+      };
+
+      function enterRSVPDone() {
+        const el = document.getElementById('rsvp-screen');
+        el.style.transition = 'opacity 0.6s ease';
+        el.style.opacity = '0';
+        setTimeout(() => { el.classList.add('hidden'); }, 600);
+      }
+
+      /* ===== Countdown ===== */
+      let WEDDING_DATE = Date.now() + 86400000;
+      function updateCountdown() {
+        const now = Date.now();
+        const diff = WEDDING_DATE - now;
+        if (diff <= 0) {
+          document.getElementById('cd-days').textContent = '0';
+          document.getElementById('cd-hours').textContent = '00';
+          document.getElementById('cd-mins').textContent = '00';
+          document.getElementById('cd-secs').textContent = '00';
+          return;
+        }
+        const d = Math.floor(diff / 86400000);
+        const h = Math.floor((diff % 86400000) / 3600000);
+        const m = Math.floor((diff % 3600000) / 60000);
+        const s = Math.floor((diff % 60000) / 1000);
+        document.getElementById('cd-days').textContent = d;
+        document.getElementById('cd-hours').textContent = String(h).padStart(2, '0');
+        document.getElementById('cd-mins').textContent = String(m).padStart(2, '0');
+        document.getElementById('cd-secs').textContent = String(s).padStart(2, '0');
+      }
+      updateCountdown();
+      setInterval(updateCountdown, 1000);
+
+      /* ===== Init ===== */
+      /* ===== API Data Loading ===== */
+      let WEDDING = null;
+      const SLUG = (function(){const p=location.pathname.split('/').filter(Boolean);return p[p.length-1];})();
+
+      async function loadWeddingData() {
+        if (!SLUG || SLUG === 'index.html') { showError('页面不存在'); return false; }
+        try {
+          const res = await fetch('/api/wedding/' + SLUG);
+          const data = await res.json();
+          if (!data.ok) { showError(data.error || '加载失败'); return false; }
+          WEDDING = data.wedding;
+          const imgs = data.images;
+          AVATAR_FILES = (imgs.avatars || []).map(a => a.url);
+          CREDITS_PHOTO_FILES = (imgs.credits || []).map(c => c.url);
+          PHOTO_FILES = (imgs.gallery || []).map(g => g.url);
+          PHOTOS = PHOTO_FILES.map((url, idx) => ({ src: url, label: '永恒瞬间 ' + (idx + 1), quote: ALL_QUOTES[idx % ALL_QUOTES.length] }));
+          populateUI();
+          return true;
+        } catch (e) { showError('网络错误'); return false; }
+      }
+
+      function showError(msg) {
+        document.getElementById('loading-screen').innerHTML =
+          '<div style="text-align:center;padding:40px"><div style="font-size:60px;margin-bottom:16px">😢</div>' +
+          '<div style="font-size:18px;color:#d4af37;margin-bottom:8px">页面不存在</div>' +
+          '<div style="font-size:14px;color:rgba(255,245,220,0.5)">' + msg + '</div></div>';
+      }
+
+      function populateUI() {
+        if (!WEDDING) return;
+        document.title = '囍 · ' + WEDDING.couple_name;
+        // RSVP
+        document.getElementById('rsvp-subtitle').textContent = WEDDING.partner1 + ' & ' + WEDDING.partner2 + ' · 婚礼出席确认';
+        document.getElementById('rsvp-names').textContent = WEDDING.partner1 + ' & ' + WEDDING.partner2;
+        const arrSel = document.getElementById('rsvp-arrival');
+        (WEDDING.arrival_options || []).forEach(o => { const op = document.createElement('option'); op.value = o; op.textContent = o; arrSel.appendChild(op); });
+        const trSel = document.getElementById('rsvp-transport');
+        (WEDDING.transport_options || []).forEach(o => { const op = document.createElement('option'); op.value = o; op.textContent = o; trSel.appendChild(op); });
+        // Invite card
+        const avDiv = document.getElementById('ic-avatars');
+        AVATAR_FILES.forEach((url, i) => {
+          if (i > 0) { const heart = document.createElement('span'); heart.className = 'ic-heart'; heart.textContent = '♥'; avDiv.appendChild(heart); }
+          const img = document.createElement('img'); img.className = 'ic-avatar'; img.src = url; img.alt = ''; img.crossOrigin = 'anonymous'; avDiv.appendChild(img);
+        });
+        document.getElementById('ic-names').textContent = WEDDING.partner1 + ' & ' + WEDDING.partner2;
+        document.getElementById('ic-names-en').textContent = (WEDDING.partner1 + ' & ' + WEDDING.partner2).toUpperCase();
+        if (WEDDING.wedding_date) {
+          const d = new Date(WEDDING.wedding_date + 'T00:00:00');
+          document.getElementById('ic-date').textContent = d.getFullYear() + '年' + (d.getMonth()+1) + '月' + d.getDate() + '日';
+          const days = ['星期日','星期一','星期二','星期三','星期四','星期五','星期六'];
+          document.getElementById('ic-date-sub').textContent = days[d.getDay()];
+          // Update countdown target
+          WEDDING_DATE = new Date(WEDDING.wedding_date + 'T11:58:00').getTime();
+          document.querySelector('.cd-date-label').textContent = '距离婚礼 · ' + WEDDING.wedding_date;
+          // Update save the date display
+          const dateParts = WEDDING.wedding_date.split('-');
+          document.getElementById('save-date-num').textContent = dateParts[0] + '.' + dateParts[1] + '.' + dateParts[2];
+        }
+        const infoArr = [];
+        if (WEDDING.wedding_venue) infoArr.push('<div class="ic-info-row">婚礼地点：' + WEDDING.wedding_venue + '</div>');
+        document.getElementById('ic-info').innerHTML = infoArr.join('');
+        // Sing bar
+        if (AVATAR_FILES[0]) document.getElementById('sing-avatar-1').src = AVATAR_FILES[0];
+        if (AVATAR_FILES[1]) document.getElementById('sing-avatar-2').src = AVATAR_FILES[1] || AVATAR_FILES[0];
+        document.getElementById('avatar-name-1').textContent = WEDDING.partner1;
+        document.getElementById('avatar-name-2').textContent = WEDDING.partner2;
+        document.getElementById('f-sign').textContent = WEDDING.partner1 + ' & ' + WEDDING.partner2;
+        // BGM
+        const bgmSrc = WEDDING.bgm_url || WEDDING.bgm_data;
+        if (bgmSrc) { const bgm = document.getElementById('bgm'); bgm.innerHTML = '<source src="' + bgmSrc + '" type="audio/mpeg">'; }
+      }
+
+      window.addEventListener('DOMContentLoaded', async () => {
+        const ok = await loadWeddingData();
+        if (ok) {
+          preloadImages();
+          updateFullscreenState();
+        }
+      });
+    })();
+  </script>
+<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v4513226cdae34746b4dedf0b4dfa099e1781791509496" integrity="sha512-ZE9pZaUXND66v380QUtch/5sE9tPFh2zg45pR2PB0CVkCtOREv2AJKkSidISWkysEuQ0EH8faUU5du78bx87UQ==" data-cf-beacon='{"version":"2024.11.0","token":"5f608a4fc9334e848037a7346c706604","r":1}' crossorigin="anonymous"></script>
+  <!-- ICP 备案信息 -->
+  <div class="icp-footer">
+    <a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener noreferrer">苏ICP备2025208439号</a>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
+</body>
+</html>

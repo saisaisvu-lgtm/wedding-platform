@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>超级管理 — 光影婚礼墙</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    .admin-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 10px; }
+    .admin-header h2 { color: var(--gold); font-size: 20px; letter-spacing: 0.08em; }
+    .user-table { width: 100%; border-collapse: collapse; }
+    .user-table th, .user-table td { padding: 10px 12px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.06); font-size: 14px; }
+    .user-table th { background: rgba(212,175,55,0.12); color: var(--gold); font-weight: 600; font-size: 13px; letter-spacing: 0.05em; position: sticky; top: 0; }
+    .user-table tr:hover { background: rgba(255,255,255,0.03); }
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; }
+    .badge-img { background: rgba(212,175,55,0.15); color: var(--gold); }
+    .badge-rsvp { background: rgba(158,27,50,0.15); color: #e88; }
+    .link-btn { color: var(--gold); font-size: 12px; text-decoration: none; border-bottom: 1px solid rgba(212,175,55,0.3); padding-bottom: 1px; }
+    .link-btn:hover { color: #fff; }
+    .confirm-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 1000; align-items: center; justify-content: center; }
+    .confirm-overlay.show { display: flex; }
+    .confirm-box { background: #1a1a1a; border: 1px solid rgba(196,30,58,0.5); border-radius: 12px; padding: 28px; max-width: 400px; width: 90%; text-align: center; }
+    .confirm-box h3 { color: #e88; margin-bottom: 12px; font-size: 16px; }
+    .confirm-box p { color: var(--text-muted); font-size: 14px; margin-bottom: 20px; line-height: 1.6; }
+    .confirm-box .actions { display: flex; gap: 12px; justify-content: center; }
+    .btn-confirm-del { background: rgba(196,30,58,0.3); border: 1px solid rgba(196,30,58,0.6); color: #e88; padding: 8px 24px; border-radius: 6px; cursor: pointer; font-family: inherit; font-size: 14px; }
+    .btn-confirm-del:hover { background: rgba(196,30,58,0.5); }
+    .btn-cancel { background: transparent; border: 1px solid rgba(255,255,255,0.2); color: var(--text-muted); padding: 8px 24px; border-radius: 6px; cursor: pointer; font-family: inherit; font-size: 14px; }
+    .empty-msg { text-align: center; color: var(--text-muted); padding: 40px; font-size: 13px; }
+    .stats-bar { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
+    .stats-bar .stat { background: var(--bg-card); border: 1px solid var(--gold-border); border-radius: 8px; padding: 12px 20px; text-align: center; }
+    .stats-bar .stat .num { font-size: 24px; font-weight: 700; color: var(--gold); }
+    .stats-bar .stat .label { font-size: 11px; color: var(--text-muted); }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <a href="/" class="logo">💍 光影婚礼墙</a>
+    <div class="nav-links">
+      <a href="/dashboard.html">管理后台</a>
+      <a href="#" id="logoutAdmin">退出管理</a>
+    </div>
+  </nav>
+
+  <!-- 登录 -->
+  <div id="loginView" class="container-sm" style="padding-top:80px;">
+    <div class="card">
+      <h2 class="card-title">🔐 超级管理</h2>
+      <div id="loginAlert" class="alert"></div>
+      <form id="loginForm">
+        <div class="form-group">
+          <label>管理密钥</label>
+          <input type="password" id="adminKey" placeholder="输入 ADMIN_KEY" required>
+        </div>
+        <button type="submit" class="btn btn-primary">登录</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- 管理面板 -->
+  <div id="adminView" class="container" style="padding-top:30px;padding-bottom:40px;display:none;">
+    <div class="admin-header">
+      <h2>👑 超级管理</h2>
+      <button class="btn btn-sm btn-outline" onclick="loadUsers()">🔄 刷新</button>
+    </div>
+
+    <div class="stats-bar" id="statsBar"></div>
+
+    <!-- Tab 切换 -->
+    <div class="tabs" style="margin-bottom:0;">
+      <button class="tab active" data-tab="users" onclick="switchAdminTab('users')">👥 用户管理</button>
+      <button class="tab" data-tab="invites" onclick="switchAdminTab('invites')">🎟️ 邀请码</button>
+      <button class="tab" data-tab="payment" onclick="switchAdminTab('payment')">💰 付款设置</button>
+      <button class="tab" data-tab="orders" onclick="switchAdminTab('orders')">📋 订单管理</button>
+      <button class="tab" data-tab="cleanup" onclick="switchAdminTab('cleanup')">🧹 过期清理</button>
+    </div>
+
+    <!-- 用户管理 -->
+    <div id="tab-users" class="tab-content active">
+      <div class="card">
+        <div id="adminAlert" class="alert"></div>
+        <div id="userTable"><div class="empty-msg">加载中...</div></div>
+      </div>
+    </div>
+
+    <!-- 邀请码管理 -->
+    <div id="tab-invites" class="tab-content">
+      <div class="card">
+        <div id="inviteAlert" class="alert"></div>
+        <div style="display:flex;gap:10px;align-items:center;margin-bottom:16px;flex-wrap:wrap;">
+          <button class="btn btn-sm btn-primary" onclick="genInviteCodes()" style="width:auto;">🎟️ 生成邀请码</button>
+          <label style="font-size:13px;color:var(--text-muted);">数量：</label>
+          <input type="number" id="inviteCount" value="10" min="1" max="100" style="width:70px;padding:6px 10px;background:rgba(255,255,255,0.06);border:1px solid rgba(212,175,55,0.3);border-radius:6px;color:#f0e6d2;font-size:14px;">
+          <button class="btn btn-sm btn-outline" onclick="loadInvites()">🔄 刷新</button>
+        </div>
+        <div id="inviteStats" style="margin-bottom:12px;font-size:13px;color:var(--text-muted);"></div>
+        <div id="inviteTable"><div class="empty-msg">点击上方按钮生成邀请码</div></div>
+        <div id="inviteNewCodes" style="margin-top:16px;display:none;">
+          <div style="font-size:13px;color:var(--gold);margin-bottom:8px;">✅ 新生成的邀请码（请保存）：</div>
+          <div id="inviteNewList" style="font-family:monospace;font-size:14px;line-height:2;color:#f0e6d2;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 付款设置 -->
+    <div id="tab-payment" class="tab-content">
+      <div class="card">
+        <div id="paymentAlert" class="alert"></div>
+        <div style="margin-bottom:20px;">
+          <div class="form-group">
+            <label>邀请码单价（元）</label>
+            <input type="number" id="payPrice" step="0.01" min="0" placeholder="9.9" style="max-width:200px;">
+          </div>
+          <div class="form-group">
+            <label>价格说明</label>
+            <input type="text" id="payPriceDesc" placeholder="如：注册码单价" style="max-width:400px;">
+          </div>
+          <div class="form-group">
+            <label>联系方式（付款后联系信息）</label>
+            <textarea id="payContactInfo" rows="3" placeholder="如：付款后请加微信 xxx 备注注册码，发送付款截图即可获取" style="max-width:500px;"></textarea>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:24px;flex-wrap:wrap;margin-bottom:20px;">
+          <!-- 微信收款码 -->
+          <div style="flex:1;min-width:200px;">
+            <div style="font-size:14px;color:var(--gold);margin-bottom:10px;">📱 微信收款码</div>
+            <div id="wechatQrPreview" style="width:180px;height:180px;border:1px dashed rgba(212,175,55,0.4);border-radius:8px;display:flex;align-items:center;justify-content:center;margin-bottom:10px;overflow:hidden;">
+              <span style="color:var(--text-muted);font-size:12px;">未上传</span>
+            </div>
+            <input type="file" id="wechatQrFile" accept="image/*" style="display:none;" onchange="handleQrUpload('wechat', this)">
+            <button class="btn btn-sm btn-outline" onclick="document.getElementById('wechatQrFile').click()">📤 上传微信收款码</button>
+            <button class="btn btn-sm btn-danger" onclick="clearQr('wechat')" style="margin-left:6px;">清除</button>
+          </div>
+          <!-- 支付宝收款码 -->
+          <div style="flex:1;min-width:200px;">
+            <div style="font-size:14px;color:var(--gold);margin-bottom:10px;">💳 支付宝收款码</div>
+            <div id="alipayQrPreview" style="width:180px;height:180px;border:1px dashed rgba(212,175,55,0.4);border-radius:8px;display:flex;align-items:center;justify-content:center;margin-bottom:10px;overflow:hidden;">
+              <span style="color:var(--text-muted);font-size:12px;">未上传</span>
+            </div>
+            <input type="file" id="alipayQrFile" accept="image/*" style="display:none;" onchange="handleQrUpload('alipay', this)">
+            <button class="btn btn-sm btn-outline" onclick="document.getElementById('alipayQrFile').click()">📤 上传支付宝收款码</button>
+            <button class="btn btn-sm btn-danger" onclick="clearQr('alipay')" style="margin-left:6px;">清除</button>
+          </div>
+        </div>
+
+        <button class="btn btn-primary" onclick="savePaymentSettings()" style="width:auto;">💾 保存设置</button>
+      </div>
+    </div>
+
+    <!-- 订单管理 -->
+    <div id="tab-orders" class="tab-content">
+      <div class="card">
+        <div id="orderAlert" class="alert"></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
+          <div class="section-title" style="margin-bottom:0;">📋 购买订单</div>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <select id="orderFilter" onchange="loadOrders()" style="padding:6px 10px;background:rgba(255,255,255,0.06);border:1px solid rgba(212,175,55,0.3);border-radius:6px;color:#f0e6d2;font-size:13px;">
+              <option value="">全部</option>
+              <option value="pending">待确认</option>
+              <option value="confirmed">已确认</option>
+              <option value="rejected">已拒绝</option>
+            </select>
+            <button class="btn btn-sm btn-outline" onclick="loadOrders()">🔄 刷新</button>
+          </div>
+        </div>
+        <div id="orderStats" style="margin-bottom:12px;font-size:13px;color:var(--text-muted);"></div>
+        <div id="orderTable"><div class="empty-msg">点击刷新加载订单</div></div>
+      </div>
+    </div>
+
+    <!-- 确认订单弹窗 -->
+    <div class="confirm-overlay" id="confirmOrderOverlay">
+      <div class="confirm-box" style="border-color:rgba(46,125,50,0.5);">
+        <h3 style="color:#8f8;">✅ 确认付款</h3>
+        <p id="confirmOrderMsg"></p>
+        <div style="margin-bottom:16px;">
+          <div class="form-group" style="margin-bottom:8px;">
+            <label style="font-size:12px;color:var(--text-muted);">邀请码（留空自动生成）</label>
+            <input type="text" id="confirmInviteCode" placeholder="留空则自动生成8位码" maxlength="20" style="width:100%;padding:8px 12px;background:rgba(255,255,255,0.06);border:1px solid rgba(212,175,55,0.3);border-radius:6px;color:#f0e6d2;font-size:14px;font-family:monospace;letter-spacing:0.08em;text-transform:uppercase;">
+          </div>
+        </div>
+        <div class="actions">
+          <button class="btn-cancel" onclick="closeConfirmOrder()">取消</button>
+          <button class="btn-confirm-del" id="confirmOrderBtn" onclick="confirmOrderPayment()" style="background:rgba(46,125,50,0.3);border-color:rgba(46,125,50,0.6);color:#8f8;">确认发放</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 过期清理 -->
+    <div id="tab-cleanup" class="tab-content">
+      <div class="card">
+        <div id="cleanupAlert" class="alert"></div>
+        <div style="margin-bottom:16px;">
+          <div style="font-size:14px;color:var(--text-muted);margin-bottom:12px;">自动清理婚礼结束超过 3 天的用户及其所有数据（图片、回执）</div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <button class="btn btn-sm btn-outline" onclick="previewCleanup()">🔍 扫描过期用户</button>
+            <button class="btn btn-sm btn-danger" id="cleanupExecBtn" onclick="execCleanup()" style="display:none;">🗑️ 执行清理</button>
+          </div>
+        </div>
+        <div id="cleanupResult"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 删除确认 -->
+  <div class="confirm-overlay" id="confirmOverlay">
+    <div class="confirm-box">
+      <h3>⚠️ 确认删除</h3>
+      <p id="confirmMsg">确定要删除该用户及所有数据吗？此操作不可恢复。</p>
+      <div class="actions">
+        <button class="btn-cancel" onclick="closeConfirm()">取消</button>
+        <button class="btn-confirm-del" id="confirmBtn" onclick="confirmDelete()">确认删除</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">光影婚礼墙 · Admin</div>
+
+  <script src="/js/api.js"></script>
+  <script>
+    let adminKey = '';
+    let pendingDeleteId = null;
+
+    // 检查本地存储
+    const saved = localStorage.getItem('admin_key');
+    if (saved) { adminKey = saved; showAdmin(); }
+
+    // 登录
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const alertEl = document.getElementById('loginAlert');
+      hideAlert(alertEl);
+      adminKey = document.getElementById('adminKey').value.trim();
+      if (!adminKey) return;
+
+      // 验证密钥
+      try {
+        const res = await fetch('/api/admin?key=' + encodeURIComponent(adminKey));
+        const data = await res.json();
+        if (data.ok) {
+          localStorage.setItem('admin_key', adminKey);
+          showAdmin();
+        } else {
+          showAlert(alertEl, '密钥错误');
+        }
+      } catch { showAlert(alertEl, '连接失败'); }
+    });
+
+    function showAdmin() {
+      document.getElementById('loginView').style.display = 'none';
+      document.getElementById('adminView').style.display = 'block';
+      loadUsers();
+    }
+
+    document.getElementById('logoutAdmin').addEventListener('click', (e) => {
+      e.preventDefault();
+      localStorage.removeItem('admin_key');
+      adminKey = '';
+      document.getElementById('loginView').style.display = 'block';
+      document.getElementById('adminView').style.display = 'none';
+    });
+
+    // 加载用户列表
+    async function loadUsers() {
+      const container = document.getElementById('userTable');
+      const statsBar = document.getElementById('statsBar');
+      container.innerHTML = '<div class="empty-msg"><span class="spinner"></span></div>';
+
+      try {
+        const res = await fetch('/api/admin?key=' + encodeURIComponent(adminKey));
+        const data = await res.json();
+        if (!data.ok) { container.innerHTML = '<div class="empty-msg">加载失败</div>'; return; }
+
+        const users = data.users;
+        const totalImages = users.reduce((s, u) => s + u.image_count, 0);
+        const totalRsvps = users.reduce((s, u) => s + u.rsvp_count, 0);
+
+        statsBar.innerHTML = `
+          <div class="stat"><div class="num">${users.length}</div><div class="label">注册用户</div></div>
+          <div class="stat"><div class="num">${totalImages}</div><div class="label">图片总数</div></div>
+          <div class="stat"><div class="num">${totalRsvps}</div><div class="label">回执总数</div></div>
+        `;
+
+        if (users.length === 0) {
+          container.innerHTML = '<div class="empty-msg">暂无注册用户</div>';
+          return;
+        }
+
+        container.innerHTML = `
+          <table class="user-table">
+            <thead><tr>
+              <th>ID</th><th>用户名</th><th>新人</th><th>婚礼日期</th>
+              <th>图片</th><th>回执</th><th>页面</th><th>注册时间</th><th>操作</th>
+            </tr></thead>
+            <tbody>${users.map(u => `<tr>
+              <td>${u.id}</td>
+              <td><strong>${esc(u.username)}</strong></td>
+              <td>${esc(u.couple_name)}</td>
+              <td>${u.wedding_date || '-'}</td>
+              <td><span class="badge badge-img">${u.image_count}</span></td>
+              <td><span class="badge badge-rsvp">${u.rsvp_count}</span></td>
+              <td><a class="link-btn" href="/w/${u.slug}" target="_blank">/w/${esc(u.slug)}</a></td>
+              <td style="font-size:12px;color:var(--text-muted);">${u.created_at ? u.created_at.slice(0, 16) : ''}</td>
+              <td><button class="btn btn-sm btn-danger" onclick="requestDelete(${u.id},'${esc(u.username)}','${esc(u.couple_name)}',${u.image_count},${u.rsvp_count})" style="padding:3px 10px;font-size:12px;">删除</button></td>
+            </tr>`).join('')}</tbody>
+          </table>
+        `;
+      } catch { container.innerHTML = '<div class="empty-msg">网络错误</div>'; }
+    }
+
+    // 删除确认
+    function requestDelete(id, username, coupleName, imgCount, rsvpCount) {
+      pendingDeleteId = id;
+      document.getElementById('confirmMsg').innerHTML =
+        `确定要删除用户 <strong>${esc(username)}</strong>（${esc(coupleName)}）吗？<br><br>` +
+        `将同时删除：<br>📷 ${imgCount} 张图片 · 💌 ${rsvpCount} 条回执<br><br>` +
+        `<span style="color:#e88">此操作不可恢复！</span>`;
+      document.getElementById('confirmOverlay').classList.add('show');
+    }
+
+    function closeConfirm() {
+      document.getElementById('confirmOverlay').classList.remove('show');
+      pendingDeleteId = null;
+    }
+
+    async function confirmDelete() {
+      if (!pendingDeleteId) return;
+      const btn = document.getElementById('confirmBtn');
+      btn.textContent = '删除中...'; btn.disabled = true;
+
+      try {
+        const res = await fetch('/api/admin?key=' + encodeURIComponent(adminKey) + '&userId=' + pendingDeleteId, { method: 'DELETE' });
+        const data = await res.json();
+        if (data.ok) {
+          closeConfirm();
+          loadUsers();
+        } else {
+          alert(data.error || '删除失败');
+        }
+      } catch { alert('网络错误'); }
+      finally { btn.textContent = '确认删除'; btn.disabled = false; }
+    }
+
+    function esc(s) { const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
+
+    // ====== Tab 切换 ======
+    function switchAdminTab(tab) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      document.querySelector(`[data-tab="${tab}"]`).classList.add('active');
+      document.getElementById(`tab-${tab}`).classList.add('active');
+      if (tab === 'invites') loadInvites();
+      if (tab === 'payment') loadPaymentSettings();
+      if (tab === 'orders') loadOrders();
+    }
+
+    // ====== 邀请码管理 ======
+    let cachedInvites = null;
+
+    async function loadInvites() {
+      const container = document.getElementById('inviteTable');
+      const statsEl = document.getElementById('inviteStats');
+      container.innerHTML = '<div class="empty-msg"><span class="spinner"></span></div>';
+
+      try {
+        const res = await fetch('/api/invite?key=' + encodeURIComponent(adminKey));
+        const data = await res.json();
+        if (!data.ok) { container.innerHTML = '<div class="empty-msg">加载失败</div>'; return; }
+
+        cachedInvites = data.codes;
+        statsEl.innerHTML = `共 <strong>${data.stats.total}</strong> 个 · 未使用 <strong style="color:#8f8">${data.stats.unused}</strong> · 已使用 <strong style="color:#e88">${data.stats.used}</strong>`;
+
+        if (data.codes.length === 0) {
+          container.innerHTML = '<div class="empty-msg">暂无邀请码</div>';
+          return;
+        }
+
+        container.innerHTML = `
+          <table class="user-table">
+            <thead><tr><th>邀请码</th><th>状态</th><th>使用者</th><th>使用时间</th><th>创建时间</th><th>操作</th></tr></thead>
+            <tbody>${data.codes.map(c => `<tr>
+              <td style="font-family:monospace;letter-spacing:0.08em;font-weight:600;">${esc(c.code)}</td>
+              <td>${c.used_by ? '<span style="color:#e88">已使用</span>' : '<span style="color:#8f8">未使用</span>'}</td>
+              <td>${c.username ? esc(c.username) : '-'}</td>
+              <td style="font-size:12px;color:var(--text-muted);">${c.used_at ? c.used_at.slice(0,16) : '-'}</td>
+              <td style="font-size:12px;color:var(--text-muted);">${c.created_at ? c.created_at.slice(0,16) : ''}</td>
+              <td>${!c.used_by ? '<button class="btn btn-sm btn-danger" onclick="deleteInvite('+c.id+')" style="padding:2px 10px;font-size:12px;">删除</button>' : ''}</td>
+            </tr>`).join('')}</tbody>
+          </table>
+        `;
+      } catch { container.innerHTML = '<div class="empty-msg">网络错误</div>'; }
+    }
+
+    async function genInviteCodes() {
+      const alertEl = document.getElementById('inviteAlert');
+      const count = parseInt(document.getElementById('inviteCount').value) || 10;
+      hideAlert(alertEl);
+
+      try {
+        const res = await fetch('/api/invite?key=' + encodeURIComponent(adminKey), {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ count }),
+        });
+        const data = await res.json();
+        if (data.ok) {
+          showAlert(alertEl, `✅ ${data.message}`, 'success');
+          // 显示新码
+          const newDiv = document.getElementById('inviteNewCodes');
+          const newList = document.getElementById('inviteNewList');
+          newList.innerHTML = data.codes.map(c => `<span style="display:inline-block;margin:2px 6px;padding:2px 10px;background:rgba(46,125,50,0.15);border:1px solid rgba(46,125,50,0.3);border-radius:4px;">${esc(c)}</span>`).join('');
+          newDiv.style.display = 'block';
+          loadInvites();
+        } else {
+          showAlert(alertEl, data.error || '生成失败');
+        }
+      } catch { showAlert(alertEl, '网络错误'); }
+    }
+
+    async function deleteInvite(id) {
+      if (!confirm('确定删除此邀请码？')) return;
+      try {
+        const res = await fetch('/api/invite?key=' + encodeURIComponent(adminKey) + '&id=' + id, { method: 'DELETE' });
+        const data = await res.json();
+        if (data.ok) loadInvites();
+        else alert(data.error || '删除失败');
+      } catch { alert('网络错误'); }
+    }
+
+    // ====== 付款设置 ======
+    let paymentData = { wechat_qr: '', alipay_qr: '' };
+
+    async function loadPaymentSettings() {
+      try {
+        const res = await fetch('/api/payment?key=' + encodeURIComponent(adminKey));
+        const data = await res.json();
+        if (!data.ok) return;
+
+        const s = data.settings;
+        document.getElementById('payPrice').value = s.price || '';
+        document.getElementById('payPriceDesc').value = s.price_desc || '';
+        document.getElementById('payContactInfo').value = s.contact_info || '';
+
+        paymentData.wechat_qr = s.wechat_qr || '';
+        paymentData.alipay_qr = s.alipay_qr || '';
+
+        renderQrPreview('wechat', paymentData.wechat_qr);
+        renderQrPreview('alipay', paymentData.alipay_qr);
+      } catch (e) {
+        console.error('Load payment error:', e);
+      }
+    }
+
+    function renderQrPreview(type, base64) {
+      const preview = document.getElementById(type + 'QrPreview');
+      if (base64) {
+        preview.innerHTML = `<img src="${base64}" style="width:100%;height:100%;object-fit:contain;">`;
+      } else {
+        preview.innerHTML = '<span style="color:var(--text-muted);font-size:12px;">未上传</span>';
+      }
+    }
+
+    function handleQrUpload(type, input) {
+      const file = input.files[0];
+      if (!file) return;
+      if (!file.type.startsWith('image/')) { alert('请选择图片文件'); return; }
+      if (file.size > 2 * 1024 * 1024) { alert('图片大小不能超过 2MB'); return; }
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const base64 = e.target.result;
+        if (type === 'wechat') paymentData.wechat_qr = base64;
+        else paymentData.alipay_qr = base64;
+        renderQrPreview(type, base64);
+      };
+      reader.readAsDataURL(file);
+      input.value = '';
+    }
+
+    function clearQr(type) {
+      if (type === 'wechat') paymentData.wechat_qr = '';
+      else paymentData.alipay_qr = '';
+      renderQrPreview(type, '');
+    }
+
+    async function savePaymentSettings() {
+      const alertEl = document.getElementById('paymentAlert');
+      hideAlert(alertEl);
+
+      const price = parseFloat(document.getElementById('payPrice').value);
+      if (isNaN(price) || price < 0) { showAlert(alertEl, '请输入有效的价格'); return; }
+
+      try {
+        const res = await fetch('/api/payment?key=' + encodeURIComponent(adminKey), {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            price,
+            price_desc: document.getElementById('payPriceDesc').value,
+            wechat_qr: paymentData.wechat_qr,
+            alipay_qr: paymentData.alipay_qr,
+            contact_info: document.getElementById('payContactInfo').value,
+          }),
+        });
+        const data = await res.json();
+        if (data.ok) showAlert(alertEl, '✅ 付款设置已保存', 'success');
+        else showAlert(alertEl, data.error || '保存失败');
+      } catch { showAlert(alertEl, '网络错误'); }
+    }
+
+    // ====== 订单管理 ======
+    let pendingConfirmOrderId = null;
+
+    async function loadOrders() {
+      const container = document.getElementById('orderTable');
+      const statsEl = document.getElementById('orderStats');
+      const alertEl = document.getElementById('orderAlert');
+      hideAlert(alertEl);
+      container.innerHTML = '<div class="empty-msg"><span class="spinner"></span></div>';
+
+      try {
+        const filter = document.getElementById('orderFilter').value;
+        const url = '/api/order?key=' + encodeURIComponent(adminKey) + (filter ? '&status=' + filter : '');
+        const res = await fetch(url);
+        const data = await res.json();
+        if (!data.ok) { container.innerHTML = '<div class="empty-msg">加载失败</div>'; return; }
+
+        const s = data.stats;
+        statsEl.innerHTML = `总计 <strong>${s.total}</strong> 单 · 待确认 <strong style="color:#d4af37">${s.pending}</strong> · 已确认 <strong style="color:#8f8">${s.confirmed}</strong> · 已拒绝 <strong style="color:#e88">${s.rejected}</strong>`;
+
+        if (data.orders.length === 0) {
+          container.innerHTML = '<div class="empty-msg">暂无订单</div>';
+          return;
+        }
+
+        const methodMap = { wechat: '📱 微信', alipay: '💳 支付宝', other: '💰 其他' };
+        const statusMap = {
+          pending: '<span style="color:#d4af37;">⏳ 待确认</span>',
+          confirmed: '<span style="color:#8f8;">✅ 已确认</span>',
+          rejected: '<span style="color:#e88;">❌ 已拒绝</span>',
+        };
+
+        container.innerHTML = `
+          <table class="user-table">
+            <thead><tr>
+              <th>ID</th><th>联系方式</th><th>付款方式</th><th>金额</th>
+              <th>邀请码</th><th>状态</th><th>备注</th><th>时间</th><th>操作</th>
+            </tr></thead>
+            <tbody>${data.orders.map(o => `<tr>
+              <td>${o.id}</td>
+              <td><strong>${esc(o.contact)}</strong></td>
+              <td>${methodMap[o.contact_type] || o.contact_type}</td>
+              <td style="color:var(--gold);">¥${o.amount}</td>
+              <td style="font-family:monospace;letter-spacing:0.05em;">${o.invite_code ? '<span style="color:#8f8;">' + esc(o.invite_code) + '</span>' : '-'}</td>
+              <td>${statusMap[o.status] || o.status}</td>
+              <td style="font-size:12px;color:var(--text-muted);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(o.note || '-')}</td>
+              <td style="font-size:12px;color:var(--text-muted);">${o.created_at ? o.created_at.slice(0, 16).replace('T', ' ') : ''}</td>
+              <td style="white-space:nowrap;">
+                ${o.status === 'pending' ? `
+                  <button class="btn btn-sm btn-outline" onclick="requestConfirmOrder(${o.id},'${esc(o.contact)}','${methodMap[o.contact_type] || ''}',${o.amount})" style="padding:3px 8px;font-size:11px;color:#8f8;border-color:rgba(46,125,50,0.4);">确认</button>
+                  <button class="btn btn-sm btn-danger" onclick="rejectOrder(${o.id})" style="padding:3px 8px;font-size:11px;">拒绝</button>
+                ` : ''}
+                <button class="btn btn-sm btn-danger" onclick="deleteOrder(${o.id})" style="padding:3px 8px;font-size:11px;">删除</button>
+              </td>
+            </tr>`).join('')}</tbody>
+          </table>
+        `;
+      } catch { container.innerHTML = '<div class="empty-msg">网络错误</div>'; }
+    }
+
+    function requestConfirmOrder(id, contact, method, amount) {
+      pendingConfirmOrderId = id;
+      document.getElementById('confirmOrderMsg').innerHTML =
+        `确认用户 <strong>${esc(contact)}</strong>（${method}）的付款 <strong style="color:var(--gold);">¥${amount}</strong>？`;
+      document.getElementById('confirmInviteCode').value = '';
+      document.getElementById('confirmOrderOverlay').classList.add('show');
+    }
+
+    function closeConfirmOrder() {
+      document.getElementById('confirmOrderOverlay').classList.remove('show');
+      pendingConfirmOrderId = null;
+    }
+
+    async function confirmOrderPayment() {
+      if (!pendingConfirmOrderId) return;
+      const btn = document.getElementById('confirmOrderBtn');
+      btn.textContent = '处理中...'; btn.disabled = true;
+
+      const inviteCode = document.getElementById('confirmInviteCode').value.trim();
+
+      try {
+        const res = await fetch('/api/order?key=' + encodeURIComponent(adminKey), {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            id: pendingConfirmOrderId,
+            status: 'confirmed',
+            invite_code: inviteCode || undefined,
+          }),
+        });
+        const data = await res.json();
+        if (data.ok) {
+          closeConfirmOrder();
+          showAlert(document.getElementById('orderAlert'), `✅ ${data.message}`, 'success');
+          loadOrders();
+        } else {
+          alert(data.error || '操作失败');
+        }
+      } catch { alert('网络错误'); }
+      finally { btn.textContent = '确认发放'; btn.disabled = false; }
+    }
+
+    async function rejectOrder(id) {
+      if (!confirm('确定拒绝此订单？')) return;
+      try {
+        const res = await fetch('/api/order?key=' + encodeURIComponent(adminKey), {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id, status: 'rejected' }),
+        });
+        const data = await res.json();
+        if (data.ok) loadOrders();
+        else alert(data.error || '操作失败');
+      } catch { alert('网络错误'); }
+    }
+
+    async function deleteOrder(id) {
+      if (!confirm('确定删除此订单？')) return;
+      try {
+        const res = await fetch('/api/order?key=' + encodeURIComponent(adminKey) + '&id=' + id, { method: 'DELETE' });
+        const data = await res.json();
+        if (data.ok) loadOrders();
+        else alert(data.error || '删除失败');
+      } catch { alert('网络错误'); }
+    }
+
+    // ====== 过期清理 ======
+    let expiredUsersList = [];
+
+    async function previewCleanup() {
+      const result = document.getElementById('cleanupResult');
+      const alertEl = document.getElementById('cleanupAlert');
+      hideAlert(alertEl);
+      result.innerHTML = '<div class="empty-msg"><span class="spinner"></span></div>';
+      document.getElementById('cleanupExecBtn').style.display = 'none';
+
+      try {
+        const res = await fetch('/api/cleanup?key=' + encodeURIComponent(adminKey));
+        const data = await res.json();
+        if (!data.ok) { result.innerHTML = '<div class="empty-msg">扫描失败</div>'; return; }
+
+        expiredUsersList = data.users;
+
+        if (data.users.length === 0) {
+          result.innerHTML = '<div class="empty-msg">✅ 暂无过期用户</div>';
+          return;
+        }
+
+        document.getElementById('cleanupExecBtn').style.display = 'inline-flex';
+        result.innerHTML = `
+          <div style="margin-bottom:12px;font-size:13px;color:#e88;">⚠️ 以下 ${data.users.length} 个用户婚礼已结束超过 3 天：</div>
+          <table class="user-table">
+            <thead><tr><th>ID</th><th>用户名</th><th>新人</th><th>婚礼日期</th><th>已过天数</th></tr></thead>
+            <tbody>${data.users.map(u => {
+              const days = Math.floor((Date.now() - new Date(u.wedding_date+'T00:00:00').getTime()) / 86400000);
+              return `<tr>
+                <td>${u.id}</td>
+                <td><strong>${esc(u.username)}</strong></td>
+                <td>${esc(u.couple_name)}</td>
+                <td>${u.wedding_date}</td>
+                <td style="color:#e88;">${days} 天</td>
+              </tr>`;
+            }).join('')}</tbody>
+          </table>
+        `;
+      } catch { result.innerHTML = '<div class="empty-msg">网络错误</div>'; }
+    }
+
+    async function execCleanup() {
+      if (!confirm(`确定删除这 ${expiredUsersList.length} 个用户及所有数据？\n此操作不可恢复！`)) return;
+      const alertEl = document.getElementById('cleanupAlert');
+      const result = document.getElementById('cleanupResult');
+      hideAlert(alertEl);
+
+      try {
+        const res = await fetch('/api/cleanup?key=' + encodeURIComponent(adminKey), { method: 'POST' });
+        const data = await res.json();
+        if (data.ok) {
+          showAlert(alertEl, `✅ ${data.message}`, 'success');
+          result.innerHTML = '<div class="empty-msg">✅ 清理完成</div>';
+          document.getElementById('cleanupExecBtn').style.display = 'none';
+          loadUsers(); // 刷新用户列表
+        } else {
+          showAlert(alertEl, data.error || '清理失败');
+        }
+      } catch { showAlert(alertEl, '网络错误'); }
+    }
+  </script>
+</body>
+</html>

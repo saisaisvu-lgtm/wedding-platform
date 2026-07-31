@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>管理后台 — 光影婚礼墙</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <nav class="navbar">
+    <a href="/" class="logo"><span class="xi">囍</span> 光影婚礼墙</a>
+    <div class="nav-links">
+      <a id="previewLink" href="#" target="_blank">👁️ 预览页面</a>
+      <a href="#" id="logoutBtn">退出登录</a>
+    </div>
+  </nav>
+
+  <div class="container" style="padding-top: 32px; padding-bottom: 60px;">
+    <!-- Stats -->
+    <div class="stats" id="stats">
+      <div class="stat-card"><div class="num" id="statAvatars">0</div><div class="label">头像</div></div>
+      <div class="stat-card"><div class="num" id="statCredits">0</div><div class="label">致谢照</div></div>
+      <div class="stat-card"><div class="num" id="statGallery">0</div><div class="label">婚纱照</div></div>
+      <div class="stat-card"><div class="num" id="statRsvp">0</div><div class="label">回执</div></div>
+      <div class="stat-card"><div class="num" id="statGuests">0</div><div class="label">总人数</div></div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tab active" data-tab="settings">⚙️ 基本设置</button>
+      <button class="tab" data-tab="images">🖼️ 图片管理</button>
+      <button class="tab" data-tab="songs">🎵 歌曲管理</button>
+      <button class="tab" data-tab="rsvp">💌 回执管理</button>
+    </div>
+
+    <!-- Settings Tab -->
+    <div id="tab-settings" class="tab-content active">
+      <div class="card">
+        <div id="settingsAlert" class="alert"></div>
+        <form id="settingsForm">
+          <div class="form-row">
+            <div class="form-group">
+              <label>新郎姓名 *</label>
+              <input type="text" id="s_partner1" required>
+            </div>
+            <div class="form-group">
+              <label>新娘姓名 *</label>
+              <input type="text" id="s_partner2" required>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>婚礼日期</label>
+              <input type="date" id="s_wedding_date">
+            </div>
+            <div class="form-group">
+              <label>婚礼地点</label>
+              <input type="text" id="s_wedding_venue" placeholder="酒店名称/地址">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>背景音乐</label>
+            <div style="margin-bottom:10px;">
+              <input type="url" id="bgmUrlInput" placeholder="粘贴 MP3 直链地址（123网盘、移动网盘、公开URL等）">
+              <div class="form-hint">支持 123 网盘直链、移动云盘直链、任意公开 MP3 链接</div>
+            </div>
+            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+              <button type="button" class="btn btn-sm btn-outline" onclick="document.getElementById('bgmFileInput').click()">📁 上传本地MP3</button>
+              <span id="bgmFileName" style="font-size:13px;color:var(--text-muted);">未设置</span>
+              <button type="button" class="btn btn-sm btn-danger" id="bgmRemoveBtn" style="display:none;" onclick="removeBgm()">清除</button>
+            </div>
+            <input type="file" id="bgmFileInput" accept="audio/mp3,audio/mpeg" style="display:none">
+            <audio id="bgmPreview" controls style="display:none;margin-top:10px;width:100%;height:36px;"></audio>
+          </div>
+
+          <div class="form-group">
+            <label>回执 — 到达时间范围</label>
+            <div class="form-row">
+              <div class="form-group"><label>开始日期</label><input type="date" id="s_arrival_start"></div>
+              <div class="form-group"><label>结束日期</label><input type="date" id="s_arrival_end"></div>
+            </div>
+            <div class="form-hint">自动为范围内每天生成「上午」「下午」两个选项</div>
+            <div id="arrivalPreview" style="margin-top:8px;font-size:13px;color:var(--primary);display:none;"></div>
+          </div>
+
+          <div class="form-group">
+            <label>回执 — 出行方式选项</label>
+            <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;">
+              <button type="button" class="btn btn-sm btn-outline" onclick="autoGenTransport()">🔄 根据地点自动生成</button>
+              <span class="form-hint" style="margin:0;">或手动编辑下方内容</span>
+            </div>
+            <textarea id="s_transport_options" rows="5" placeholder="点击上方按钮自动生成，或手动编辑：
+🚗 自驾
+🚄 高铁
+🚂 火车
+🚌 其他"></textarea>
+          </div>
+
+          <button type="submit" class="btn btn-primary" id="settingsBtn" style="width:100%;">💾 保存设置</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Images Tab -->
+    <div id="tab-images" class="tab-content">
+      <div class="card">
+        <div id="imagesAlert" class="alert"></div>
+        <div class="section">
+          <div class="section-title"><span class="icon">📤</span> 上传图片</div>
+          <div class="form-group">
+            <label>选择分类</label>
+            <select id="uploadCategory">
+              <option value="avatar">头像照片</option>
+              <option value="credits">致谢照片</option>
+              <option value="gallery">婚纱写真</option>
+            </select>
+          </div>
+          <div class="upload-zone" id="uploadZone">
+            <div class="icon">📁</div>
+            <div>点击或拖拽上传图片</div>
+            <div class="hint">支持 JPG / PNG / WebP / GIF，最大 10MB</div>
+            <input type="file" id="fileInput" accept="image/*" multiple style="display:none">
+          </div>
+          <div id="uploadProgress" style="display:none;margin-top:10px;">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span class="spinner"></span>
+              <span id="uploadStatus" style="font-size:13px;color:var(--text-muted);">上传中...</span>
+            </div>
+          </div>
+        </div>
+        <div class="section">
+          <div class="section-title"><span class="icon">👤</span> 头像照片</div>
+          <div class="image-grid" id="grid-avatar"><div style="grid-column:1/-1;text-align:center;color:var(--text-muted);padding:20px;font-size:13px;">暂无头像</div></div>
+        </div>
+        <div class="section">
+          <div class="section-title"><span class="icon">🙏</span> 致谢照片</div>
+          <div class="image-grid" id="grid-credits"><div style="grid-column:1/-1;text-align:center;color:var(--text-muted);padding:20px;font-size:13px;">暂无致谢照片</div></div>
+        </div>
+        <div class="section">
+          <div class="section-title"><span class="icon">📸</span> 婚纱写真</div>
+          <div class="image-grid" id="grid-gallery"><div style="grid-column:1/-1;text-align:center;color:var(--text-muted);padding:20px;font-size:13px;">暂无婚纱照</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Songs Tab -->
+    <div id="tab-songs" class="tab-content">
+      <div class="card">
+        <div id="songsAlert" class="alert"></div>
+        <div class="section">
+          <div class="section-title"><span class="icon">🎵</span> 歌曲管理</div>
+          <p style="font-size:14px;color:var(--text-secondary);margin-bottom:18px;line-height:1.8;">上传婚礼现场歌曲，自动识别歌名，编辑歌词并指定演唱者（新郎/新娘）。杂志模式将以打字机形式展示歌词，头像跟随演唱者动画。</p>
+        </div>
+        <div class="section" id="songFormSection">
+          <div class="section-title" id="songFormTitle"><span class="icon">➕</span> 添加歌曲</div>
+          <form id="songForm" onsubmit="saveSong(event)">
+            <input type="hidden" id="songEditId" value="">
+            <div class="form-group">
+              <label>上传 MP3 文件</label>
+              <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+                <button type="button" class="btn btn-sm btn-outline" onclick="document.getElementById('songFileInput').click()">📁 选择MP3文件</button>
+                <span id="songFileName" style="font-size:13px;color:var(--text-muted);">未选择文件</span>
+              </div>
+              <input type="file" id="songFileInput" accept="audio/mp3,audio/mpeg" style="display:none">
+              <audio id="songAudioPreview" controls style="display:none;margin-top:10px;width:100%;height:36px;"></audio>
+            </div>
+            <div class="form-row">
+              <div class="form-group"><label>歌曲名称 *</label><input type="text" id="songNameInput" placeholder="上传MP3后自动识别，也可手动修改" required></div>
+              <div class="form-group"><label>歌手/艺术家</label><input type="text" id="songArtistInput" placeholder="可选"></div>
+            </div>
+            <div class="form-group">
+              <label>🔗 或输入MP3直链地址</label>
+              <input type="url" id="songUrlInput" placeholder="https://...mp3">
+            </div>
+            <div class="form-group">
+              <label>歌词（每行一句，点击行可指定演唱者）</label>
+              <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;">
+                <button type="button" class="btn btn-sm btn-outline" onclick="parseLyricsText()">📝 解析歌词</button>
+                <button type="button" class="btn btn-sm btn-outline" onclick="clearLyrics()">🗑️ 清空</button>
+                <button type="button" class="btn btn-sm btn-outline" onclick="searchLyrics()" id="btnSearchLyrics">🔍 自动搜索歌词</button>
+              </div>
+              <div id="lyricsSearchResults" style="display:none;margin-bottom:10px;"></div>
+              <textarea id="lyricsTextInput" rows="8" placeholder="粘贴歌词，每行一句：
+我们相遇在那个春天
+从此以后不再孤单
+你是我生命中的阳光
+..."></textarea>
+            </div>
+            <div class="form-group">
+              <label>歌词详情（逐句编辑演唱者）</label>
+              <div id="lyricsEditor" style="max-height:400px;overflow-y:auto;">
+                <div style="text-align:center;color:var(--text-muted);padding:20px;font-size:13px;">请先在上方输入歌词并点击「解析歌词」</div>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>⏱️ 歌词时间偏移（调整歌词与音乐的同步）</label>
+              <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                <button type="button" class="btn btn-sm btn-outline" onclick="adjustLyricsOffset(-5)">⏪ -5秒</button>
+                <button type="button" class="btn btn-sm btn-outline" onclick="adjustLyricsOffset(-1)">◀ -1秒</button>
+                <span id="lyricsOffsetDisplay" style="font-size:15px;font-weight:600;color:var(--primary);min-width:60px;text-align:center;">0秒</span>
+                <button type="button" class="btn btn-sm btn-outline" onclick="adjustLyricsOffset(1)">▶ +1秒</button>
+                <button type="button" class="btn btn-sm btn-outline" onclick="adjustLyricsOffset(5)">⏩ +5秒</button>
+                <button type="button" class="btn btn-sm btn-outline" onclick="resetLyricsOffset()">↺ 重置</button>
+              </div>
+              <div class="form-hint">正值=歌词提前，负值=歌词延迟</div>
+            </div>
+            <div style="display:flex;gap:10px;">
+              <button type="submit" class="btn btn-primary" id="songSubmitBtn">💾 保存歌曲</button>
+              <button type="button" class="btn btn-outline" onclick="cancelSongEdit()" id="songCancelBtn" style="display:none;">取消编辑</button>
+            </div>
+          </form>
+        </div>
+        <div class="section">
+          <div class="section-title"><span class="icon">📋</span> 已添加歌曲</div>
+          <div id="songsList"><div style="text-align:center;color:var(--text-muted);padding:20px;font-size:13px;">加载中...</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RSVP Tab -->
+    <div id="tab-rsvp" class="tab-content">
+      <div class="card">
+        <div id="rsvpAlert" class="alert"></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:10px;">
+          <div class="section-title" style="margin-bottom:0;"><span class="icon">💌</span> 回执列表</div>
+          <div style="display:flex;gap:8px;">
+            <a href="/api/rsvp-list?format=csv" class="btn btn-sm btn-outline" target="_blank">📥 导出 CSV</a>
+            <button class="btn btn-sm btn-outline" onclick="printRsvp()">🖨️ 打印</button>
+            <button class="btn btn-sm btn-outline" onclick="loadRsvp()">🔄 刷新</button>
+          </div>
+        </div>
+        <div id="rsvpTable"><div style="text-align:center;color:var(--text-muted);padding:30px;font-size:13px;">加载中...</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">光影婚礼墙 &copy; 2026</div>
+
+  <script src="/js/api.js"></script>
+  <script>
+    let currentUser = null, currentImages = [], allSongs = [];
+    let pendingBgmData = null, pendingBgmUrl = null;
+    let parsedLyrics = [], pendingSongAudioData = null, pendingSongAudioUrl = null;
+
+    async function init() {
+      const res = await apiGet('/api/me');
+      if (!res.ok) { window.location.href = '/login.html'; return; }
+      currentUser = res.user; currentImages = res.images || []; allSongs = res.songs || [];
+      renderUser(); renderImages(); renderSongsList();
+    }
+
+    function renderUser() {
+      if (!currentUser) return;
+      document.getElementById('s_partner1').value = currentUser.partner1 || '';
+      document.getElementById('s_partner2').value = currentUser.partner2 || '';
+      document.getElementById('s_wedding_date').value = currentUser.wedding_date || '';
+      document.getElementById('s_wedding_venue').value = currentUser.wedding_venue || '';
+      if (currentUser.bgm_url) {
+        document.getElementById('bgmUrlInput').value = currentUser.bgm_url;
+        document.getElementById('bgmFileName').textContent = '已设置（链接）';
+        document.getElementById('bgmRemoveBtn').style.display = 'inline-flex';
+        document.getElementById('bgmPreview').src = currentUser.bgm_url;
+        document.getElementById('bgmPreview').style.display = 'block';
+      } else if (currentUser.bgm_data) {
+        document.getElementById('bgmFileName').textContent = '已设置（本地文件）';
+        document.getElementById('bgmRemoveBtn').style.display = 'inline-flex';
+        document.getElementById('bgmPreview').src = currentUser.bgm_data;
+        document.getElementById('bgmPreview').style.display = 'block';
+      }
+      const arrivalOpts = currentUser.arrival_options || [];
+      if (Array.isArray(arrivalOpts) && arrivalOpts.length > 0) {
+        const dates = [...new Set(arrivalOpts.map(o => o.replace(/ 上午| 下午/, '').trim()))];
+        const parsed = dates.map(d => { const m = d.match(/(\d+)月(\d+)日/); if (m) return new Date(new Date().getFullYear(), parseInt(m[1])-1, parseInt(m[2])); return null; }).filter(Boolean).sort((a,b) => a-b);
+        if (parsed.length > 0) { document.getElementById('s_arrival_start').value = parsed[0].toISOString().slice(0,10); document.getElementById('s_arrival_end').value = parsed[parsed.length-1].toISOString().slice(0,10); }
+        updateArrivalPreview();
+      }
+      const transportOpts = currentUser.transport_options || [];
+      document.getElementById('s_transport_options').value = Array.isArray(transportOpts) ? transportOpts.join('\n') : '';
+      document.getElementById('previewLink').href = `/w/${currentUser.slug}`;
+    }
+
+    function renderImages() {
+      const categories = ['avatar', 'credits', 'gallery'];
+      const counts = { avatar: 0, credits: 0, gallery: 0 };
+      categories.forEach(cat => {
+        const grid = document.getElementById(`grid-${cat}`);
+        const imgs = currentImages.filter(i => i.category === cat);
+        counts[cat] = imgs.length;
+        if (imgs.length === 0) { grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;color:var(--text-muted);padding:20px;font-size:13px;">暂无${cat === 'avatar' ? '头像' : cat === 'credits' ? '致谢照片' : '婚纱照'}</div>`; return; }
+        grid.innerHTML = imgs.map(img => `<div class="image-item"><img src="${img.url}" alt="${img.filename}" loading="lazy"><button class="delete-btn" onclick="deleteImage(${img.id})" title="删除">×</button></div>`).join('');
+      });
+      document.getElementById('statAvatars').textContent = counts.avatar;
+      document.getElementById('statCredits').textContent = counts.credits;
+      document.getElementById('statGallery').textContent = counts.gallery;
+    }
+
+    document.querySelectorAll('.tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        tab.classList.add('active');
+        document.getElementById(`tab-${tab.dataset.tab}`).classList.add('active');
+      });
+    });
+
+    function updateArrivalPreview() {
+      const start = document.getElementById('s_arrival_start').value;
+      const end = document.getElementById('s_arrival_end').value;
+      const preview = document.getElementById('arrivalPreview');
+      if (!start || !end) { preview.style.display = 'none'; return; }
+      const d = new Date(start + 'T00:00:00'); const endDate = new Date(end + 'T00:00:00');
+      const items = [];
+      while (d <= endDate) { items.push((d.getMonth()+1) + '月' + d.getDate() + '日 上午/下午'); d.setDate(d.getDate() + 1); }
+      preview.style.display = 'block'; preview.textContent = '预览：' + items.join('、');
+    }
+    document.getElementById('s_arrival_start').addEventListener('change', updateArrivalPreview);
+    document.getElementById('s_arrival_end').addEventListener('change', updateArrivalPreview);
+
+    document.getElementById('settingsForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('settingsBtn'); const alertEl = document.getElementById('settingsAlert');
+      hideAlert(alertEl); btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> 保存中...';
+      try {
+        const startDate = document.getElementById('s_arrival_start').value;
+        const endDate = document.getElementById('s_arrival_end').value;
+        let arrivalArr = [];
+        if (startDate && endDate) { const d = new Date(startDate + 'T00:00:00'); const end = new Date(endDate + 'T00:00:00'); while (d <= end) { arrivalArr.push((d.getMonth()+1) + '月' + d.getDate() + '日 上午'); arrivalArr.push((d.getMonth()+1) + '月' + d.getDate() + '日 下午'); d.setDate(d.getDate() + 1); } }
+        const transportText = document.getElementById('s_transport_options').value.trim();
+        const transportArr = transportText ? transportText.split('\n').map(s=>s.trim()).filter(Boolean) : [];
+        const res = await apiPut('/api/me', {
+          partner1: document.getElementById('s_partner1').value.trim(), partner2: document.getElementById('s_partner2').value.trim(),
+          wedding_date: document.getElementById('s_wedding_date').value, wedding_venue: document.getElementById('s_wedding_venue').value.trim(),
+          bgm_url: pendingBgmUrl || currentUser.bgm_url || '', bgm_data: pendingBgmData || '',
+          arrival_options: arrivalArr, transport_options: transportArr,
+        });
+        if (res.ok) { showAlert(alertEl, '✅ 保存成功', 'success'); currentUser.partner1 = document.getElementById('s_partner1').value.trim(); currentUser.partner2 = document.getElementById('s_partner2').value.trim(); }
+        else { showAlert(alertEl, res.error || '保存失败'); }
+      } catch (err) { showAlert(alertEl, '网络错误'); }
+      finally { btn.disabled = false; btn.textContent = '💾 保存设置'; }
+    });
+
+    const CITY_STATIONS = {'北京':['北京站','北京西站','北京南站'],'上海':['上海站','上海虹桥站','上海南站'],'天津':['天津站','天津西站'],'重庆':['重庆站','重庆北站'],'南京':['南京站','南京南站'],'杭州':['杭州站','杭州东站'],'广州':['广州站','广州南站'],'深圳':['深圳站','深圳北站'],'成都':['成都站','成都东站'],'武汉':['武汉站','武昌站','汉口站'],'西安':['西安站','西安北站'],'郑州':['郑州站','郑州东站'],'长沙':['长沙站','长沙南站'],'合肥':['合肥站','合肥南站'],'徐州':['徐州站','徐州东站'],'邳州':['邳州站','邳州东站'],'苏州':['苏州站','苏州北站'],'无锡':['无锡站','无锡东站'],'常州':['常州站','常州北站'],'南通':['南通站','南通西站'],'连云港':['连云港站'],'淮安':['淮安站','淮安东站'],'盐城':['盐城站'],'扬州':['扬州站','扬州东站'],'镇江':['镇江站'],'泰州':['泰州站'],'宿迁':['宿迁站'],'济南':['济南站','济南西站'],'青岛':['青岛站','青岛北站'],'烟台':['烟台站'],'潍坊':['潍坊站'],'临沂':['临沂站'],'济宁':['济宁站'],'泰安':['泰安站'],'淄博':['淄博站'],'菏泽':['菏泽站'],'枣庄':['枣庄站'],'日照':['日照站'],'威海':['威海站'],'德州':['德州站'],'聊城':['聊城站'],'滨州':['滨州站'],'东营':['东营站']};
+    function autoGenTransport() {
+      const venue = document.getElementById('s_wedding_venue').value.trim();
+      if (!venue) { alert('请先填写婚礼地点'); return; }
+      const options = ['🚗 自驾'];
+      const parts = venue.split(/[·.．、\s]+/).filter(Boolean);
+      let matched = false;
+      for (const part of parts) { for (const [city, stations] of Object.entries(CITY_STATIONS)) { if (part.includes(city) || city.includes(part)) { stations.forEach(s => { if (!options.includes('🚄 ' + s)) options.push('🚄 ' + s); }); matched = true; } } }
+      if (!matched) parts.forEach(p => { if (!options.includes('🚄 ' + p + '站')) options.push('🚄 ' + p + '站'); });
+      options.push('🚌 其他');
+      document.getElementById('s_transport_options').value = options.join('\n');
+    }
+
+    const bgmInput = document.getElementById('bgmFileInput'); const bgmUrlInput = document.getElementById('bgmUrlInput');
+    bgmUrlInput.addEventListener('input', () => { const url = bgmUrlInput.value.trim(); if (url) { pendingBgmUrl = url; pendingBgmData = null; bgmInput.value = ''; document.getElementById('bgmFileName').textContent = '使用链接'; document.getElementById('bgmRemoveBtn').style.display = 'inline-flex'; const preview = document.getElementById('bgmPreview'); preview.src = url; preview.style.display = 'block'; } else { pendingBgmUrl = null; } });
+    bgmInput.addEventListener('change', () => { const file = bgmInput.files[0]; if (!file) return; if (file.size > 10*1024*1024) { alert('文件不能超过10MB'); return; } const reader = new FileReader(); reader.onload = () => { pendingBgmData = reader.result; pendingBgmUrl = null; bgmUrlInput.value = ''; document.getElementById('bgmFileName').textContent = file.name; document.getElementById('bgmRemoveBtn').style.display = 'inline-flex'; const preview = document.getElementById('bgmPreview'); preview.src = pendingBgmData; preview.style.display = 'block'; }; reader.readAsDataURL(file); });
+    function removeBgm() { pendingBgmData = null; pendingBgmUrl = null; bgmInput.value = ''; bgmUrlInput.value = ''; document.getElementById('bgmFileName').textContent = '未设置'; document.getElementById('bgmRemoveBtn').style.display = 'none'; document.getElementById('bgmPreview').style.display = 'none'; }
+
+    const uploadZone = document.getElementById('uploadZone'); const fileInput = document.getElementById('fileInput');
+    uploadZone.addEventListener('click', () => fileInput.click());
+    uploadZone.addEventListener('dragover', (e) => { e.preventDefault(); uploadZone.classList.add('dragover'); });
+    uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('dragover'));
+    uploadZone.addEventListener('drop', (e) => { e.preventDefault(); uploadZone.classList.remove('dragover'); if (e.dataTransfer.files.length) handleUpload(e.dataTransfer.files); });
+    fileInput.addEventListener('change', () => { if (fileInput.files.length) handleUpload(fileInput.files); });
+
+    async function handleUpload(files) {
+      const category = document.getElementById('uploadCategory').value;
+      const progress = document.getElementById('uploadProgress'); const status = document.getElementById('uploadStatus');
+      const imagesAlert = document.getElementById('imagesAlert'); hideAlert(imagesAlert);
+      progress.style.display = 'block'; let success = 0;
+      for (let i = 0; i < files.length; i++) {
+        status.textContent = `上传中 (${i + 1}/${files.length})...`;
+        const formData = new FormData(); formData.append('file', files[i]); formData.append('category', category);
+        try { const res = await apiUpload('/api/upload', formData); if (res.ok) { currentImages.push(res.image); success++; } else { showAlert(imagesAlert, `${files[i].name}: ${res.error}`); } } catch (err) { showAlert(imagesAlert, `${files[i].name}: 上传失败`); }
+      }
+      progress.style.display = 'none'; fileInput.value = ''; renderImages();
+      if (success > 0) showAlert(imagesAlert, `✅ 成功上传 ${success} 张图片`, 'success');
+    }
+
+    async function deleteImage(id) {
+      if (!confirm('确定要删除这张图片吗？')) return;
+      try { const res = await apiDelete(`/api/delete-image?id=${id}`); if (res.ok) { currentImages = currentImages.filter(i => i.id !== id); renderImages(); } else { alert(res.error || '删除失败'); } } catch (err) { alert('网络错误'); }
+    }
+
+    document.getElementById('logoutBtn').addEventListener('click', async (e) => { e.preventDefault(); await apiPost('/api/logout'); window.location.href = '/login.html'; });
+
+    async function loadRsvp() {
+      const container = document.getElementById('rsvpTable'); const alertEl = document.getElementById('rsvpAlert'); hideAlert(alertEl);
+      container.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:20px;"><span class="spinner"></span></div>';
+      try {
+        const res = await apiGet('/api/rsvp-list');
+        if (!res.ok) { container.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:20px;font-size:13px;">加载失败</div>'; return; }
+        document.getElementById('statRsvp').textContent = res.stats.total; document.getElementById('statGuests').textContent = res.stats.totalGuests;
+        cachedRsvpData = res.data;
+        if (res.data.length === 0) { container.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:30px;font-size:13px;">暂无回执，分享你的婚礼页面给宾客吧！</div>'; return; }
+        container.innerHTML = `<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;"><thead><tr><th style="padding:12px 14px;text-align:left;border-bottom:2px solid var(--border);color:var(--text-secondary);font-size:13px;font-weight:600;">姓名</th><th style="padding:12px 14px;text-align:left;border-bottom:2px solid var(--border);color:var(--text-secondary);font-size:13px;font-weight:600;">电话</th><th style="padding:12px 14px;text-align:left;border-bottom:2px solid var(--border);color:var(--text-secondary);font-size:13px;font-weight:600;">人数</th><th style="padding:12px 14px;text-align:left;border-bottom:2px solid var(--border);color:var(--text-secondary);font-size:13px;font-weight:600;">到达</th><th style="padding:12px 14px;text-align:left;border-bottom:2px solid var(--border);color:var(--text-secondary);font-size:13px;font-weight:600;">出行</th><th style="padding:12px 14px;text-align:left;border-bottom:2px solid var(--border);color:var(--text-secondary);font-size:13px;font-weight:600;">留言</th><th style="padding:12px 14px;text-align:left;border-bottom:2px solid var(--border);color:var(--text-secondary);font-size:13px;font-weight:600;">时间</th><th style="padding:12px 14px;text-align:right;border-bottom:2px solid var(--border);font-size:13px;"></th></tr></thead><tbody>${res.data.map(r => `<tr style="border-bottom:1px solid var(--border-light);"><td style="padding:10px 14px;font-size:14px;">${esc(r.name)}</td><td style="padding:10px 14px;font-size:14px;color:var(--text-secondary);">${esc(r.phone)}</td><td style="padding:10px 14px;font-size:14px;">${r.guests}</td><td style="padding:10px 14px;font-size:14px;color:var(--text-secondary);">${esc(r.arrival_time || '-')}</td><td style="padding:10px 14px;font-size:14px;">${r.transport ? '<span style="display:inline-block;padding:3px 12px;border-radius:20px;font-size:12px;background:var(--primary-pale);color:var(--primary);font-weight:500;">' + esc(r.transport) + '</span>' : '-'}</td><td style="padding:10px 14px;font-size:13px;color:var(--text-secondary);max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(r.message || '-')}</td><td style="padding:10px 14px;font-size:12px;color:var(--text-muted);">${r.created_at ? r.created_at.slice(0, 16).replace('T', ' ') : ''}</td><td style="padding:10px 14px;text-align:right;"><button class="btn btn-sm btn-danger" onclick="deleteRsvp(${r.id})" style="padding:4px 12px;font-size:12px;">删除</button></td></tr>`).join('')}</tbody></table></div>`;
+      } catch (err) { container.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:20px;font-size:13px;">网络错误</div>'; }
+    }
+
+    function esc(s) { const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
+    async function deleteRsvp(id) { if (!confirm('确定删除这条回执吗？')) return; try { const res = await apiDelete(`/api/rsvp-list?id=${id}`); if (res.ok) loadRsvp(); else alert(res.error || '删除失败'); } catch (err) { alert('网络错误'); } }
+
+    let cachedRsvpData = null;
+    function printRsvp() {
+      if (!cachedRsvpData || cachedRsvpData.length === 0) { alert('暂无回执数据，请先刷新列表'); return; }
+      const data = cachedRsvpData; const totalGuests = data.reduce((s, r) => s + (r.guests || 1), 0);
+      const coupleName = currentUser ? (currentUser.partner1 + ' & ' + currentUser.partner2) : '';
+      const printWindow = window.open('', '_blank');
+      printWindow.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>回执统计 - ${coupleName}</title><style>*{margin:0;padding:0;box-sizing:border-box;}body{font-family:'PingFang SC',serif;padding:40px;color:#333;}.header{text-align:center;margin-bottom:32px;border-bottom:2px solid #b8860b;padding-bottom:20px;}.header .xi{font-size:36px;color:#c41e3a;}.header h1{font-size:22px;color:#333;margin:8px 0;}.header .sub{font-size:13px;color:#888;}.stats{display:flex;gap:20px;justify-content:center;margin-bottom:28px;}.stat{text-align:center;padding:12px 24px;border:1px solid #ddd;border-radius:8px;}.stat .num{font-size:28px;font-weight:bold;color:#b8860b;}.stat .label{font-size:12px;color:#888;margin-top:4px;}table{width:100%;border-collapse:collapse;}th,td{padding:10px 12px;text-align:left;border-bottom:1px solid #eee;font-size:14px;}th{background:#f8f5ef;color:#8b6914;font-weight:600;font-size:13px;}.footer{text-align:center;margin-top:32px;padding-top:16px;border-top:1px solid #ddd;color:#aaa;font-size:12px;}@media print{body{padding:20px;}}</style></head><body><div class="header"><div class="xi">囍</div><h1>${coupleName} · 出席回执统计</h1><div class="sub">打印时间：${new Date().toLocaleString('zh-CN')}</div></div><div class="stats"><div class="stat"><div class="num">${data.length}</div><div class="label">回执总数</div></div><div class="stat"><div class="num">${totalGuests}</div><div class="label">出席总人数</div></div></div><table><thead><tr><th>序号</th><th>姓名</th><th>电话</th><th>人数</th><th>到达时间</th><th>出行方式</th><th>留言</th><th>提交时间</th></tr></thead><tbody>${data.map((r, i) => `<tr><td>${i+1}</td><td>${esc(r.name)}</td><td>${esc(r.phone)}</td><td>${r.guests}</td><td>${esc(r.arrival_time||'-')}</td><td>${esc(r.transport||'-')}</td><td>${esc(r.message||'-')}</td><td>${r.created_at?r.created_at.slice(0,16).replace('T',' '):''}</td></tr>`).join('')}</tbody></table><div class="footer">囍 · 光影婚礼墙</div></body></html>`);
+      printWindow.document.close(); setTimeout(() => printWindow.print(), 300);
+    }
+
+    // Songs Management
+    async function loadSongs() { try { const res = await apiGet('/api/songs'); if (res.ok) { allSongs = res.songs || []; renderSongsList(); } } catch (e) {} }
+    function renderSongsList() {
+      const container = document.getElementById('songsList');
+      if (allSongs.length === 0) { container.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:20px;font-size:13px;">暂无歌曲，点击上方添加</div>'; return; }
+      container.innerHTML = allSongs.map(s => `<div style="display:flex;align-items:center;gap:12px;padding:14px;border:1px solid var(--border);border-radius:var(--radius);margin-bottom:10px;transition:var(--transition);"><div style="flex:1;min-width:0;"><div style="font-size:15px;color:var(--primary);font-weight:600;">🎵 ${esc(s.song_name)}</div><div style="font-size:13px;color:var(--text-muted);margin-top:2px;">${esc(s.artist || '未知艺术家')} · ${(s.lyrics||[]).length} 句歌词</div></div><div style="display:flex;gap:6px;"><button class="btn btn-sm btn-outline" onclick="editSong(${s.id})">✏️ 编辑</button><button class="btn btn-sm btn-danger" onclick="deleteSong(${s.id})">🗑️</button></div></div>`).join('');
+    }
+
+    function parseID3(arrayBuffer) {
+      const bytes = new Uint8Array(arrayBuffer); let songName = '';
+      if (bytes[0]===0x49&&bytes[1]===0x44&&bytes[2]===0x33) {
+        const v=bytes[3]; const flags=bytes[5]; let offset=10;
+        const size=((bytes[6]&0x7f)<<21)|((bytes[7]&0x7f)<<14)|((bytes[8]&0x7f)<<7)|(bytes[9]&0x7f);
+        const end=Math.min(10+size, bytes.length); if(flags&0x10) offset+=10;
+        while(offset<end-10) { let fid,len; if(v>=3){fid=String.fromCharCode(bytes[offset],bytes[offset+1],bytes[offset+2],bytes[offset+3]);len=(bytes[offset+4]<<24)|(bytes[offset+5]<<16)|(bytes[offset+6]<<8)|bytes[offset+7];offset+=10;}else{fid=String.fromCharCode(bytes[offset],bytes[offset+1],bytes[offset+2]);len=(bytes[offset+3]<<16)|(bytes[offset+4]<<8)|bytes[offset+5];offset+=6;} if(len<=0||len>end-offset) break; if(fid==='TIT2'){const enc=bytes[offset];const start=offset+1;const endF=offset+len;if(enc===0||enc===3){const str=enc===0?new TextDecoder('latin1'):new TextDecoder('utf-8');const t=str.decode(bytes.slice(start,endF));const z=t.indexOf('\0');songName=(z>=0?t.slice(0,z):t).replace(/\0/g,'').trim();}else if(enc===1||enc===2){const str=new TextDecoder('utf-16');songName=str.decode(bytes.slice(start,endF)).replace(/\0/g,'').trim();} break;} offset+=len;}
+      }
+      if(!songName&&bytes.length>128) { const tag=String.fromCharCode(bytes[bytes.length-128],bytes[bytes.length-127],bytes[bytes.length-126]); if(tag==='TAG'){const raw=bytes.slice(bytes.length-125,bytes.length-95);let s='';for(let i=0;i<30;i++){if(raw[i]===0)break;s+=String.fromCharCode(raw[i]);}songName=s.trim();} }
+      return songName;
+    }
+
+    document.getElementById('songFileInput').addEventListener('change', function() {
+      const file = this.files[0]; if (!file) return; if (file.size > 15*1024*1024) { alert('文件不能超过15MB'); return; }
+      document.getElementById('songFileName').textContent = file.name;
+      const reader = new FileReader(); reader.onload = function() { pendingSongAudioData = reader.result; pendingSongAudioUrl = null; document.getElementById('songUrlInput').value = ''; const preview = document.getElementById('songAudioPreview'); preview.src = pendingSongAudioData; preview.style.display = 'block';
+        try { const name = parseID3(reader.result); if (name) document.getElementById('songNameInput').value = name; else document.getElementById('songNameInput').value = file.name.replace(/\.mp3$/i, '').replace(/[-_]/g, ' ').trim(); } catch(e) { document.getElementById('songNameInput').value = file.name.replace(/\.mp3$/i, '').replace(/[-_]/g, ' ').trim(); }
+      }; reader.readAsArrayBuffer(file);
+    });
+
+    document.getElementById('songUrlInput').addEventListener('input', function() { const url = this.value.trim(); if (url) { pendingSongAudioUrl = url; pendingSongAudioData = null; document.getElementById('songFileInput').value = ''; document.getElementById('songFileName').textContent = '使用链接'; const preview = document.getElementById('songAudioPreview'); preview.src = url; preview.style.display = 'block'; if (!document.getElementById('songNameInput').value) { try { const fname = url.split('/').pop().split('?')[0].replace(/\.mp3$/i, '').replace(/[-_]/g, ' '); if (fname) document.getElementById('songNameInput').value = decodeURIComponent(fname); } catch(e){} } } });
+
+    window.parseLyricsText = function() { const text = document.getElementById('lyricsTextInput').value.trim(); if (!text) { alert('请输入歌词'); return; } const lines = text.split('\n').map(l => l.trim()).filter(Boolean); parsedLyrics = lines.map((text, i) => ({ text, singer: (i % 2 === 0) ? 'partner1' : 'partner2', duration: 3000 })); renderLyricsEditor(); };
+    window.clearLyrics = function() { parsedLyrics = []; document.getElementById('lyricsTextInput').value = ''; renderLyricsEditor(); };
+
+    function renderLyricsEditor() {
+      const container = document.getElementById('lyricsEditor');
+      if (parsedLyrics.length === 0) { container.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:20px;font-size:13px;">请先在上方输入歌词并点击「解析歌词」</div>'; return; }
+      const p1 = currentUser?.partner1 || '新郎'; const p2 = currentUser?.partner2 || '新娘';
+      container.innerHTML = parsedLyrics.map((l, i) => `<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid var(--border-light);border-radius:var(--radius-sm);margin-bottom:4px;background:var(--bg-white);"><span style="font-size:11px;color:var(--text-muted);width:24px;text-align:right;">${i+1}</span><div style="flex:1;min-width:0;"><input type="text" value="${esc(l.text)}" onchange="parsedLyrics[${i}].text=this.value" style="width:100%;padding:4px 8px;background:transparent;border:1px solid transparent;border-radius:4px;color:var(--text);font-size:13px;outline:none;transition:var(--transition);" onfocus="this.style.borderColor='var(--border)'" onblur="this.style.borderColor='transparent'"></div><div style="display:flex;gap:4px;"><button type="button" class="btn btn-sm ${l.singer==='partner1'?'btn-primary':'btn-outline'}" style="padding:3px 10px;font-size:11px;" onclick="setLyricSinger(${i},'partner1')">🤵 ${p1}</button><button type="button" class="btn btn-sm ${l.singer==='partner2'?'btn-primary':'btn-outline'}" style="padding:3px 10px;font-size:11px;" onclick="setLyricSinger(${i},'partner2')">👰 ${p2}</button><button type="button" class="btn btn-sm btn-outline" style="padding:3px 8px;font-size:11px;" onclick="removeLyricLine(${i})">✕</button></div></div>`).join('');
+    }
+    window.setLyricSinger = function(idx, singer) { parsedLyrics[idx].singer = singer; renderLyricsEditor(); };
+    window.removeLyricLine = function(idx) { parsedLyrics.splice(idx, 1); renderLyricsEditor(); };
+
+    window.saveSong = async function(e) {
+      e.preventDefault(); const btn = document.getElementById('songSubmitBtn'); const alertEl = document.getElementById('songsAlert'); hideAlert(alertEl); btn.disabled = true; btn.textContent = '保存中...';
+      const editId = document.getElementById('songEditId').value; const songName = document.getElementById('songNameInput').value.trim();
+      if (!songName) { showAlert(alertEl, '请输入歌名'); btn.disabled=false; btn.textContent='💾 保存歌曲'; return; }
+      document.querySelectorAll('#lyricsEditor input[type=text]').forEach((inp, i) => { if (parsedLyrics[i]) parsedLyrics[i].text = inp.value; });
+      const payload = { song_name: songName, artist: document.getElementById('songArtistInput').value.trim(), audio_url: pendingSongAudioUrl || '', audio_data: (!pendingSongAudioUrl && pendingSongAudioData) ? pendingSongAudioData : '', lyrics: parsedLyrics };
+      try { let res; if (editId) { payload.id = parseInt(editId); if (!pendingSongAudioData && !pendingSongAudioUrl) { const existing = allSongs.find(s => s.id === parseInt(editId)); if (existing) { payload.audio_url = existing.audio_url; payload.audio_data = existing.audio_data; } } res = await apiPut('/api/songs', payload); } else { res = await apiPost('/api/songs', payload); }
+        if (res.ok) { showAlert(alertEl, '✅ 保存成功', 'success'); resetSongForm(); await loadSongs(); } else { showAlert(alertEl, res.error || '保存失败'); }
+      } catch (err) { showAlert(alertEl, '网络错误'); } finally { btn.disabled = false; btn.textContent = '💾 保存歌曲'; }
+    };
+    window.editSong = function(id) {
+      const song = allSongs.find(s => s.id === id); if (!song) return;
+      document.getElementById('songEditId').value = id; document.getElementById('songFormTitle').innerHTML = '<span class="icon">✏️</span> 编辑歌曲';
+      document.getElementById('songNameInput').value = song.song_name; document.getElementById('songArtistInput').value = song.artist || '';
+      document.getElementById('songUrlInput').value = song.audio_url || '';
+      parsedLyrics = (song.lyrics || []).map(l => ({...l})); document.getElementById('lyricsTextInput').value = parsedLyrics.map(l => l.text).join('\n'); renderLyricsEditor();
+      if (song.audio_url) { document.getElementById('songAudioPreview').src = song.audio_url; document.getElementById('songAudioPreview').style.display = 'block'; document.getElementById('songFileName').textContent = '已设置（链接）'; }
+      else if (song.audio_data) { document.getElementById('songAudioPreview').src = song.audio_data; document.getElementById('songAudioPreview').style.display = 'block'; document.getElementById('songFileName').textContent = '已设置（本地文件）'; }
+      document.getElementById('songCancelBtn').style.display = 'inline-block'; document.getElementById('songFormSection').scrollIntoView({behavior:'smooth'});
+    };
+    window.cancelSongEdit = function() { resetSongForm(); };
+    function resetSongForm() { document.getElementById('songEditId').value = ''; document.getElementById('songFormTitle').innerHTML = '<span class="icon">➕</span> 添加歌曲'; document.getElementById('songForm').reset(); document.getElementById('songFileName').textContent = '未选择文件'; document.getElementById('songAudioPreview').style.display = 'none'; document.getElementById('songCancelBtn').style.display = 'none'; pendingSongAudioData = null; pendingSongAudioUrl = null; parsedLyrics = []; renderLyricsEditor(); }
+    window.deleteSong = async function(id) { if (!confirm('确定删除这首歌曲吗？')) return; try { const res = await apiDelete(`/api/songs?id=${id}`); if (res.ok) await loadSongs(); else alert(res.error || '删除失败'); } catch (e) { alert('网络错误'); } };
+
+    // === Lyrics Search ===
+    let lyricsOffset = 0;
+
+    window.searchLyrics = async function() {
+      const songName = document.getElementById('songNameInput').value.trim();
+      const artist = document.getElementById('songArtistInput').value.trim();
+      if (!songName) { alert('请先输入歌曲名称'); return; }
+      const btn = document.getElementById('btnSearchLyrics');
+      const resultsDiv = document.getElementById('lyricsSearchResults');
+      btn.disabled = true; btn.textContent = '🔍 搜索中...';
+      resultsDiv.style.display = 'none';
+      try {
+        const params = new URLSearchParams({ track: songName });
+        if (artist) params.set('artist', artist);
+        const res = await apiGet('/api/lyrics-search?' + params.toString());
+        if (res.ok && res.results && res.results.length > 0) {
+          resultsDiv.style.display = 'block';
+          resultsDiv.innerHTML = '<div style="font-size:13px;color:var(--text-secondary);margin-bottom:8px;">找到 ' + res.results.length + ' 个结果：</div>'
+            + res.results.map((r, i) => `
+              <div style="display:flex;align-items:center;gap:10px;padding:10px;border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:6px;cursor:pointer;transition:var(--transition);" onclick="selectLyrics(${i})" onmouseover="this.style.borderColor='var(--primary)'" onmouseout="this.style.borderColor='var(--border)'">
+                <div style="flex:1;min-width:0;">
+                  <div style="font-size:14px;font-weight:600;color:var(--text);">🎵 ${esc(r.trackName)}</div>
+                  <div style="font-size:12px;color:var(--text-muted);">${esc(r.artistName)}${r.albumName ? ' · ' + esc(r.albumName) : ''}</div>
+                </div>
+                <span class="btn btn-sm btn-outline" style="flex-shrink:0;">使用</span>
+              </div>
+            `).join('');
+          window._lyricsResults = res.results;
+        } else {
+          resultsDiv.style.display = 'block';
+          resultsDiv.innerHTML = '<div style="font-size:13px;color:var(--text-muted);padding:10px;">未找到歌词，请手动输入</div>';
+        }
+      } catch (e) {
+        resultsDiv.style.display = 'block';
+        resultsDiv.innerHTML = '<div style="font-size:13px;color:var(--accent);padding:10px;">搜索失败，请稍后重试</div>';
+      } finally {
+        btn.disabled = false; btn.textContent = '🔍 自动搜索歌词';
+      }
+    };
+
+    window.selectLyrics = function(idx) {
+      const results = window._lyricsResults;
+      if (!results || !results[idx]) return;
+      const r = results[idx];
+      // Prefer synced lyrics, fallback to plain
+      let lyricsText = '';
+      if (r.syncedLyrics) {
+        // Parse synced lyrics [mm:ss.xx] text
+        const lines = r.syncedLyrics.split('\n').filter(Boolean);
+        lyricsText = lines.map(l => l.replace(/^\[\d+:\d+\.\d+\]\s*/, '')).join('\n');
+        // Try to parse timestamps for auto-timing
+        parsedLyrics = lines.map(l => {
+          const match = l.match(/^\[(\d+):(\d+)\.(\d+)\]\s*(.*)/);
+          if (match) {
+            const time = parseInt(match[1]) * 60 + parseInt(match[2]) + parseInt(match[3]) / 100;
+            return { text: match[4], singer: 'partner1', duration: 3000, time: time };
+          }
+          return { text: l.replace(/^\[.*?\]\s*/, ''), singer: 'partner1', duration: 3000 };
+        }).filter(l => l.text);
+      } else if (r.plainLyrics) {
+        lyricsText = r.plainLyrics;
+        const lines = r.plainLyrics.split('\n').filter(Boolean);
+        parsedLyrics = lines.map((text, i) => ({ text, singer: (i % 2 === 0) ? 'partner1' : 'partner2', duration: 3000 }));
+      }
+      document.getElementById('lyricsTextInput').value = lyricsText;
+      // Auto-assign alternating singers
+      parsedLyrics.forEach((l, i) => { l.singer = (i % 2 === 0) ? 'partner1' : 'partner2'; });
+      renderLyricsEditor();
+      // Update song name if empty
+      if (!document.getElementById('songNameInput').value) document.getElementById('songNameInput').value = r.trackName;
+      if (!document.getElementById('songArtistInput').value) document.getElementById('songArtistInput').value = r.artistName;
+      document.getElementById('lyricsSearchResults').style.display = 'none';
+    };
+
+    // === Lyrics Timing Offset ===
+    window.adjustLyricsOffset = function(delta) {
+      lyricsOffset += delta;
+      document.getElementById('lyricsOffsetDisplay').textContent = lyricsOffset + '秒';
+    };
+    window.resetLyricsOffset = function() {
+      lyricsOffset = 0;
+      document.getElementById('lyricsOffsetDisplay').textContent = '0秒';
+    };
+
+    // Update saveSong to include lyrics_offset
+    const origSaveSong = window.saveSong;
+    window.saveSong = async function(e) {
+      e.preventDefault();
+      const btn = document.getElementById('songSubmitBtn');
+      const alertEl = document.getElementById('songsAlert');
+      hideAlert(alertEl); btn.disabled = true; btn.textContent = '保存中...';
+      const editId = document.getElementById('songEditId').value;
+      const songName = document.getElementById('songNameInput').value.trim();
+      if (!songName) { showAlert(alertEl, '请输入歌名'); btn.disabled=false; btn.textContent='💾 保存歌曲'; return; }
+      document.querySelectorAll('#lyricsEditor input[type=text]').forEach((inp, i) => { if (parsedLyrics[i]) parsedLyrics[i].text = inp.value; });
+      const payload = {
+        song_name: songName,
+        artist: document.getElementById('songArtistInput').value.trim(),
+        audio_url: pendingSongAudioUrl || '',
+        audio_data: (!pendingSongAudioUrl && pendingSongAudioData) ? pendingSongAudioData : '',
+        lyrics: parsedLyrics,
+        lyrics_offset: lyricsOffset,
+      };
+      try {
+        let res;
+        if (editId) {
+          payload.id = parseInt(editId);
+          if (!pendingSongAudioData && !pendingSongAudioUrl) {
+            const existing = allSongs.find(s => s.id === parseInt(editId));
+            if (existing) { payload.audio_url = existing.audio_url; payload.audio_data = existing.audio_data; }
+          }
+          res = await apiPut('/api/songs', payload);
+        } else { res = await apiPost('/api/songs', payload); }
+        if (res.ok) { showAlert(alertEl, '✅ 保存成功', 'success'); resetSongForm(); await loadSongs(); }
+        else { showAlert(alertEl, res.error || '保存失败'); }
+      } catch (err) { showAlert(alertEl, '网络错误'); }
+      finally { btn.disabled = false; btn.textContent = '💾 保存歌曲'; }
+    };
+
+    // Update editSong to load lyrics_offset
+    const origEditSong = window.editSong;
+    window.editSong = function(id) {
+      const song = allSongs.find(s => s.id === id); if (!song) return;
+      document.getElementById('songEditId').value = id;
+      document.getElementById('songFormTitle').innerHTML = '<span class="icon">✏️</span> 编辑歌曲';
+      document.getElementById('songNameInput').value = song.song_name;
+      document.getElementById('songArtistInput').value = song.artist || '';
+      document.getElementById('songUrlInput').value = song.audio_url || '';
+      parsedLyrics = (song.lyrics || []).map(l => ({...l}));
+      document.getElementById('lyricsTextInput').value = parsedLyrics.map(l => l.text).join('\n');
+      lyricsOffset = song.lyrics_offset || 0;
+      document.getElementById('lyricsOffsetDisplay').textContent = lyricsOffset + '秒';
+      renderLyricsEditor();
+      if (song.audio_url) { document.getElementById('songAudioPreview').src = song.audio_url; document.getElementById('songAudioPreview').style.display = 'block'; document.getElementById('songFileName').textContent = '已设置（链接）'; }
+      else if (song.audio_data) { document.getElementById('songAudioPreview').src = song.audio_data; document.getElementById('songAudioPreview').style.display = 'block'; document.getElementById('songFileName').textContent = '已设置（本地文件）'; }
+      document.getElementById('songCancelBtn').style.display = 'inline-block';
+      document.getElementById('songFormSection').scrollIntoView({behavior:'smooth'});
+    };
+
+    init();
+  </script>
+</body>
+</html>

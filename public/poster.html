@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>迎宾海报 — 光影婚礼墙</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    * { touch-action: none; }
+    .page { max-width: 520px; margin: 0 auto; padding: 16px; }
+    .header { text-align: center; margin-bottom: 16px; }
+    .header h1 { font-size: 22px; color: var(--primary); }
+
+    /* 风格筛选 */
+    .style-bar { display: flex; gap: 6px; justify-content: center; margin-bottom: 14px; flex-wrap: wrap; }
+    .style-btn { padding: 5px 14px; border-radius: 16px; font-size: 12px; border: 1px solid rgba(212,175,55,0.25); background: transparent; color: var(--text-muted); cursor: pointer; font-family: inherit; }
+    .style-btn.active { background: rgba(212,175,55,0.2); border-color: var(--primary); color: var(--primary); }
+
+    /* 模板网格 */
+    .tpl-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .tpl-card { background: var(--bg-card); border: 2px solid rgba(212,175,55,0.12); border-radius: 8px; padding: 10px 4px; text-align: center; cursor: pointer; }
+    .tpl-card:hover { border-color: rgba(212,175,55,0.4); }
+    .tpl-card.active { border-color: var(--primary); background: rgba(212,175,55,0.08); }
+    .tpl-card .icon { font-size: 28px; }
+    .tpl-card .name { font-size: 11px; color: var(--text); margin-top: 4px; }
+    .tpl-card .desc { font-size: 9px; color: var(--text-muted); }
+
+    /* 编辑区 */
+    .editor { display: flex; gap: 12px; flex-wrap: wrap; }
+    .cv-wrap { flex: 1; min-width: 260px; max-width: 360px; }
+    .cv-wrap canvas { width: 100%; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); display: block; }
+    .ctrl-panel { flex: 1; min-width: 200px; }
+
+    /* 照片槽 */
+    .slot-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 12px; margin-bottom: 10px; }
+    .slot-card h4 { font-size: 12px; color: var(--primary); margin-bottom: 8px; }
+    .slot-upload { display: flex; gap: 8px; align-items: center; }
+    .slot-preview { width: 48px; height: 48px; border-radius: 6px; overflow: hidden; border: 1px solid rgba(212,175,55,0.3); }
+    .slot-preview img { width: 100%; height: 100%; object-fit: cover; }
+
+    /* 照片列表 */
+    .photo-row { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+    .photo-thumb { width: 40px; height: 40px; border-radius: 4px; overflow: hidden; border: 2px solid rgba(212,175,55,0.15); cursor: pointer; }
+    .photo-thumb.active { border-color: var(--primary); }
+    .photo-thumb img { width: 100%; height: 100%; object-fit: cover; }
+
+    /* 滑块 */
+    .slider-row { display: flex; align-items: center; gap: 8px; margin: 6px 0; }
+    .slider-row label { font-size: 11px; color: var(--text-muted); white-space: nowrap; }
+    .slider-row input[type=range] { flex: 1; accent-color: var(--primary); }
+    .slider-row .val { font-size: 11px; color: var(--text-muted); width: 32px; text-align: right; }
+
+    .hint { text-align: center; font-size: 10px; color: var(--text-muted); margin: 6px 0; }
+    .action-row { display: flex; gap: 8px; margin-top: 10px; }
+    .action-row .btn { flex: 1; }
+
+    .no-photos { text-align: center; padding: 20px; color: var(--text-muted); font-size: 13px; }
+    .no-photos a { color: var(--primary); }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <a href="/" class="logo">💍 光影婚礼墙</a>
+    <div class="nav-links"><a href="/dashboard.html">管理后台</a></div>
+  </nav>
+
+  <div class="page">
+    <div class="header"><h1>🎨 迎宾海报</h1></div>
+
+    <!-- Step 1: 选模板 -->
+    <div id="v1">
+      <div class="style-bar" id="styleBar"></div>
+      <div class="tpl-grid" id="tplGrid"></div>
+    </div>
+
+    <!-- Step 2: 编辑 -->
+    <div id="v2" style="display:none;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+        <span style="font-size:13px;color:var(--text);" id="tplTitle"></span>
+        <button class="btn btn-sm btn-outline" onclick="go(1)">← 换模板</button>
+      </div>
+      <div class="editor">
+        <div class="cv-wrap"><canvas id="cv"></canvas></div>
+        <div class="ctrl-panel" id="ctrlPanel"></div>
+      </div>
+      <div class="action-row">
+        <button class="btn btn-primary" onclick="download()">💾 下载海报</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">光影婚礼墙</div>
+
+  <script src="/js/api.js"></script>
+  <script>
+    let tpls = [], wdata = null, curTpl = null;
+    // 每个槽的照片状态 { img, ox, oy, scale }
+    let slotStates = {};
+    let dragInfo = { active: false, slotId: null, sx: 0, sy: 0, sox: 0, soy: 0 };
+    const STYLES = [{ id: 'all', name: '全部' }, { id: 'chinese', name: '中式' }, { id: 'forest', name: '森系' }, { id: 'luxury', name: '轻奢' }, { id: 'retro', name: '复古' }];
+    let curStyle = 'all';
+
+    async function init() {
+      const [t, d] = await Promise.all([fetch('/api/poster?action=list'), apiGet('/api/poster?action=data')]);
+      const td = await t.json();
+      if (td.ok) tpls = td.templates;
+      if (d.ok) wdata = d.data;
+      renderStyleBar();
+      renderTpls();
+    }
+
+    // ====== Step 1: 选模板 ======
+    function renderStyleBar() {
+      document.getElementById('styleBar').innerHTML = STYLES.map(s =>
+        `<button class="style-btn ${s.id===curStyle?'active':''}" onclick="filterStyle('${s.id}')">${s.name}</button>`
+      ).join('');
+    }
+
+    function filterStyle(id) {
+      curStyle = id;
+      renderStyleBar();
+      renderTpls();
+    }
+
+    function renderTpls() {
+      const filtered = curStyle === 'all' ? tpls : tpls.filter(t => t.style === curStyle);
+      document.getElementById('tplGrid').innerHTML = filtered.map(t =>
+        `<div class="tpl-card" data-id="${t.id}" onclick="pickTpl('${t.id}')"><div class="icon">${t.thumb}</div><div class="name">${t.name}</div><div class="desc">${t.desc}</div></div>`
+      ).join('');
+    }
+
+    async function pickTpl(id) {
+      const r = await fetch(`/api/poster?action=template&id=${id}`);
+      const d = await r.json();
+      if (!d.ok) return;
+      curTpl = d.template;
+      slotStates = {};
+      curTpl.photoSlots.forEach(s => { slotStates[s.id] = { img: null, ox: 0, oy: 0, scale: 1 }; });
+      go(2);
+      document.getElementById('tplTitle').textContent = curTpl.name;
+      renderCtrlPanel();
+      render();
+    }
+
+    // ====== Step 2: 编辑 ======
+    function renderCtrlPanel() {
+      const panel = document.getElementById('ctrlPanel');
+      let html = '';
+
+      // 每个照片槽
+      curTpl.photoSlots.forEach(slot => {
+        const st = slotStates[slot.id];
+        const label = curTpl.photoSlots.length > 1 ? (slot.id === 'top' ? '上' : slot.id === 'bottom' ? '下' : '照片') : '照片';
+        html += `<div class="slot-card">
+          <h4>📷 ${label}照片区域</h4>
+          <div class="slot-upload">
+            <div class="slot-preview" id="prev-${slot.id}">${st.img ? `<img src="${st.img.src}">` : '<span style="font-size:10px;color:var(--text-muted);display:flex;align-items:center;justify-content:center;height:100%;">未选</span>'}</div>
+            <div style="flex:1;">
+              <div class="photo-row" id="photos-${slot.id}">${renderPhotoThumbs(slot.id)}</div>
+            </div>
+          </div>
+          <div class="slider-row">
+            <label>缩放</label>
+            <input type="range" min="50" max="300" value="${Math.round(st.scale*100)}" oninput="setSlotScale('${slot.id}',this.value)">
+            <span class="val" id="sv-${slot.id}">${Math.round(st.scale*100)}%</span>
+          </div>
+          <div class="hint">👆 拖动画布中的照片调整位置</div>
+        </div>`;
+      });
+
+      panel.innerHTML = html;
+    }
+
+    function renderPhotoThumbs(slotId) {
+      if (!wdata.gallery?.length) return '<span style="font-size:11px;color:var(--text-muted);">请先上传婚纱照</span>';
+      return wdata.gallery.map((p, i) =>
+        `<div class="photo-thumb" onclick="assignPhoto('${slotId}',${i})"><img src="${p.url}" loading="lazy"></div>`
+      ).join('');
+    }
+
+    async function assignPhoto(slotId, idx) {
+      const src = wdata.gallery[idx].url;
+      const img = new Image(); img.crossOrigin = 'anonymous';
+      await new Promise(r => { img.onload = r; img.onerror = r; img.src = src; });
+      slotStates[slotId] = { img, ox: 0, oy: 0, scale: 1 };
+      document.getElementById(`prev-${slotId}`).innerHTML = `<img src="${src}">`;
+      const slider = document.querySelector(`.slot-card input[type=range]`);
+      if (slider) { slider.value = 100; }
+      const valEl = document.getElementById(`sv-${slotId}`);
+      if (valEl) valEl.textContent = '100%';
+      render();
+    }
+
+    function setSlotScale(slotId, val) {
+      slotStates[slotId].scale = val / 100;
+      document.getElementById(`sv-${slotId}`).textContent = val + '%';
+      render();
+    }
+
+    // ====== Canvas 渲染 ======
+    function render() {
+      if (!curTpl) return;
+      const cv = document.getElementById('cv');
+      const ctx = cv.getContext('2d');
+      const W = curTpl.width, H = curTpl.height;
+      cv.width = W; cv.height = H;
+
+      const data = {
+        partner1: wdata?.partner1 || '新郎', partner2: wdata?.partner2 || '新娘',
+        wedding_date_cn: wdata?.wedding_date_cn || '', wedding_venue: wdata?.wedding_venue || '',
+      };
+
+      // 1. 画干净模板背景
+      if (curTpl._bgImg) {
+        ctx.drawImage(curTpl._bgImg, 0, 0, W, H);
+      } else {
+        ctx.fillStyle = '#1a1a1a'; ctx.fillRect(0, 0, W, H);
+        ctx.fillStyle = '#333'; ctx.font = '16px sans-serif'; ctx.textAlign = 'center';
+        ctx.fillText('模板图片加载中...', W/2, H/2);
+        // 加载模板图
+        const img = new Image(); img.crossOrigin = 'anonymous';
+        img.onload = () => { curTpl._bgImg = img; render(); };
+        img.onerror = () => { ctx.fillStyle = '#c41e3a'; ctx.fillText('模板图片加载失败: ' + curTpl.cleanImage, W/2, H/2+30); };
+        img.src = curTpl.cleanImage;
+        return;
+      }
+
+      // 2. 画照片（在文字下层或上层）
+      const slotsUnder = curTpl.photoSlots.filter(s => (slotStates[s.id]?.img));
+      slotsUnder.forEach(slot => drawSlotPhoto(ctx, slot, W, H));
+
+      // 3. 画文字
+      curTpl.textFields.forEach(tf => {
+        ctx.save();
+        ctx.globalAlpha = tf.opacity || 1;
+        let content = tf.content.replace(/\{(\w+)\}/g, (_, k) => data[k] || '');
+        const ff = tf.style === 'italic' ? 'italic' : 'normal';
+        const ls = tf.letterSpacing || 0;
+        ctx.font = `${ff} 300 ${tf.fontSize}px "Noto Serif SC","Songti SC",serif`;
+        ctx.fillStyle = tf.color;
+        ctx.textAlign = tf.align || 'center';
+        ctx.textBaseline = 'middle';
+        const x = tf.bbox[0], y = tf.bbox[1];
+        if (ls) {
+          let cx = x - ctx.measureText(content).width/2 - (ls*(content.length-1))/2;
+          for (const ch of content) { ctx.textAlign='left'; ctx.fillText(ch, cx, y); cx += ctx.measureText(ch).width + ls; }
+        } else ctx.fillText(content, x, y);
+        ctx.restore();
+      });
+    }
+
+    function drawSlotPhoto(ctx, slot, W, H) {
+      const st = slotStates[slot.id];
+      if (!st.img) return;
+      const [bx, by, bw, bh] = slot.bbox;
+
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(bx, by, bw, bh);
+      ctx.clip();
+
+      // 计算绘制尺寸（cover 模式）
+      const img = st.img;
+      const ir = img.width / img.height, br = bw / bh;
+      let dw, dh;
+      if (ir > br) { dh = bh; dw = dh * ir; }
+      else { dw = bw; dh = dw / ir; }
+      dw *= st.scale; dh *= st.scale;
+      const dx = bx + (bw - dw) / 2 + st.ox;
+      const dy = by + (bh - dh) / 2 + st.oy;
+      ctx.drawImage(img, dx, dy, dw, dh);
+      ctx.restore();
+    }
+
+    // ====== 拖动交互 ======
+    const cv = document.getElementById('cv');
+
+    function getPos(e) {
+      const t = e.touches ? e.touches[0] : e;
+      const r = cv.getBoundingClientRect();
+      return { x: (t.clientX - r.left) / r.width * curTpl.width, y: (t.clientY - r.top) / r.height * curTpl.height };
+    }
+
+    function findSlotAtPos(x, y) {
+      for (const slot of curTpl.photoSlots) {
+        const [bx, by, bw, bh] = slot.bbox;
+        if (x >= bx && x <= bx+bw && y >= by && y <= by+bh && slotStates[slot.id]?.img) return slot.id;
+      }
+      return null;
+    }
+
+    cv.addEventListener('mousedown', onDown);
+    cv.addEventListener('touchstart', onDown, { passive: false });
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('touchmove', onMove, { passive: false });
+    window.addEventListener('mouseup', onUp);
+    window.addEventListener('touchend', onUp);
+
+    function onDown(e) {
+      e.preventDefault();
+      const p = getPos(e);
+      const slotId = findSlotAtPos(p.x, p.y);
+      if (!slotId) return;
+      dragInfo = { active: true, slotId, sx: p.x, sy: p.y, sox: slotStates[slotId].ox, soy: slotStates[slotId].oy };
+    }
+    function onMove(e) {
+      if (!dragInfo.active) return; e.preventDefault();
+      const p = getPos(e);
+      slotStates[dragInfo.slotId].ox = dragInfo.sox + (p.x - dragInfo.sx);
+      slotStates[dragInfo.slotId].oy = dragInfo.soy + (p.y - dragInfo.sy);
+      render();
+    }
+    function onUp() { dragInfo.active = false; }
+
+    // 滚轮缩放
+    cv.addEventListener('wheel', e => {
+      e.preventDefault();
+      const p = getPos(e);
+      const slotId = findSlotAtPos(p.x, p.y);
+      if (!slotId) return;
+      const st = slotStates[slotId];
+      let v = Math.round(st.scale * 100) + (e.deltaY > 0 ? -5 : 5);
+      v = Math.max(50, Math.min(300, v));
+      st.scale = v / 100;
+      // 同步滑块
+      const sliders = document.querySelectorAll('.slot-card input[type=range]');
+      curTpl.photoSlots.forEach((s, i) => { if (s.id === slotId && sliders[i]) sliders[i].value = v; });
+      const valEl = document.getElementById(`sv-${slotId}`);
+      if (valEl) valEl.textContent = v + '%';
+      render();
+    }, { passive: false });
+
+    // ====== 导航 ======
+    function go(n) {
+      document.getElementById('v1').style.display = n===1?'block':'none';
+      document.getElementById('v2').style.display = n===2?'block':'none';
+    }
+
+    function download() {
+      const a = document.createElement('a');
+      a.download = `poster-${curTpl.id}.png`;
+      a.href = document.getElementById('cv').toDataURL('image/png');
+      a.click();
+    }
+
+    init();
+  </script>
+</body>
+</html>

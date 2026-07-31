@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>注册 — 光影婚礼墙</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <nav class="navbar">
+    <a href="/" class="logo"><span class="xi">囍</span> 光影婚礼墙</a>
+    <div class="nav-links">
+      <a href="/login.html">已有账号？登录</a>
+    </div>
+  </nav>
+
+  <div class="container-sm" style="padding-top: 40px; padding-bottom: 60px;">
+    <div class="card">
+      <h2 class="card-title"><span class="icon">✨</span> 创建你的婚礼页面</h2>
+
+      <div id="alert" class="alert"></div>
+
+      <form id="registerForm">
+        <div class="form-row">
+          <div class="form-group">
+            <label>新郎姓名 *</label>
+            <input type="text" id="partner1" placeholder="新郎" required>
+          </div>
+          <div class="form-group">
+            <label>新娘姓名 *</label>
+            <input type="text" id="partner2" placeholder="新娘" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>用户名 *</label>
+          <input type="text" id="username" placeholder="英文字母、数字，如 zhangsan" required pattern="[a-zA-Z0-9\-]+" minlength="3" maxlength="30">
+          <div class="form-hint">你的婚礼页面地址：<span id="slugPreview" style="color:var(--primary);font-weight:600;">/w/your-name</span></div>
+        </div>
+
+        <div class="form-group">
+          <label>密码 *</label>
+          <input type="password" id="password" placeholder="至少 6 个字符" required minlength="6">
+        </div>
+
+        <div class="form-group">
+          <label>邀请码 *</label>
+          <input type="text" id="invite_code" placeholder="请输入邀请码" required maxlength="20" style="text-transform:uppercase;letter-spacing:0.1em;">
+          <div style="margin-top:10px;padding:14px 16px;background:var(--primary-pale);border:1px solid rgba(184,134,11,0.15);border-radius:var(--radius);display:flex;align-items:center;justify-content:space-between;gap:10px;">
+            <span style="font-size:13px;color:var(--text-secondary);">没有邀请码？</span>
+            <a href="/buy.html" class="btn btn-sm btn-primary" style="width:auto;padding:8px 18px;">🎟️ 立即购买</a>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>婚礼日期</label>
+            <input type="date" id="wedding_date">
+          </div>
+          <div class="form-group">
+            <label>婚礼地点</label>
+            <input type="text" id="wedding_venue" placeholder="酒店/地址">
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary" id="submitBtn" style="width:100%;margin-top:8px;">创建账号</button>
+      </form>
+
+      <div style="text-align:center;margin-top:20px;font-size:14px;color:var(--text-muted);">
+        已有账号？<a href="/login.html">去登录</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">光影婚礼墙 &copy; 2026</div>
+
+  <script src="/js/api.js"></script>
+  <script>
+    const usernameInput = document.getElementById('username');
+    const slugPreview = document.getElementById('slugPreview');
+    const alertEl = document.getElementById('alert');
+    const form = document.getElementById('registerForm');
+    const submitBtn = document.getElementById('submitBtn');
+
+    usernameInput.addEventListener('input', () => {
+      const slug = usernameInput.value.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-');
+      slugPreview.textContent = `/w/${slug || 'your-name'}`;
+    });
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const autoCode = urlParams.get('code');
+    if (autoCode) document.getElementById('invite_code').value = autoCode;
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      hideAlert(alertEl);
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<span class="spinner"></span> 注册中...';
+
+      try {
+        const res = await apiPost('/api/register', {
+          username: usernameInput.value.trim(),
+          password: document.getElementById('password').value,
+          partner1: document.getElementById('partner1').value.trim(),
+          partner2: document.getElementById('partner2').value.trim(),
+          wedding_date: document.getElementById('wedding_date').value,
+          wedding_venue: document.getElementById('wedding_venue').value.trim(),
+          invite_code: document.getElementById('invite_code').value.trim(),
+        });
+
+        if (res.ok) {
+          showAlert(alertEl, '注册成功！正在跳转...', 'success');
+          setTimeout(() => window.location.href = '/dashboard.html', 800);
+        } else {
+          showAlert(alertEl, res.error || '注册失败');
+        }
+      } catch (err) {
+        showAlert(alertEl, '网络错误，请稍后重试');
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = '创建账号';
+      }
+    });
+  </script>
+</body>
+</html>
