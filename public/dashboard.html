@@ -405,11 +405,88 @@
     let cachedRsvpData = null;
     function printRsvp() {
       if (!cachedRsvpData || cachedRsvpData.length === 0) { alert('暂无回执数据，请先刷新列表'); return; }
-      const data = cachedRsvpData; const totalGuests = data.reduce((s, r) => s + (r.guests || 1), 0);
+      const data = cachedRsvpData;
+      const totalGuests = data.reduce((s, r) => s + (r.guests || 1), 0);
       const coupleName = currentUser ? (currentUser.partner1 + ' & ' + currentUser.partner2) : '';
       const printWindow = window.open('', '_blank');
-      printWindow.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>回执统计 - ${coupleName}</title><style>*{margin:0;padding:0;box-sizing:border-box;}body{font-family:'PingFang SC',serif;padding:40px;color:#333;}.header{text-align:center;margin-bottom:32px;border-bottom:2px solid #b8860b;padding-bottom:20px;}.header .xi{font-size:36px;color:#c41e3a;}.header h1{font-size:22px;color:#333;margin:8px 0;}.header .sub{font-size:13px;color:#888;}.stats{display:flex;gap:20px;justify-content:center;margin-bottom:28px;}.stat{text-align:center;padding:12px 24px;border:1px solid #ddd;border-radius:8px;}.stat .num{font-size:28px;font-weight:bold;color:#b8860b;}.stat .label{font-size:12px;color:#888;margin-top:4px;}table{width:100%;border-collapse:collapse;}th,td{padding:10px 12px;text-align:left;border-bottom:1px solid #eee;font-size:14px;}th{background:#f8f5ef;color:#8b6914;font-weight:600;font-size:13px;}.footer{text-align:center;margin-top:32px;padding-top:16px;border-top:1px solid #ddd;color:#aaa;font-size:12px;}@media print{body{padding:20px;}}</style></head><body><div class="header"><div class="xi">囍</div><h1>${coupleName} · 出席回执统计</h1><div class="sub">打印时间：${new Date().toLocaleString('zh-CN')}</div></div><div class="stats"><div class="stat"><div class="num">${data.length}</div><div class="label">回执总数</div></div><div class="stat"><div class="num">${totalGuests}</div><div class="label">出席总人数</div></div></div><table><thead><tr><th>序号</th><th>姓名</th><th>电话</th><th>人数</th><th>到达时间</th><th>出行方式</th><th>留言</th><th>参与码</th><th>提交时间</th></tr></thead><tbody>${data.map((r, i) => `<tr><td>${i+1}</td><td>${esc(r.name)}</td><td>${esc(r.phone)}</td><td>${r.guests}</td><td>${esc(r.arrival_time||'-')}</td><td>${esc(r.transport||'-')}</td><td>${esc(r.message||'-')}</td><td style="font-family:monospace;letter-spacing:0.05em;">${esc(r.participation_code||'-')}</td><td>${r.created_at?r.created_at.slice(0,16).replace('T',' '):''}</td></tr>`).join('')}</tbody></table><div class="footer">囍 · 光影婚礼墙</div></body></html>`);
-      printWindow.document.close(); setTimeout(() => printWindow.print(), 300);
+
+      const rowsHtml = data.map((r, i) => `
+        <div class="rsvp-row">
+          <div class="row-num">${i + 1}</div>
+          <div class="row-body">
+            <div class="row-main">
+              <div class="field name">${esc(r.name)}</div>
+              <div class="field">${esc(r.phone)}</div>
+              <div class="field"><span class="badge">${r.guests}人</span></div>
+              <div class="field">${esc(r.arrival_time || '-')}</div>
+              <div class="field">${esc(r.transport || '-')}</div>
+            </div>
+            <div class="row-sub">
+              ${r.message ? '<div class="msg">💬 ' + esc(r.message) + '</div>' : ''}
+              <div class="code">参与码：${esc(r.participation_code || '-')}</div>
+              <div class="time">${r.created_at ? r.created_at.slice(0, 16).replace('T', ' ') : ''}</div>
+            </div>
+          </div>
+        </div>
+      `).join('');
+
+      printWindow.document.write(`<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>回执统计 - ${coupleName}</title>
+<style>
+  @page { size: A4 landscape; margin: 12mm; }
+  @media print {
+    html, body { margin: 0; padding: 0; }
+    .no-print { display: none !important; }
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; color: #2c2c2c; background: #fff; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body { padding: 16px 20px; }
+
+  .header { text-align: center; margin-bottom: 18px; padding-bottom: 14px; border-bottom: 2px solid #b8860b; }
+  .header .xi { font-size: 32px; color: #b8860b; }
+  .header h1 { font-size: 18px; color: #2c2c2c; margin: 6px 0 3px; font-weight: 600; letter-spacing: 0.06em; }
+  .header .sub { font-size: 11px; color: #999; }
+
+  .stats { display: flex; gap: 16px; justify-content: center; margin-bottom: 16px; }
+  .stat { text-align: center; padding: 8px 20px; border: 1px solid #e8e4dd; border-radius: 8px; background: #fdf6e3; }
+  .stat .num { font-size: 24px; font-weight: 700; color: #b8860b; }
+  .stat .label { font-size: 11px; color: #999; margin-top: 2px; }
+
+  .rsvp-row { display: flex; align-items: flex-start; padding: 10px 0; border-bottom: 1px solid #eee; page-break-inside: avoid; }
+  .rsvp-row:last-child { border-bottom: none; }
+  .row-num { width: 28px; height: 28px; border-radius: 50%; background: #b8860b; color: #fff; font-size: 12px; font-weight: 600; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-right: 12px; margin-top: 2px; }
+  .row-body { flex: 1; min-width: 0; }
+  .row-main { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .row-main .field { font-size: 14px; color: #2c2c2c; }
+  .row-main .field.name { font-weight: 600; font-size: 15px; color: #b8860b; min-width: 80px; }
+  .row-main .badge { display: inline-block; padding: 1px 10px; border-radius: 12px; font-size: 12px; background: #fdf6e3; border: 1px solid rgba(184,134,11,0.3); color: #8b6914; }
+  .row-sub { display: flex; align-items: center; gap: 12px; margin-top: 4px; flex-wrap: wrap; }
+  .row-sub .msg { font-size: 12px; color: #666; max-width: 500px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .row-sub .code { font-size: 13px; color: #b8860b; font-family: monospace; letter-spacing: 0.08em; font-weight: 600; }
+  .row-sub .time { font-size: 11px; color: #bbb; margin-left: auto; }
+
+  .footer { text-align: center; margin-top: 16px; padding-top: 10px; border-top: 1px solid #e8e4dd; color: #ccc; font-size: 11px; }
+</style>
+</head>
+<body>
+  <div class="header">
+    <div class="xi">囍</div>
+    <h1>${coupleName} · 出席回执统计</h1>
+    <div class="sub">打印时间：${new Date().toLocaleString('zh-CN')} · 共 ${data.length} 条回执 · ${totalGuests} 人出席</div>
+  </div>
+  <div class="stats">
+    <div class="stat"><div class="num">${data.length}</div><div class="label">回执总数</div></div>
+    <div class="stat"><div class="num">${totalGuests}</div><div class="label">出席总人数</div></div>
+  </div>
+  <div class="rsvp-list">${rowsHtml}</div>
+  <div class="footer">囍 · 光影婚礼墙 · 请在打印设置中取消勾选「页眉和页脚」以获得最佳效果</div>
+</body>
+</html>`);
+      printWindow.document.close();
+      setTimeout(() => printWindow.print(), 400);
     }
 
     // Songs Management
