@@ -56,33 +56,45 @@ export async function onRequest(context) {
     .rsvp-skip a:hover{color:#8b6914}
     .rsvp-names{margin-top:20px;font-size:12px;color:#b0a090;letter-spacing:0.1em}
 
-    /* ====== Invitation Card - Fresh Illustration Style ====== */
-    #invite-overlay{position:fixed;inset:0;z-index:160;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.5);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);padding:20px;opacity:0;transition:opacity 0.5s}
+    /* ====== Invitation Card - Anime Pink Style ====== */
+    #invite-overlay{position:fixed;inset:0;z-index:160;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.45);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);padding:20px;opacity:0;transition:opacity 0.5s}
     #invite-overlay.show{display:flex;opacity:1}
-    .invite-card{width:360px;max-width:90vw;background:#fff;border-radius:20px;overflow:hidden;box-shadow:0 12px 48px rgba(0,0,0,0.2);position:relative}
-    .ic-illust{width:100%;height:260px;position:relative;overflow:hidden;background:linear-gradient(180deg,#e8f5e9 0%,#f1f8e9 40%,#fff 100%)}
+    .invite-card{width:380px;max-width:92vw;background:#fff;border-radius:24px;overflow:hidden;box-shadow:0 16px 60px rgba(219,112,147,0.25),0 4px 20px rgba(0,0,0,0.1);position:relative;border:2px solid rgba(255,182,193,0.4)}
+    .ic-header{width:100%;padding:28px 24px 20px;text-align:center;background:linear-gradient(160deg,#fff0f5 0%,#ffe4ec 40%,#ffd6e0 100%);position:relative;overflow:hidden}
+    .ic-header::before{content:'';position:absolute;top:-30px;right:-30px;width:100px;height:100px;background:radial-gradient(circle,rgba(255,182,193,0.3),transparent 70%);border-radius:50%}
+    .ic-header::after{content:'';position:absolute;bottom:-20px;left:-20px;width:80px;height:80px;background:radial-gradient(circle,rgba(255,192,203,0.25),transparent 70%);border-radius:50%}
+    .ic-sparkle{position:absolute;font-size:14px;opacity:0.6;animation:sparkleFloat 2s ease-in-out infinite}
+    .ic-sparkle:nth-child(1){top:12px;left:20px;animation-delay:0s}
+    .ic-sparkle:nth-child(2){top:20px;right:25px;animation-delay:0.7s}
+    .ic-sparkle:nth-child(3){bottom:15px;left:40px;animation-delay:1.4s}
+    .ic-sparkle:nth-child(4){bottom:10px;right:45px;animation-delay:0.3s}
+    @keyframes sparkleFloat{0%,100%{transform:scale(1) rotate(0deg);opacity:0.6}50%{transform:scale(1.3) rotate(15deg);opacity:1}}
+    .ic-envelope{font-size:64px;margin-bottom:8px;filter:drop-shadow(0 4px 8px rgba(219,112,147,0.3))}
+    .ic-title{font-size:20px;color:#db7093;letter-spacing:0.3em;font-weight:600;margin-bottom:4px}
+    .ic-title-en{font-size:10px;color:rgba(219,112,147,0.5);letter-spacing:0.15em;text-transform:uppercase}
+    .ic-illust{width:100%;height:220px;position:relative;overflow:hidden;background:linear-gradient(180deg,#fff5f8 0%,#fff 100%)}
     .ic-illust img{width:100%;height:100%;object-fit:cover;object-position:center top}
-    .ic-illust::after{content:'';position:absolute;bottom:0;left:0;right:0;height:40px;background:linear-gradient(0deg,#fff,transparent)}
+    .ic-illust::after{content:'';position:absolute;bottom:0;left:0;right:0;height:50px;background:linear-gradient(0deg,#fff,transparent)}
     .ic-body{padding:0 24px 24px;text-align:center}
-    .ic-date-fresh{font-size:14px;color:#666;letter-spacing:0.15em;margin-bottom:6px}
-    .ic-names-fresh{font-family:'Ma Shan Zheng',cursive,serif;font-size:26px;color:#2e7d32;letter-spacing:0.2em;margin-bottom:4px}
-    .ic-names-en-fresh{font-size:10px;color:rgba(46,125,50,0.5);letter-spacing:0.1em;margin-bottom:14px;text-transform:uppercase}
-    .ic-msg-fresh{font-size:13px;color:#555;line-height:2;letter-spacing:0.06em;margin-bottom:6px}
-    .ic-venue-fresh{font-size:12px;color:#888;letter-spacing:0.05em;margin-bottom:16px}
-    .ic-divider-fresh{width:60px;height:1px;background:linear-gradient(90deg,transparent,#a5d6a7,transparent);margin:0 auto 16px}
-    .ic-code-section{display:flex;align-items:center;justify-content:center;gap:20px;padding:16px;background:#f9fbe7;border-radius:12px;margin-bottom:12px}
+    .ic-date{font-size:14px;color:#999;letter-spacing:0.15em;margin-bottom:8px}
+    .ic-names{font-family:'Ma Shan Zheng',cursive,serif;font-size:28px;color:#e75480;letter-spacing:0.2em;margin-bottom:4px;text-shadow:0 2px 8px rgba(231,84,128,0.15)}
+    .ic-names-en{font-size:11px;color:rgba(219,112,147,0.45);letter-spacing:0.12em;margin-bottom:16px;text-transform:uppercase}
+    .ic-msg{font-size:13px;color:#777;line-height:2;letter-spacing:0.06em;margin-bottom:6px}
+    .ic-venue{font-size:12px;color:#aaa;letter-spacing:0.05em;margin-bottom:18px}
+    .ic-divider{width:60px;height:1px;background:linear-gradient(90deg,transparent,#ffb6c1,transparent);margin:0 auto 18px}
+    .ic-code-section{display:flex;align-items:center;justify-content:center;gap:20px;padding:18px;background:linear-gradient(135deg,#fff5f8,#fff0f5);border-radius:16px;margin-bottom:14px;border:1px solid rgba(255,182,193,0.3)}
     .ic-code-left{text-align:left}
-    .ic-code-label{font-size:11px;color:#888;letter-spacing:0.1em;margin-bottom:4px}
-    .ic-code-num{font-family:monospace;font-size:24px;color:#2e7d32;letter-spacing:0.15em;font-weight:700}
-    .ic-code-hint{font-size:9px;color:#aaa;margin-top:4px}
-    .ic-qr-fresh{flex-shrink:0}
-    .ic-qr-fresh canvas,.ic-qr-fresh svg{border-radius:6px}
-    .ic-footer-fresh{font-size:10px;color:#ccc;letter-spacing:0.08em;margin-top:8px}
-    .invite-actions{display:flex;gap:12px;margin-top:16px;flex-wrap:wrap;justify-content:center}
-    .invite-actions button{padding:12px 28px;border-radius:25px;font-size:14px;cursor:pointer;transition:all 0.3s;font-family:inherit;letter-spacing:0.1em}
-    .btn-invite-save{background:rgba(46,125,50,0.1);border:1.5px solid rgba(46,125,50,0.4);color:#2e7d32}
+    .ic-code-label{font-size:11px;color:#db7093;letter-spacing:0.1em;margin-bottom:6px;font-weight:500}
+    .ic-code-num{font-family:'Courier New',monospace;font-size:26px;color:#e75480;letter-spacing:0.2em;font-weight:700}
+    .ic-code-hint{font-size:9px;color:#ccc;margin-top:4px}
+    .ic-qr{flex-shrink:0}
+    .ic-qr canvas{border-radius:8px}
+    .ic-footer{font-size:10px;color:#ddd;letter-spacing:0.08em;margin-top:10px}
+    .invite-actions{display:flex;gap:12px;margin-top:18px;flex-wrap:wrap;justify-content:center}
+    .invite-actions button{padding:12px 28px;border-radius:25px;font-size:14px;cursor:pointer;transition:all 0.3s;font-family:inherit;letter-spacing:0.1em;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+    .btn-invite-save{background:rgba(231,84,128,0.08);border:1.5px solid rgba(231,84,128,0.4);color:#e75480}
     .btn-invite-save:active{transform:scale(0.96)}
-    .btn-invite-enter{background:linear-gradient(135deg,#e74c7b,#d4547a);border:none;color:#fff;font-weight:500}
+    .btn-invite-enter{background:linear-gradient(135deg,#ff69b4,#db7093);border:none;color:#fff;font-weight:500;box-shadow:0 4px 15px rgba(219,112,147,0.3)}
     .btn-invite-enter:active{transform:scale(0.96)}
 
     /* ====== 控制栏 ====== */
@@ -253,29 +265,38 @@ export async function onRequest(context) {
   <div class="particles" id="particles"></div>
 
   <!-- 致谢 -->
-  <!-- Invitation Card -->
+  <!-- Invitation Card - Anime Pink Style -->
   <div id="invite-overlay">
     <div style="display:flex;flex-direction:column;align-items:center;">
       <div class="invite-card" id="invite-card">
+        <div class="ic-header">
+          <span class="ic-sparkle">✨</span>
+          <span class="ic-sparkle">💖</span>
+          <span class="ic-sparkle">✨</span>
+          <span class="ic-sparkle">💫</span>
+          <div class="ic-envelope">💌</div>
+          <div class="ic-title">电子请帖</div>
+          <div class="ic-title-en">Wedding Invitation</div>
+        </div>
         <div class="ic-illust">
           <img src="https://img.icons8.com/external-flatart-icons-flat-flatarticons/512/external-wedding-love-flatart-icons-flat-flatarticons.png" alt="wedding" crossorigin="anonymous" onerror="this.style.display='none'">
         </div>
         <div class="ic-body">
-          <div class="ic-date-fresh" id="ic-date"></div>
-          <div class="ic-names-fresh" id="ic-names"></div>
-          <div class="ic-names-en-fresh" id="ic-names-en"></div>
-          <div class="ic-msg-fresh">诚挚邀请您出席我们的婚礼<br>见证我们人生中最重要的时刻</div>
-          <div class="ic-venue-fresh" id="ic-info"></div>
-          <div class="ic-divider-fresh"></div>
+          <div class="ic-date" id="ic-date"></div>
+          <div class="ic-names" id="ic-names"></div>
+          <div class="ic-names-en" id="ic-names-en"></div>
+          <div class="ic-msg">诚挚邀请您出席我们的婚礼<br>见证我们人生中最重要的时刻</div>
+          <div class="ic-venue" id="ic-info"></div>
+          <div class="ic-divider"></div>
           <div class="ic-code-section">
             <div class="ic-code-left">
-              <div class="ic-code-label">参与码</div>
+              <div class="ic-code-label">🎫 参与码</div>
               <div class="ic-code-num" id="ic-participation-code">------</div>
               <div class="ic-code-hint">请截图保存 · 用于后续活动</div>
             </div>
-            <div class="ic-qr-fresh" id="ic-qr"></div>
+            <div class="ic-qr" id="ic-qr"></div>
           </div>
-          <div class="ic-footer-fresh">光影婚礼墙 · 永结同心</div>
+          <div class="ic-footer">光影婚礼墙 · 永结同心 💕</div>
         </div>
       </div>
       <div class="invite-actions">
@@ -425,27 +446,15 @@ export async function onRequest(context) {
     function showInviteCard() {
       document.getElementById('rsvp-screen').classList.add('hidden');
       // Populate invite card
-      const avDiv = document.getElementById('ic-avatars');
-      avDiv.innerHTML = '';
-      if (AVATARS[0]) {
-        const img1 = document.createElement('img'); img1.className = 'ic-avatar'; img1.src = AVATARS[0]; img1.alt = ''; avDiv.appendChild(img1);
-      }
-      if (AVATARS.length > 1) {
-        const heart = document.createElement('span'); heart.className = 'ic-heart'; heart.textContent = '♥'; avDiv.appendChild(heart);
-      }
-      if (AVATARS[1] || AVATARS[0]) {
-        const img2 = document.createElement('img'); img2.className = 'ic-avatar'; img2.src = AVATARS[1] || AVATARS[0]; img2.alt = ''; avDiv.appendChild(img2);
-      }
       document.getElementById('ic-names').textContent = WEDDING.couple_name;
       document.getElementById('ic-names-en').textContent = WEDDING.couple_name.toUpperCase();
       if (WEDDING.wedding_date) {
         const d = new Date(WEDDING.wedding_date + 'T00:00:00');
-        document.getElementById('ic-date').textContent = d.getFullYear() + '年' + (d.getMonth()+1) + '月' + d.getDate() + '日';
         const days = ['星期日','星期一','星期二','星期三','星期四','星期五','星期六'];
-        document.getElementById('ic-date-sub').textContent = days[d.getDay()];
+        document.getElementById('ic-date').textContent = d.getFullYear() + '年' + (d.getMonth()+1) + '月' + d.getDate() + '日 ' + days[d.getDay()];
       }
       const infoArr = [];
-      if (WEDDING.wedding_venue) infoArr.push('婚礼地点：' + WEDDING.wedding_venue);
+      if (WEDDING.wedding_venue) infoArr.push('📍 ' + WEDDING.wedding_venue);
       document.getElementById('ic-info').innerHTML = infoArr.join('<br>');
       // Generate QR code
       generateInviteQR();
@@ -459,31 +468,33 @@ export async function onRequest(context) {
       try {
         if (typeof qrcode === 'function') {
           const qr = qrcode(0, 'M');
-          qr.addData(location.href); qr.make();
-          const svg = qr.createSvgTag({ cellSize: 3, margin: 0 });
-          box.innerHTML = svg;
-          // 设置金色主题
-          const svgEl = box.querySelector('svg');
-          if (svgEl) {
-            const rects = svgEl.querySelectorAll('rect');
-            rects.forEach(r => {
-              const fill = r.getAttribute('fill');
-              if (fill === '#000000' || fill === '#000' || fill === 'black') {
-                r.setAttribute('fill', '#2e7d32');
-              } else if (fill === '#ffffff' || fill === '#fff' || fill === 'white' || !fill || fill === 'none') {
-                r.setAttribute('fill', 'transparent');
+          qr.addData(location.href);
+          qr.make();
+          const size = 100;
+          const cellSize = Math.floor(size / qr.getModuleCount());
+          const margin = Math.floor((size - cellSize * qr.getModuleCount()) / 2);
+          const canvas = document.createElement('canvas');
+          canvas.width = size;
+          canvas.height = size;
+          const ctx = canvas.getContext('2d');
+          ctx.fillStyle = '#e75480';
+          ctx.globalAlpha = 0.9;
+          for (let row = 0; row < qr.getModuleCount(); row++) {
+            for (let col = 0; col < qr.getModuleCount(); col++) {
+              if (qr.isDark(row, col)) {
+                ctx.fillRect(margin + col * cellSize, margin + row * cellSize, cellSize, cellSize);
               }
-            });
-            svgEl.style.background = 'transparent';
+            }
           }
+          box.appendChild(canvas);
         }
-      } catch (e) {}
+      } catch (e) { console.log('QR generation failed:', e); }
     }
 
     window.saveInvite = function() {
       const card = document.getElementById('invite-card');
       if (typeof html2canvas !== 'function') { alert('保存功能加载中'); return; }
-      html2canvas(card, { backgroundColor: '#5B0000', scale: 2, useCORS: true }).then(canvas => {
+      html2canvas(card, { backgroundColor: '#fff5f8', scale: 3, useCORS: true, allowTaint: true }).then(canvas => {
         const a = document.createElement('a');
         a.download = 'wedding-invitation.png';
         a.href = canvas.toDataURL('image/png');
