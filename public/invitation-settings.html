@@ -1,0 +1,986 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>请帖设置 - Wedding Wall</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Noto Serif SC', sans-serif;
+    background: #f8f5f0;
+    color: #3d2b1f;
+    min-height: 100vh;
+  }
+
+  /* 顶部导航 */
+  .navbar {
+    background: #fff;
+    border-bottom: 1px solid #e8dfd2;
+    padding: 14px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  }
+  .navbar .brand {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #6b4c3b;
+    text-decoration: none;
+  }
+  .navbar .brand span { color: #c9a96e; }
+  .navbar .nav-links { display: flex; gap: 16px; align-items: center; }
+  .navbar .nav-links a {
+    color: #7a6555;
+    text-decoration: none;
+    font-size: 0.88rem;
+    padding: 6px 12px;
+    border-radius: 6px;
+    transition: background 0.2s;
+  }
+  .navbar .nav-links a:hover { background: #f5f0e8; }
+  .navbar .nav-links a.active { background: #f5f0e8; color: #6b4c3b; font-weight: 600; }
+
+  /* 主内容 */
+  .main { max-width: 860px; margin: 0 auto; padding: 30px 20px 60px; }
+
+  .page-header {
+    margin-bottom: 30px;
+  }
+  .page-header h1 {
+    font-size: 1.6rem;
+    color: #6b4c3b;
+    margin-bottom: 6px;
+  }
+  .page-header p {
+    font-size: 0.88rem;
+    color: #7a6555;
+  }
+
+  /* 卡片表单 */
+  .form-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 28px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 12px rgba(107,76,59,0.06);
+    border: 1px solid #e8dfd2;
+  }
+  .form-card h2 {
+    font-size: 1.1rem;
+    color: #6b4c3b;
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .form-card h2 .icon { font-size: 1.2rem; }
+  .form-card .card-desc {
+    font-size: 0.8rem;
+    color: #7a6555;
+    margin-bottom: 20px;
+  }
+
+  .form-row {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+  .form-group {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+  .form-group.full { flex: none; width: 100%; }
+  .form-group label {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #6b4c3b;
+    margin-bottom: 6px;
+  }
+  .form-group label .hint {
+    font-weight: 400;
+    color: #a89888;
+    font-size: 0.75rem;
+  }
+  .form-group input,
+  .form-group textarea,
+  .form-group select {
+    border: 1.5px solid #e0d8cc;
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 0.9rem;
+    font-family: inherit;
+    color: #3d2b1f;
+    background: #fdfbf8;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .form-group input:focus,
+  .form-group textarea:focus,
+  .form-group select:focus {
+    border-color: #c9a96e;
+    box-shadow: 0 0 0 3px rgba(201,169,110,0.12);
+  }
+  .form-group textarea {
+    resize: vertical;
+    min-height: 100px;
+    line-height: 1.6;
+  }
+  .form-group input[type="color"] {
+    width: 50px;
+    height: 40px;
+    padding: 4px;
+    cursor: pointer;
+  }
+  .form-group input[type="file"] {
+    padding: 8px;
+    border-style: dashed;
+  }
+
+  /* 颜色选择器 */
+  .color-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .color-row input[type="color"] { flex-shrink: 0; }
+  .color-row input[type="text"] { flex: 1; }
+  .color-presets {
+    display: flex;
+    gap: 6px;
+    margin-top: 8px;
+  }
+  .color-preset {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: border-color 0.2s, transform 0.2s;
+  }
+  .color-preset:hover { transform: scale(1.15); }
+  .color-preset.active { border-color: #3d2b1f; }
+
+  /* 流程编辑器 */
+  .schedule-editor { margin-top: 4px; }
+  .schedule-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 8px;
+    padding: 10px 12px;
+    background: #fdfbf8;
+    border-radius: 8px;
+    border: 1px solid #e8dfd2;
+  }
+  .schedule-row .icon-input {
+    width: 50px;
+    text-align: center;
+    font-size: 1.2rem;
+    border: 1px solid #e0d8cc;
+    border-radius: 6px;
+    padding: 6px;
+    background: #fff;
+  }
+  .schedule-row .time-input {
+    width: 80px;
+    text-align: center;
+    border: 1px solid #e0d8cc;
+    border-radius: 6px;
+    padding: 8px;
+    font-size: 0.9rem;
+    background: #fff;
+  }
+  .schedule-row .label-input {
+    flex: 1;
+    border: 1px solid #e0d8cc;
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-size: 0.9rem;
+    background: #fff;
+  }
+  .schedule-row .btn-remove {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: none;
+    background: #fce4e4;
+    color: #c0392b;
+    font-size: 1.1rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+  }
+  .schedule-row .btn-remove:hover { background: #f5c6c6; }
+  .btn-add-schedule {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border: 1.5px dashed #c9a96e;
+    border-radius: 8px;
+    background: transparent;
+    color: #c9a96e;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: background 0.2s;
+    margin-top: 4px;
+  }
+  .btn-add-schedule:hover { background: rgba(201,169,110,0.06); }
+
+  /* 图片上传 */
+  .image-upload-area {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .image-box {
+    width: 200px;
+    border: 2px dashed #e0d8cc;
+    border-radius: 10px;
+    overflow: hidden;
+    position: relative;
+    cursor: pointer;
+    transition: border-color 0.2s;
+    background: #fdfbf8;
+  }
+  .image-box:hover { border-color: #c9a96e; }
+  .image-box img {
+    width: 100%;
+    height: 150px;
+    object-fit: cover;
+    display: none;
+  }
+  .image-box .placeholder {
+    height: 150px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #a89888;
+    font-size: 0.82rem;
+    gap: 6px;
+  }
+  .image-box .placeholder .plus {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #e8dfd2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3rem;
+    color: #7a6555;
+  }
+  .image-box .remove-btn {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: rgba(192,57,43,0.85);
+    color: #fff;
+    border: none;
+    font-size: 0.8rem;
+    cursor: pointer;
+    display: none;
+    align-items: center;
+    justify-content: center;
+  }
+  .image-box:hover .remove-btn { display: flex; }
+  .image-box .label-tag {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(0,0,0,0.5);
+    color: #fff;
+    font-size: 0.72rem;
+    text-align: center;
+    padding: 4px;
+  }
+
+  /* 按钮 */
+  .btn-row {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    margin-top: 8px;
+  }
+  .btn {
+    padding: 12px 28px;
+    border-radius: 8px;
+    font-size: 0.92rem;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+  }
+  .btn-primary {
+    background: #c9a96e;
+    color: #fff;
+  }
+  .btn-primary:hover { background: #b8953a; }
+  .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+  .btn-secondary {
+    background: #f5f0e8;
+    color: #6b4c3b;
+    border: 1px solid #e0d8cc;
+  }
+  .btn-secondary:hover { background: #e8dfd2; }
+  .btn-preview {
+    background: #3a5a40;
+    color: #fff;
+  }
+  .btn-preview:hover { background: #2d4a32; }
+
+  /* 预览链接 */
+  .preview-link-box {
+    background: #f5f0e8;
+    border-radius: 10px;
+    padding: 16px 20px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .preview-link-box .link-label {
+    font-size: 0.82rem;
+    color: #7a6555;
+  }
+  .preview-link-box .link-url {
+    font-family: 'Courier New', monospace;
+    font-size: 0.85rem;
+    color: #3a5a40;
+    word-break: break-all;
+    flex: 1;
+  }
+  .preview-link-box .btn-copy {
+    padding: 6px 14px;
+    font-size: 0.78rem;
+    border-radius: 6px;
+    border: 1px solid #3a5a40;
+    background: transparent;
+    color: #3a5a40;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .preview-link-box .btn-copy:hover { background: rgba(58,90,64,0.08); }
+
+  /* 提示 */
+  .toast {
+    position: fixed;
+    top: 80px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-20px);
+    background: #3a5a40;
+    color: #fff;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 0.88rem;
+    z-index: 999;
+    opacity: 0;
+    transition: all 0.3s;
+    pointer-events: none;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .toast.error { background: #c0392b; }
+
+  /* 响应式 */
+  @media (max-width: 640px) {
+    .form-row { flex-direction: column; gap: 12px; }
+    .image-upload-area { flex-direction: column; }
+    .image-box { width: 100%; }
+    .navbar .nav-links { gap: 8px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- 导航栏 -->
+<nav class="navbar">
+  <a class="brand" href="/dashboard.html">💍 <span>Wedding Wall</span></a>
+  <div class="nav-links">
+    <a href="/dashboard.html">控制台</a>
+    <a href="/invitation-settings.html" class="active">请帖设置</a>
+    <a href="#" id="logoutBtn">退出</a>
+  </div>
+</nav>
+
+<div class="main">
+
+  <div class="page-header">
+    <h1>💌 请帖设置</h1>
+    <p>填写婚礼信息后，系统自动生成专属请帖页面，宾客打开链接即可查看</p>
+  </div>
+
+  <!-- 预览链接 -->
+  <div class="preview-link-box">
+    <div>
+      <div class="link-label">📎 请帖链接（分享给宾客）</div>
+      <div class="link-url" id="previewUrl">加载中...</div>
+    </div>
+    <button class="btn-copy" onclick="copyLink()">复制链接</button>
+  </div>
+
+  <!-- 新人信息 -->
+  <div class="form-card">
+    <h2><span class="icon">💑</span> 新人信息</h2>
+    <div class="card-desc">填写双方姓名，将显示在请帖的核心位置</div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>新郎姓名</label>
+        <input type="text" id="partner1" placeholder="例：淮南">
+      </div>
+      <div class="form-group">
+        <label>新娘姓名</label>
+        <input type="text" id="partner2" placeholder="例：洛枳">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>合称 <span class="hint">（留空自动生成）</span></label>
+        <input type="text" id="coupleName" placeholder="例：淮南 & 洛枳">
+      </div>
+    </div>
+  </div>
+
+  <!-- 婚礼信息 -->
+  <div class="form-card">
+    <h2><span class="icon">📅</span> 婚礼信息</h2>
+    <div class="card-desc">日期、时间、场地等核心信息</div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>婚礼日期</label>
+        <input type="date" id="weddingDate">
+      </div>
+      <div class="form-group">
+        <label>婚礼时间</label>
+        <input type="time" id="weddingTime">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>婚礼场地名称</label>
+        <input type="text" id="venueName" placeholder="例：宝格俪亚礼宴艺术中心">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>场地详细地址 <span class="hint">（显示在地图区域下方）</span></label>
+        <input type="text" id="venueAddress" placeholder="例：无锡市江阴市中山南路170号">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>地图链接 <span class="hint">（可选，高德/百度/腾讯地图链接）</span></label>
+        <input type="url" id="venueMapUrl" placeholder="https://uri.amap.com/...">
+      </div>
+    </div>
+  </div>
+
+  <!-- 请帖文案 -->
+  <div class="form-card">
+    <h2><span class="icon">✍️</span> 请帖文案</h2>
+    <div class="card-desc">自定义请帖中的所有文字内容</div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>左卡标题 <span class="hint">（快来搂席！）</span></label>
+        <input type="text" id="callToAction" placeholder="快来搂席！">
+      </div>
+      <div class="form-group">
+        <label>左卡英文标语</label>
+        <input type="text" id="marriedText" placeholder="WE ARE MARRIED">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>中卡副标题 <span class="hint">（英文小字）</span></label>
+        <input type="text" id="kidsText" placeholder="These two kids are getting married">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>邀请语 <span class="hint">（日期下方）</span></label>
+        <input type="text" id="inviteText" placeholder="敬备喜宴 ❤️ 恭候莅临">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>右卡标题</label>
+        <input type="text" id="welcomeTitle" placeholder="Welcome">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group full">
+        <label>欢迎致辞 <span class="hint">（每行一句，支持换行）</span></label>
+        <textarea id="welcomeText" rows="6" placeholder="Hi，我们最亲爱的家人朋友们&#10;很开心这一天你为我们而来&#10;..."></textarea>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>英文格言</label>
+        <input type="text" id="loveQuote" placeholder="Love is life in its fulness">
+      </div>
+      <div class="form-group">
+        <label>右卡结束语</label>
+        <input type="text" id="thankYou" placeholder="Thank you">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>默认宾客称呼 <span class="hint">（可被链接参数覆盖）</span></label>
+        <input type="text" id="defaultGuestName" placeholder="嘉宾">
+      </div>
+    </div>
+  </div>
+
+  <!-- 流程安排 -->
+  <div class="form-card">
+    <h2><span class="icon">📋</span> 流程安排</h2>
+    <div class="card-desc">右侧卡片展示的婚礼流程时间表</div>
+
+    <div class="schedule-editor" id="scheduleEditor">
+      <!-- 动态生成 -->
+    </div>
+    <button class="btn-add-schedule" onclick="addScheduleItem()">＋ 添加流程</button>
+  </div>
+
+  <!-- 主题配色 -->
+  <div class="form-card">
+    <h2><span class="icon">🎨</span> 主题配色</h2>
+    <div class="card-desc">选择请帖的主题色，影响全局金色元素</div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>主题色</label>
+        <div class="color-row">
+          <input type="color" id="themeColor" value="#c9a96e">
+          <input type="text" id="themeColorText" value="#c9a96e" placeholder="#c9a96e">
+        </div>
+        <div class="color-presets">
+          <div class="color-preset" style="background:#c9a96e" data-color="#c9a96e" title="经典金"></div>
+          <div class="color-preset" style="background:#d4af37" data-color="#d4af37" title="黄金"></div>
+          <div class="color-preset" style="background:#b76e79" data-color="#b76e79" title="玫瑰金"></div>
+          <div class="color-preset" style="background:#8b2252" data-color="#8b2252" title="酒红"></div>
+          <div class="color-preset" style="background:#6b4c3b" data-color="#6b4c3b" title="咖啡"></div>
+          <div class="color-preset" style="background:#3a5a40" data-color="#3a5a40" title="墨绿"></div>
+          <div class="color-preset" style="background:#7ab8d4" data-color="#7ab8d4" title="天蓝"></div>
+          <div class="color-preset" style="background:#e8a0a0" data-color="#e8a0a0" title="粉红"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 图片上传 -->
+  <div class="form-card">
+    <h2><span class="icon">🖼️</span> 图片管理</h2>
+    <div class="card-desc">上传合照（显示在中卡照片区域）和致谢照</div>
+
+    <div class="image-upload-area">
+      <div class="image-box" id="avatarBox" onclick="document.getElementById('avatarInput').click()">
+        <img id="avatarPreview" src="" alt="">
+        <div class="placeholder" id="avatarPlaceholder">
+          <div class="plus">+</div>
+          <span>上传合照</span>
+        </div>
+        <button class="remove-btn" onclick="event.stopPropagation(); removeImage('avatar')">✕</button>
+        <div class="label-tag">合照 / 婚纱照</div>
+        <input type="file" id="avatarInput" accept="image/*" style="display:none" onchange="handleImageUpload(this, 'avatar')">
+      </div>
+
+      <div class="image-box" id="creditsBox" onclick="document.getElementById('creditsInput').click()">
+        <img id="creditsPreview" src="" alt="">
+        <div class="placeholder" id="creditsPlaceholder">
+          <div class="plus">+</div>
+          <span>上传致谢照</span>
+        </div>
+        <button class="remove-btn" onclick="event.stopPropagation(); removeImage('credits')">✕</button>
+        <div class="label-tag">致谢照</div>
+        <input type="file" id="creditsInput" accept="image/*" style="display:none" onchange="handleImageUpload(this, 'credits')">
+      </div>
+    </div>
+  </div>
+
+  <!-- 操作按钮 -->
+  <div class="btn-row">
+    <button class="btn btn-secondary" onclick="resetForm()">恢复默认</button>
+    <button class="btn btn-preview" onclick="previewInvitation()">👁️ 预览请帖</button>
+    <button class="btn btn-primary" id="saveBtn" onclick="saveSettings()">💾 保存设置</button>
+  </div>
+
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+(function() {
+  const API_BASE = '';
+
+  // ====== 状态 ======
+  let currentData = {};
+  let scheduleItems = [];
+  let avatarChanged = false;
+  let creditsChanged = false;
+  let userSlug = '';
+
+  // ====== 工具函数 ======
+  function showToast(msg, isError = false) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'toast show' + (isError ? ' error' : '');
+    setTimeout(() => t.className = 'toast', 2500);
+  }
+
+  // ====== 加载数据 ======
+  async function loadSettings() {
+    try {
+      const res = await fetch(`${API_BASE}/api/invitation-settings`, {
+        credentials: 'include'
+      });
+      const json = await res.json();
+      if (!json.ok) {
+        if (res.status === 401) {
+          window.location.href = '/login.html';
+          return;
+        }
+        throw new Error(json.error);
+      }
+
+      currentData = json.data;
+      fillForm(currentData);
+      updatePreviewUrl();
+    } catch (err) {
+      showToast('加载失败: ' + err.message, true);
+    }
+  }
+
+  // 获取用户 slug（从 dashboard API 或 users 信息）
+  async function loadSlug() {
+    try {
+      const res = await fetch(`${API_BASE}/api/me`, { credentials: 'include' });
+      const json = await res.json();
+      if (json.ok && json.slug) {
+        userSlug = json.slug;
+        updatePreviewUrl();
+      }
+    } catch {
+      // 忽略，用默认
+    }
+  }
+
+  function updatePreviewUrl() {
+    const base = window.location.origin;
+    const url = userSlug
+      ? `${base}/w/${userSlug}`
+      : `${base}/wedding-invitation.html`;
+    document.getElementById('previewUrl').textContent = url;
+  }
+
+  // ====== 表单填充 ======
+  function fillForm(data) {
+    document.getElementById('partner1').value = data.partner1 || '';
+    document.getElementById('partner2').value = data.partner2 || '';
+    document.getElementById('coupleName').value = data.couple_name || '';
+    document.getElementById('weddingDate').value = data.wedding_date || '';
+    // 提取时间
+    if (data.wedding_date && data.wedding_date.includes(' ')) {
+      document.getElementById('weddingTime').value = data.wedding_date.split(' ')[1] || '';
+    }
+    document.getElementById('venueName').value = data.wedding_venue || '';
+    document.getElementById('venueAddress').value = data.venue_address || '';
+    document.getElementById('venueMapUrl').value = data.venue_map_url || '';
+    document.getElementById('callToAction').value = data.call_to_action || '';
+    document.getElementById('marriedText').value = data.married_text || '';
+    document.getElementById('kidsText').value = data.kids_text || '';
+    document.getElementById('inviteText').value = data.invite_text || '';
+    document.getElementById('welcomeTitle').value = data.welcome_title || '';
+    document.getElementById('welcomeText').value = (data.welcome_text || '').replace(/\\n/g, '\n');
+    document.getElementById('loveQuote').value = data.love_quote || '';
+    document.getElementById('thankYou').value = data.thank_you || '';
+    document.getElementById('defaultGuestName').value = data.default_guest_name || '';
+
+    // 主题色
+    const color = data.theme_color || '#c9a96e';
+    document.getElementById('themeColor').value = color;
+    document.getElementById('themeColorText').value = color;
+    updateColorPresets(color);
+
+    // 流程
+    scheduleItems = Array.isArray(data.schedule) ? data.schedule : [
+      { time: '4:30', label: '签到合影', icon: '📸' },
+      { time: '5:38', label: '仪式', icon: '💍' },
+      { time: '6:00', label: '干饭', icon: '🍽️' }
+    ];
+    renderSchedule();
+
+    // 图片
+    if (data.avatar_data) {
+      document.getElementById('avatarPreview').src = data.avatar_data;
+      document.getElementById('avatarPreview').style.display = 'block';
+      document.getElementById('avatarPlaceholder').style.display = 'none';
+    }
+    if (data.credits_data) {
+      document.getElementById('creditsPreview').src = data.credits_data;
+      document.getElementById('creditsPreview').style.display = 'block';
+      document.getElementById('creditsPlaceholder').style.display = 'none';
+    }
+  }
+
+  // ====== 颜色 ======
+  function updateColorPresets(color) {
+    document.querySelectorAll('.color-preset').forEach(el => {
+      el.classList.toggle('active', el.dataset.color === color);
+    });
+  }
+
+  document.getElementById('themeColor').addEventListener('input', e => {
+    document.getElementById('themeColorText').value = e.target.value;
+    updateColorPresets(e.target.value);
+  });
+  document.getElementById('themeColorText').addEventListener('input', e => {
+    const v = e.target.value;
+    if (/^#[0-9a-fA-F]{6}$/.test(v)) {
+      document.getElementById('themeColor').value = v;
+      updateColorPresets(v);
+    }
+  });
+  document.querySelectorAll('.color-preset').forEach(el => {
+    el.addEventListener('click', () => {
+      document.getElementById('themeColor').value = el.dataset.color;
+      document.getElementById('themeColorText').value = el.dataset.color;
+      updateColorPresets(el.dataset.color);
+    });
+  });
+
+  // ====== 流程编辑 ======
+  function renderSchedule() {
+    const editor = document.getElementById('scheduleEditor');
+    editor.innerHTML = scheduleItems.map((item, i) => `
+      <div class="schedule-row" data-index="${i}">
+        <input class="icon-input" value="${item.icon || ''}" placeholder="📸" maxlength="4"
+               onchange="updateSchedule(${i}, 'icon', this.value)">
+        <input class="time-input" value="${item.time || ''}" placeholder="4:30"
+               onchange="updateSchedule(${i}, 'time', this.value)">
+        <input class="label-input" value="${item.label || ''}" placeholder="签到合影"
+               onchange="updateSchedule(${i}, 'label', this.value)">
+        <button class="btn-remove" onclick="removeScheduleItem(${i})">✕</button>
+      </div>
+    `).join('');
+  }
+
+  window.addScheduleItem = function() {
+    scheduleItems.push({ time: '', label: '', icon: '' });
+    renderSchedule();
+  };
+
+  window.removeScheduleItem = function(i) {
+    scheduleItems.splice(i, 1);
+    renderSchedule();
+  };
+
+  window.updateSchedule = function(i, field, value) {
+    scheduleItems[i][field] = value;
+  };
+
+  // ====== 图片上传 ======
+  window.handleImageUpload = function(input, category) {
+    const file = input.files[0];
+    if (!file) return;
+
+    // 限制 5MB
+    if (file.size > 5 * 1024 * 1024) {
+      showToast('图片不能超过 5MB', true);
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const dataUrl = e.target.result;
+      const preview = document.getElementById(category + 'Preview');
+      const placeholder = document.getElementById(category + 'Placeholder');
+      preview.src = dataUrl;
+      preview.style.display = 'block';
+      placeholder.style.display = 'none';
+
+      if (category === 'avatar') avatarChanged = true;
+      if (category === 'credits') creditsChanged = true;
+    };
+    reader.readAsDataURL(file);
+  };
+
+  window.removeImage = function(category) {
+    const preview = document.getElementById(category + 'Preview');
+    const placeholder = document.getElementById(category + 'Placeholder');
+    preview.src = '';
+    preview.style.display = 'none';
+    placeholder.style.display = 'flex';
+
+    if (category === 'avatar') avatarChanged = true;
+    if (category === 'credits') creditsChanged = true;
+  };
+
+  // ====== 保存 ======
+  window.saveSettings = async function() {
+    const btn = document.getElementById('saveBtn');
+    btn.disabled = true;
+    btn.textContent = '保存中...';
+
+    try {
+      const dateVal = document.getElementById('weddingDate').value;
+      const timeVal = document.getElementById('weddingTime').value;
+      const weddingDate = dateVal ? (timeVal ? `${dateVal} ${timeVal}` : dateVal) : '';
+
+      const body = {
+        partner1: document.getElementById('partner1').value.trim(),
+        partner2: document.getElementById('partner2').value.trim(),
+        couple_name: document.getElementById('coupleName').value.trim(),
+        wedding_date: weddingDate,
+        wedding_venue: document.getElementById('venueName').value.trim(),
+        theme_color: document.getElementById('themeColorText').value.trim(),
+        call_to_action: document.getElementById('callToAction').value.trim(),
+        married_text: document.getElementById('marriedText').value.trim(),
+        kids_text: document.getElementById('kidsText').value.trim(),
+        invite_text: document.getElementById('inviteText').value.trim(),
+        welcome_title: document.getElementById('welcomeTitle').value.trim(),
+        welcome_text: document.getElementById('welcomeText').value.trim(),
+        love_quote: document.getElementById('loveQuote').value.trim(),
+        thank_you: document.getElementById('thankYou').value.trim(),
+        default_guest_name: document.getElementById('defaultGuestName').value.trim(),
+        venue_address: document.getElementById('venueAddress').value.trim(),
+        venue_map_url: document.getElementById('venueMapUrl').value.trim(),
+        schedule: scheduleItems
+      };
+
+      // 1. 保存文字设置
+      const res = await fetch(`${API_BASE}/api/invitation-settings`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(body)
+      });
+      const json = await res.json();
+      if (!json.ok) throw new Error(json.error);
+
+      // 2. 上传图片（如果有变更）
+      if (avatarChanged) {
+        await uploadImage('avatar');
+      }
+      if (creditsChanged) {
+        await uploadImage('credits');
+      }
+
+      showToast('✅ 保存成功！');
+      avatarChanged = false;
+      creditsChanged = false;
+
+    } catch (err) {
+      showToast('保存失败: ' + err.message, true);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = '💾 保存设置';
+    }
+  };
+
+  async function uploadImage(category) {
+    const preview = document.getElementById(category + 'Preview');
+    if (!preview.src || preview.style.display === 'none') {
+      // 图片被删除，调用删除 API
+      await fetch(`${API_BASE}/api/delete-image?category=${category}`, {
+        method: 'DELETE',
+        credentials: 'include'
+      });
+      return;
+    }
+
+    // dataURL → blob → upload（使用现有 /api/upload 接口）
+    const res = await fetch(preview.src);
+    const blob = await res.blob();
+    const formData = new FormData();
+    formData.append('file', blob, `${category}.jpg`);
+    formData.append('category', category);
+
+    await fetch(`${API_BASE}/api/upload`, {
+      method: 'POST',
+      credentials: 'include',
+      body: formData
+    });
+  }
+
+  // ====== 预览 ======
+  window.previewInvitation = function() {
+    const url = userSlug
+      ? `/w/${userSlug}`
+      : `/wedding-invitation.html?slug=demo`;
+    window.open(url, '_blank');
+  };
+
+  // ====== 复制链接 ======
+  window.copyLink = function() {
+    const text = document.getElementById('previewUrl').textContent;
+    navigator.clipboard.writeText(text).then(() => {
+      showToast('✅ 链接已复制');
+    }).catch(() => {
+      // fallback
+      const input = document.createElement('input');
+      input.value = text;
+      document.body.appendChild(input);
+      input.select();
+      document.execCommand('copy');
+      document.body.removeChild(input);
+      showToast('✅ 链接已复制');
+    });
+  };
+
+  // ====== 恢复默认 ======
+  window.resetForm = function() {
+    if (!confirm('确定恢复默认值？当前修改将丢失')) return;
+    fillForm({
+      call_to_action: '快来搂席！',
+      married_text: 'WE ARE MARRIED',
+      kids_text: 'These two kids are getting married',
+      invite_text: '敬备喜宴 ❤️ 恭候莅临',
+      welcome_title: 'Welcome',
+      welcome_text: 'Hi，我们最亲爱的家人朋友们\n很开心这一天你为我们而来\n我们的幸福\n很荣幸会有你的见证和分享\n感谢你，不远千里为我们而来\n若有任何原因无法到场也没关系\n不会影响我们的友谊，请不要有负担\n愿情谊长存！',
+      love_quote: 'Love is life in its fulness',
+      thank_you: 'Thank you',
+      default_guest_name: '嘉宾',
+      theme_color: '#c9a96e',
+      schedule: [
+        { time: '4:30', label: '签到合影', icon: '📸' },
+        { time: '5:38', label: '仪式', icon: '💍' },
+        { time: '6:00', label: '干饭', icon: '🍽️' }
+      ]
+    });
+  };
+
+  // ====== 退出 ======
+  document.getElementById('logoutBtn').addEventListener('click', async function(e) {
+    e.preventDefault();
+    await fetch(`${API_BASE}/api/logout`, { method: 'POST', credentials: 'include' });
+    window.location.href = '/login.html';
+  });
+
+  // ====== 初始化 ======
+  loadSettings();
+  loadSlug();
+})();
+</script>
+
+</body>
+</html>

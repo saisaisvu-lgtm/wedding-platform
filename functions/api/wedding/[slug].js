@@ -1,4 +1,5 @@
 // 公开接口：获取某个婚礼页面的数据（无需登录）
+// 包含请帖设置 + 图片 + 歌曲
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -16,7 +17,7 @@ export async function onRequestGet(context) {
 
   try {
     const user = await env.DB.prepare(
-      'SELECT id, couple_name, partner1, partner2, wedding_date, wedding_venue, bgm_url, bgm_data, arrival_options, transport_options, slug FROM users WHERE slug = ?'
+      'SELECT id, couple_name, partner1, partner2, wedding_date, wedding_venue, theme_color, bgm_url, bgm_data, arrival_options, transport_options, slug FROM users WHERE slug = ?'
     ).bind(slug).first();
 
     if (!user) {
@@ -28,13 +29,12 @@ export async function onRequestGet(context) {
       'SELECT id, category, filename, sort_order FROM images WHERE user_id = ? ORDER BY category, sort_order'
     ).bind(user.id).all();
 
-    // 为图片生成访问 URL
     const imagesWithUrl = images.map(img => ({
       ...img,
       url: `/api/image?id=${img.id}`,
     }));
 
-    // 获取歌曲/歌词（容错：表可能不存在）
+    // 获取歌曲/歌词
     let songsData = [];
     try {
       const { results: songs } = await env.DB.prepare(
@@ -52,6 +52,22 @@ export async function onRequestGet(context) {
       }));
     } catch (e) {}
 
+    // 获取请帖扩展设置
+    let invitationSettings = {};
+    try {
+      const row = await env.DB.prepare(
+        `SELECT * FROM invitation_settings WHERE user_id = ?`
+      ).bind(user.id).first();
+      if (row) invitationSettings = row;
+    } catch {
+      // 表可能不存在
+    }
+
+    // 获取头像 base64（供请帖直接使用）
+    const avatar = await env.DB.prepare(
+      'SELECT data, mime_type FROM images WHERE user_id = ? AND category = ? ORDER BY sort_order LIMIT 1'
+    ).bind(user.id, 'avatar').first();
+
     return Response.json({
       ok: true,
       wedding: {
@@ -60,11 +76,35 @@ export async function onRequestGet(context) {
         partner2: user.partner2,
         wedding_date: user.wedding_date,
         wedding_venue: user.wedding_venue,
+        theme_color: user.theme_color || invitationSettings.theme_color || '#d4af37',
         bgm_url: user.bgm_url || '',
         bgm_data: user.bgm_data || '',
         arrival_options: JSON.parse(user.arrival_options || '[]'),
         transport_options: JSON.parse(user.transport_options || '[]'),
       },
+      // 请帖扩展设置
+      invitation: {
+        call_to_action: invitationSettings.call_to_action || '快来搂席！',
+        married_text: invitationSettings.married_text || 'WE ARE MARRIED',
+        welcome_title: invitationSettings.welcome_title || 'Welcome',
+        welcome_text: invitationSettings.welcome_text || '',
+        love_quote: invitationSettings.love_quote || 'Love is life in its fulness',
+        invite_text: invitationSettings.invite_text || '敬备喜宴 ❤️ 恭候莅临',
+        thank_you: invitationSettings.thank_you || 'Thank you',
+        kids_text: invitationSettings.kids_text || 'These two kids are getting married',
+        schedule: invitationSettings.schedule
+          ? JSON.parse(invitationSettings.schedule)
+          : [
+              { time: '4:30', label: '签到合影', icon: '📸' },
+              { time: '5:38', label: '仪式', icon: '💍' },
+              { time: '6:00', label: '干饭', icon: '🍽️' }
+            ],
+        venue_address: invitationSettings.venue_address || '',
+        venue_map_url: invitationSettings.venue_map_url || '',
+        default_guest_name: invitationSettings.default_guest_name || '嘉宾',
+      },
+      // 头像 base64
+      avatar_data: avatar ? `data:${avatar.mime_type};base64,${avatar.data}` : '',
       images: {
         avatars: imagesWithUrl.filter(i => i.category === 'avatar'),
         credits: imagesWithUrl.filter(i => i.category === 'credits'),
