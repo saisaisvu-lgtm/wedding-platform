@@ -688,7 +688,7 @@
     const base = window.location.origin;
     const url = userSlug
       ? `${base}/w/${userSlug}`
-      : `${base}/wedding-invitation.html`;
+      : `${base}/invite.html`;
     document.getElementById('previewUrl').textContent = url;
   }
 
@@ -926,7 +926,7 @@
   window.previewInvitation = function() {
     const url = userSlug
       ? `/w/${userSlug}`
-      : `/wedding-invitation.html?slug=demo`;
+      : `/invite.html?slug=demo`;
     window.open(url, '_blank');
   };
 
