@@ -22,6 +22,7 @@
     <div class="actions">
       <a href="/register.html" class="btn btn-primary">✨ 创建婚礼页</a>
       <a href="/buy.html" class="btn btn-outline">🎟️ 购买邀请码</a>
+      <button class="btn btn-outline" onclick="tryDemo()" id="demoBtn">🎮 体验演示</button>
     </div>
   </div>
 
@@ -52,5 +53,32 @@
     <span style="font-family:var(--font-serif);color:var(--primary);opacity:0.5;">囍</span>
     &nbsp; 光影婚礼墙 &copy; 2026 &middot; Built with ♥
   </div>
+
+  <script>
+    async function tryDemo() {
+      const btn = document.getElementById('demoBtn');
+      btn.disabled = true;
+      btn.textContent = '⏳ 登录中...';
+      try {
+        const res = await fetch('/api/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username: 'demo', password: 'demodemo' }),
+        });
+        const data = await res.json();
+        if (data.ok) {
+          window.location.href = '/dashboard.html';
+        } else {
+          alert(data.error || '演示账号登录失败');
+          btn.disabled = false;
+          btn.textContent = '🎮 体验演示';
+        }
+      } catch (e) {
+        alert('网络错误，请稍后重试');
+        btn.disabled = false;
+        btn.textContent = '🎮 体验演示';
+      }
+    }
+  </script>
 </body>
 </html>
