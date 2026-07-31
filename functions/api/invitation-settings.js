@@ -17,7 +17,7 @@ export async function onRequestGet(context) {
   try {
     // 从 users 表读取基础信息
     const user = await env.DB.prepare(
-      `SELECT partner1, partner2, couple_name, wedding_date, wedding_venue, theme_color, bgm_url
+      `SELECT partner1, partner2, partner1_en, partner2_en, couple_name, wedding_date, wedding_venue, theme_color, bgm_url
        FROM users WHERE id = ?`
     ).bind(userId).first();
 
@@ -51,6 +51,8 @@ export async function onRequestGet(context) {
       data: {
         partner1: user.partner1 || '',
         partner2: user.partner2 || '',
+        partner1_en: user.partner1_en || '',
+        partner2_en: user.partner2_en || '',
         couple_name: user.couple_name || '',
         wedding_date: user.wedding_date || '',
         wedding_venue: user.wedding_venue || '',
@@ -97,12 +99,14 @@ export async function onRequestPut(context) {
     // 更新 users 表的基础字段
     await env.DB.prepare(
       `UPDATE users SET
-        partner1 = ?, partner2 = ?, couple_name = ?,
+        partner1 = ?, partner2 = ?, partner1_en = ?, partner2_en = ?, couple_name = ?,
         wedding_date = ?, wedding_venue = ?, theme_color = ?
        WHERE id = ?`
     ).bind(
       body.partner1 || '',
       body.partner2 || '',
+      body.partner1_en || '',
+      body.partner2_en || '',
       body.couple_name || `${body.partner1 || ''} & ${body.partner2 || ''}`,
       body.wedding_date || '',
       body.wedding_venue || '',

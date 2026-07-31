@@ -451,6 +451,16 @@
     </div>
     <div class="form-row">
       <div class="form-group">
+        <label>新郎英文名 <span class="hint">（显示在中文名下方）</span></label>
+        <input type="text" id="partner1En" placeholder="例：Huainan">
+      </div>
+      <div class="form-group">
+        <label>新娘英文名 <span class="hint">（显示在中文名下方）</span></label>
+        <input type="text" id="partner2En" placeholder="例：Luozhi">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
         <label>合称 <span class="hint">（留空自动生成）</span></label>
         <input type="text" id="coupleName" placeholder="例：淮南 & 洛枳">
       </div>
@@ -696,6 +706,8 @@
   function fillForm(data) {
     document.getElementById('partner1').value = data.partner1 || '';
     document.getElementById('partner2').value = data.partner2 || '';
+    document.getElementById('partner1En').value = data.partner1_en || '';
+    document.getElementById('partner2En').value = data.partner2_en || '';
     document.getElementById('coupleName').value = data.couple_name || '';
     document.getElementById('weddingDate').value = data.wedding_date || '';
     // 提取时间
@@ -849,6 +861,8 @@
       const body = {
         partner1: document.getElementById('partner1').value.trim(),
         partner2: document.getElementById('partner2').value.trim(),
+        partner1_en: document.getElementById('partner1En').value.trim(),
+        partner2_en: document.getElementById('partner2En').value.trim(),
         couple_name: document.getElementById('coupleName').value.trim(),
         wedding_date: weddingDate,
         wedding_venue: document.getElementById('venueName').value.trim(),

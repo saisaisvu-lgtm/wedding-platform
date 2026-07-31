@@ -19,7 +19,6 @@
     --gold: #c9a96e;
     --text-dark: #3d2b1f;
     --text-light: #7a6555;
-    /* 主题色，由 API 动态覆盖 */
     --theme-color: #d4af37;
   }
 
@@ -32,22 +31,19 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 50px 30px;
+    padding: 30px 20px 60px;
     font-family: 'Poppins', 'Noto Serif SC', sans-serif;
     position: relative;
     overflow-x: hidden;
   }
-
   body::before {
     content: '';
-    position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
     background-image:
       radial-gradient(circle at 8% 15%, rgba(232,160,160,0.12) 0%, transparent 40%),
       radial-gradient(circle at 92% 85%, rgba(122,184,212,0.1) 0%, transparent 40%),
       radial-gradient(circle at 50% 50%, rgba(201,169,110,0.06) 0%, transparent 60%);
-    pointer-events: none;
-    z-index: 0;
+    pointer-events: none; z-index: 0;
   }
 
   .petal-scatter { position: fixed; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none; z-index: 0; overflow: hidden; }
@@ -59,389 +55,308 @@
   .petal:nth-child(5) { width: 12px; height: 12px; background: var(--gold); top: 60%; left: 8%; transform: rotate(-30deg); }
   .petal:nth-child(6) { width: 22px; height: 22px; background: var(--soft-pink); bottom: 10%; left: 15%; transform: rotate(80deg); }
 
-  .invitation-wrapper { position: relative; z-index: 1; max-width: 1260px; width: 100%; }
+  /* ===== 截图区域 ===== */
+  #captureArea {
+    max-width: 1260px; width: 100%;
+    position: relative; z-index: 1;
+  }
 
-  /* 顶部标题 */
-  .top-title { text-align: center; margin-bottom: 35px; }
+  .top-title { text-align: center; margin-bottom: 28px; }
   .top-title h1 {
     font-family: 'Ma Shan Zheng', cursive;
-    font-size: 3.5rem;
-    color: var(--wine-red);
+    font-size: 3.2rem; color: var(--wine-red);
     text-shadow: 2px 2px 6px rgba(139,34,82,0.12);
     letter-spacing: 12px;
   }
   .top-title .sub {
     font-family: 'Dancing Script', cursive;
-    font-size: 1.4rem;
-    color: var(--gold);
-    letter-spacing: 5px;
+    font-size: 1.3rem; color: var(--gold); letter-spacing: 5px;
   }
   .top-title .ornament {
-    margin-top: 8px;
-    color: var(--gold);
-    font-size: 0.7rem;
-    letter-spacing: 12px;
-    opacity: 0.4;
+    margin-top: 6px; color: var(--gold);
+    font-size: 0.7rem; letter-spacing: 12px; opacity: 0.4;
   }
 
-  /* 三卡容器 - 等高 */
   .cards-container {
-    display: flex;
-    gap: 24px;
-    justify-content: center;
-    align-items: stretch;  /* 关键：等高 */
+    display: flex; gap: 20px;
+    justify-content: center; align-items: stretch;
   }
 
-  /* 卡片基础 */
+  /* 卡片 */
   .card {
     background: var(--paper);
     border-radius: 14px;
-    padding: 32px 28px 28px;
+    padding: 28px 24px 24px;
     position: relative;
-    box-shadow:
-      0 8px 32px rgba(107,76,59,0.1),
-      0 2px 6px rgba(107,76,59,0.06),
-      inset 0 0 80px rgba(201,169,110,0.04);
+    box-shadow: 0 8px 32px rgba(107,76,59,0.1), 0 2px 6px rgba(107,76,59,0.06);
     overflow: hidden;
-    display: flex;
-    flex-direction: column;
+    display: flex; flex-direction: column;
   }
   .card::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0; bottom: 0;
+    content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
     background-image: url("data:image/svg+xml,%3Csvg width='200' height='200' viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.025'/%3E%3C/svg%3E");
-    pointer-events: none;
-    z-index: 0;
+    pointer-events: none; z-index: 0;
   }
   .card > * { position: relative; z-index: 1; }
   .card::after {
-    content: '';
-    position: absolute;
+    content: ''; position: absolute;
     top: -10px; left: 50%; transform: translateX(-50%);
-    width: 22px; height: 22px; border-radius: 50%;
+    width: 20px; height: 20px; border-radius: 50%;
     background: linear-gradient(135deg, var(--paper-dark), #d9cfc2);
-    box-shadow: inset 0 2px 5px rgba(0,0,0,0.18), 0 1px 2px rgba(255,255,255,0.3);
+    box-shadow: inset 0 2px 5px rgba(0,0,0,0.18);
     z-index: 2;
   }
 
   /* 左卡 */
   .card-left {
-    width: 350px;
+    width: 320px;
     background: linear-gradient(170deg, #fdf2e9 0%, #fce4d6 35%, #f5e6d0 100%);
-    align-items: center;
-    justify-content: center;
-    text-align: center;
+    align-items: center; justify-content: center; text-align: center;
   }
   .card-left .call-to-action {
     font-family: 'ZCOOL KuaiLe', cursive;
-    font-size: 2.4rem;
-    color: var(--wine-red);
-    margin-bottom: 10px;
-    text-shadow: 1px 1px 3px rgba(139,34,82,0.15);
+    font-size: 2.2rem; color: var(--wine-red);
+    margin-bottom: 8px; text-shadow: 1px 1px 3px rgba(139,34,82,0.15);
   }
   .card-left .call-to-action::before,
   .card-left .call-to-action::after {
-    content: '~'; margin: 0 8px; opacity: 0.4; font-size: 1.5rem; vertical-align: middle;
+    content: '~'; margin: 0 6px; opacity: 0.4; font-size: 1.3rem; vertical-align: middle;
   }
-
-  .illustration-area { width: 240px; height: 260px; margin: 10px 0 15px; position: relative; }
-
-  .flower-bouquet {
-    position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
-    display: flex; gap: 4px; align-items: flex-end;
-  }
-  .flower {
-    width: 18px; height: 18px; border-radius: 50%; position: relative;
-  }
-  .flower::after {
-    content: ''; position: absolute; bottom: -14px; left: 50%; transform: translateX(-50%);
-    width: 2px; height: 14px; background: var(--ink-green); border-radius: 1px;
-  }
-  .flower:nth-child(1) { background: var(--soft-pink); width: 14px; height: 14px; }
-  .flower:nth-child(2) { background: var(--warm-orange); width: 20px; height: 20px; }
-  .flower:nth-child(3) { background: var(--wine-red); width: 16px; height: 16px; }
-  .flower:nth-child(4) { background: var(--sky-blue); width: 18px; height: 18px; }
-  .flower:nth-child(5) { background: var(--soft-pink); width: 15px; height: 15px; }
-
+  .illustration-area { width: 220px; height: 240px; margin: 8px 0 12px; }
+  .flower-bouquet { position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); display: flex; gap: 4px; align-items: flex-end; }
+  .flower { width: 16px; height: 16px; border-radius: 50%; position: relative; }
+  .flower::after { content: ''; position: absolute; bottom: -12px; left: 50%; transform: translateX(-50%); width: 2px; height: 12px; background: var(--ink-green); }
+  .flower:nth-child(1) { background: var(--soft-pink); width: 12px; height: 12px; }
+  .flower:nth-child(2) { background: var(--warm-orange); width: 18px; height: 18px; }
+  .flower:nth-child(3) { background: var(--wine-red); width: 14px; height: 14px; }
+  .flower:nth-child(4) { background: var(--sky-blue); width: 16px; height: 16px; }
+  .flower:nth-child(5) { background: var(--soft-pink); width: 13px; height: 13px; }
   .card-left .married-text {
     font-family: 'Dancing Script', cursive;
-    font-size: 1.7rem;
-    color: var(--gold);
-    letter-spacing: 5px;
-    margin-top: 12px;
-  }
-
-  /* 左卡下方 - To 标签 */
-  .to-tag {
-    background: var(--paper);
-    border: 2px dashed var(--gold);
-    border-radius: 10px;
-    padding: 14px 24px;
-    margin-top: 20px;
-    box-shadow: 0 2px 8px rgba(201,169,110,0.1);
-  }
-  .to-tag .to-label {
-    font-family: 'Dancing Script', cursive;
-    font-size: 1.3rem;
-    color: var(--gold);
-  }
-  .to-tag .to-name {
-    font-family: 'Ma Shan Zheng', cursive;
-    font-size: 1.4rem;
-    color: var(--warm-brown);
-    margin-left: 10px;
-    border-bottom: 1px solid var(--gold);
-    padding-bottom: 2px;
-    min-width: 120px;
-    display: inline-block;
+    font-size: 1.5rem; color: var(--gold); letter-spacing: 4px; margin-top: 10px;
   }
 
   /* 中卡 */
-  .card-center {
-    width: 400px;
-    text-align: center;
-  }
+  .card-center { width: 380px; text-align: center; }
   .card-center .kids-text {
     font-family: 'Poppins', sans-serif;
-    font-size: 0.82rem;
-    color: var(--text-light);
-    letter-spacing: 2.5px;
-    margin-bottom: 14px;
-    font-style: italic;
+    font-size: 0.78rem; color: var(--text-light);
+    letter-spacing: 2px; margin-bottom: 12px; font-style: italic;
   }
   .card-center .couple-names {
     font-family: 'Ma Shan Zheng', cursive;
-    font-size: 2.3rem;
-    color: var(--warm-brown);
-    margin-bottom: 4px;
-    line-height: 1.4;
+    font-size: 2.2rem; color: var(--warm-brown);
+    margin-bottom: 2px; line-height: 1.3;
   }
   .card-center .couple-names-en {
     font-family: 'Dancing Script', cursive;
-    font-size: 1.7rem;
-    color: var(--gold);
-    margin-bottom: 14px;
-    letter-spacing: 4px;
+    font-size: 1.1rem; color: var(--gold);
+    margin-bottom: 12px; letter-spacing: 2px; opacity: 0.8;
   }
-
-  /* 照片区域 */
   .photo-area {
-    width: 230px; height: 170px;
-    margin: 14px auto;
-    border-radius: 14px;
-    overflow: hidden;
-    position: relative;
+    width: 210px; height: 155px; margin: 10px auto;
+    border-radius: 12px; overflow: hidden; position: relative;
     background: linear-gradient(135deg, #fce4ec, #f3e5f5, #e8eaf6, #e0f2f1);
-    box-shadow: 0 4px 14px rgba(0,0,0,0.1), inset 0 0 0 3px rgba(255,255,255,0.5);
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    box-shadow: 0 3px 12px rgba(0,0,0,0.1), inset 0 0 0 3px rgba(255,255,255,0.5);
+    display: flex; align-items: center; justify-content: center;
   }
-  .photo-area img {
-    width: 100%; height: 100%;
-    object-fit: cover;
-    display: none;
-  }
+  .photo-area img { width: 100%; height: 100%; object-fit: cover; display: none; }
   .photo-area .photo-placeholder {
     font-family: 'ZCOOL KuaiLe', cursive;
-    color: var(--wine-red);
-    font-size: 0.9rem;
-    opacity: 0.6;
+    color: var(--wine-red); font-size: 0.85rem; opacity: 0.6;
   }
-
-  .firework {
-    position: absolute; width: 7px; height: 7px; border-radius: 50%;
-    animation: firework-pop 2s ease-in-out infinite;
-  }
-  .firework:nth-child(1) { top: 10px; left: 15px; background: var(--soft-pink); animation-delay: 0s; }
-  .firework:nth-child(2) { top: 18px; right: 20px; background: var(--warm-orange); animation-delay: 0.5s; }
-  .firework:nth-child(3) { bottom: 14px; left: 28px; background: var(--sky-blue); animation-delay: 1s; }
-  .firework:nth-child(4) { top: 8px; left: 58%; background: var(--wine-red); animation-delay: 1.5s; }
-  .firework:nth-child(5) { bottom: 18px; right: 14px; background: var(--gold); animation-delay: 0.3s; }
-  @keyframes firework-pop {
-    0%, 100% { transform: scale(1); opacity: 0.3; }
-    50% { transform: scale(2.2); opacity: 1; }
-  }
+  .firework { position: absolute; width: 6px; height: 6px; border-radius: 50%; animation: fw 2s ease-in-out infinite; }
+  .firework:nth-child(1) { top: 8px; left: 12px; background: var(--soft-pink); }
+  .firework:nth-child(2) { top: 14px; right: 16px; background: var(--warm-orange); animation-delay: 0.5s; }
+  .firework:nth-child(3) { bottom: 10px; left: 22px; background: var(--sky-blue); animation-delay: 1s; }
+  .firework:nth-child(4) { top: 6px; left: 55%; background: var(--wine-red); animation-delay: 1.5s; }
+  .firework:nth-child(5) { bottom: 14px; right: 12px; background: var(--gold); animation-delay: 0.3s; }
+  @keyframes fw { 0%,100%{transform:scale(1);opacity:0.3} 50%{transform:scale(2);opacity:1} }
 
   .card-center .date-time {
     font-family: 'Poppins', sans-serif;
-    font-size: 1.6rem; font-weight: 600;
-    color: var(--warm-brown);
-    margin: 14px 0 4px;
-    letter-spacing: 4px;
+    font-size: 1.5rem; font-weight: 600;
+    color: var(--warm-brown); margin: 10px 0 3px; letter-spacing: 3px;
   }
   .card-center .time {
     font-family: 'Poppins', sans-serif;
-    font-size: 1.15rem;
-    color: var(--text-light);
-    margin-bottom: 10px;
-    letter-spacing: 2px;
+    font-size: 1.05rem; color: var(--text-light);
+    margin-bottom: 8px; letter-spacing: 2px;
   }
   .card-center .invite-text {
     font-family: 'ZCOOL KuaiLe', cursive;
-    font-size: 1.15rem;
-    color: var(--wine-red);
-    margin-bottom: 14px;
+    font-size: 1.05rem; color: var(--wine-red); margin-bottom: 10px;
   }
-
   .map-area {
-    width: 100%; height: 105px;
+    width: 100%; height: 95px;
     background: linear-gradient(135deg, #e8f5e9, #f1f8e9);
-    border-radius: 12px;
-    margin: 10px 0;
-    position: relative; overflow: hidden;
+    border-radius: 10px; margin: 8px 0; position: relative; overflow: hidden;
     display: flex; align-items: center; justify-content: center;
     box-shadow: inset 0 1px 4px rgba(0,0,0,0.05);
   }
   .map-area::before {
     content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
     background-image:
-      repeating-linear-gradient(0deg, transparent, transparent 22px, rgba(58,90,64,0.06) 22px, rgba(58,90,64,0.06) 23px),
-      repeating-linear-gradient(90deg, transparent, transparent 22px, rgba(58,90,64,0.06) 22px, rgba(58,90,64,0.06) 23px);
+      repeating-linear-gradient(0deg, transparent, transparent 20px, rgba(58,90,64,0.06) 20px, rgba(58,90,64,0.06) 21px),
+      repeating-linear-gradient(90deg, transparent, transparent 20px, rgba(58,90,64,0.06) 20px, rgba(58,90,64,0.06) 21px);
   }
   .map-pin { position: relative; z-index: 1; text-align: center; }
-  .map-pin .pin-icon { font-size: 2.2rem; }
+  .map-pin .pin-icon { font-size: 2rem; }
   .map-pin .venue-name {
     font-family: 'ZCOOL KuaiLe', cursive;
-    font-size: 0.88rem;
-    color: var(--ink-green);
-    margin-top: 3px;
+    font-size: 0.82rem; color: var(--ink-green); margin-top: 2px;
   }
-  .card-center .venue-address {
-    font-size: 0.78rem;
-    color: var(--text-light);
-    margin-top: 4px;
-  }
-
-  /* 中卡弹性填充 */
-  .card-center .spacer { flex: 1; }
+  .card-center .venue-address { font-size: 0.72rem; color: var(--text-light); margin-top: 3px; }
+  .spacer { flex: 1; }
 
   /* 右卡 */
-  .card-right {
-    width: 350px;
-  }
+  .card-right { width: 320px; }
   .card-right .welcome-title {
     font-family: 'Dancing Script', cursive;
-    font-size: 1.7rem;
-    color: var(--gold);
-    text-align: center;
-    margin-bottom: 14px;
-    letter-spacing: 4px;
+    font-size: 1.5rem; color: var(--gold);
+    text-align: center; margin-bottom: 12px; letter-spacing: 3px;
   }
   .card-right .welcome-text {
     font-family: 'ZCOOL KuaiLe', cursive;
-    font-size: 0.92rem;
-    color: var(--text-dark);
-    line-height: 2.1;
-    text-align: center;
-    margin-bottom: 12px;
+    font-size: 0.85rem; color: var(--text-dark);
+    line-height: 2; text-align: center; margin-bottom: 10px;
   }
   .card-right .love-quote {
     font-family: 'Dancing Script', cursive;
-    font-size: 1.1rem;
-    color: var(--gold);
-    text-align: center;
-    margin: 14px 0;
-    font-style: italic;
+    font-size: 1rem; color: var(--gold);
+    text-align: center; margin: 10px 0; font-style: italic;
   }
   .card-right .love-quote::before,
-  .card-right .love-quote::after {
-    content: '—'; margin: 0 6px; opacity: 0.3;
-  }
+  .card-right .love-quote::after { content: '—'; margin: 0 5px; opacity: 0.3; }
 
-  .schedule { margin: 14px 0; }
+  .schedule { margin: 10px 0; }
   .schedule-title {
     font-family: 'Poppins', sans-serif;
-    font-size: 0.72rem;
-    color: var(--text-light);
-    text-align: center;
-    letter-spacing: 4px;
-    text-transform: uppercase;
-    margin-bottom: 12px;
+    font-size: 0.68rem; color: var(--text-light);
+    text-align: center; letter-spacing: 3px;
+    text-transform: uppercase; margin-bottom: 10px;
   }
   .schedule-item {
-    display: flex; align-items: center; gap: 14px;
-    margin-bottom: 10px; padding: 10px 14px;
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 8px; padding: 8px 10px;
     background: rgba(201,169,110,0.06);
-    border-radius: 10px;
-    border: 1px solid rgba(201,169,110,0.1);
+    border-radius: 8px; border: 1px solid rgba(201,169,110,0.1);
   }
   .schedule-item .icon {
-    width: 38px; height: 38px; border-radius: 50%;
+    width: 32px; height: 32px; border-radius: 50%;
     display: flex; align-items: center; justify-content: center;
-    font-size: 1.15rem; flex-shrink: 0;
+    font-size: 1rem; flex-shrink: 0;
   }
   .schedule-item:nth-child(2) .icon { background: rgba(232,160,160,0.2); }
   .schedule-item:nth-child(3) .icon { background: rgba(201,169,110,0.2); }
   .schedule-item:nth-child(4) .icon { background: rgba(122,184,212,0.2); }
   .schedule-item .time-label {
     font-family: 'Poppins', sans-serif;
-    font-weight: 600; font-size: 0.95rem;
-    color: var(--warm-brown);
-    min-width: 48px;
+    font-weight: 600; font-size: 0.88rem;
+    color: var(--warm-brown); min-width: 42px;
   }
   .schedule-item .desc {
     font-family: 'ZCOOL KuaiLe', cursive;
-    font-size: 0.92rem;
-    color: var(--text-dark);
+    font-size: 0.85rem; color: var(--text-dark);
   }
-
   .card-right .thank-you {
     font-family: 'Dancing Script', cursive;
-    font-size: 1.4rem;
-    color: var(--gold);
-    text-align: center;
-    margin-top: 16px;
-    letter-spacing: 4px;
+    font-size: 1.2rem; color: var(--gold);
+    text-align: center; margin-top: 12px; letter-spacing: 3px;
   }
 
-  /* 右卡弹性填充 */
-  .card-right .spacer { flex: 1; }
-
-  /* 树木 */
   .trees-decoration {
-    display: flex; justify-content: center; gap: 10px;
-    margin-top: 22px; padding-top: 16px;
+    display: flex; justify-content: center; gap: 8px;
+    margin-top: 18px; padding-top: 12px;
   }
   .tree {
     width: 0; height: 0;
-    border-left: 13px solid transparent;
-    border-right: 13px solid transparent;
-    border-bottom: 28px solid var(--ink-green);
+    border-left: 11px solid transparent; border-right: 11px solid transparent;
+    border-bottom: 24px solid var(--ink-green);
     position: relative; opacity: 0.35;
-    filter: drop-shadow(0 1px 2px rgba(0,0,0,0.1));
   }
   .tree::after {
     content: ''; position: absolute;
-    bottom: -34px; left: 50%; transform: translateX(-50%);
-    width: 4px; height: 8px;
-    background: #8B6914;
-    border-radius: 0 0 2px 2px;
+    bottom: -28px; left: 50%; transform: translateX(-50%);
+    width: 3px; height: 7px; background: #8B6914; border-radius: 0 0 2px 2px;
   }
   .tree:nth-child(2) { border-bottom-color: #4a7a52; transform: scale(0.8); }
-  .tree:nth-child(3) { border-bottom-color: #2d4a32; transform: scale(1.15); }
+  .tree:nth-child(3) { border-bottom-color: #2d4a32; transform: scale(1.1); }
   .tree:nth-child(4) { border-bottom-color: #4a7a52; transform: scale(0.7); }
-  .tree:nth-child(5) { border-bottom-color: var(--ink-green); transform: scale(0.95); }
-  .tree:nth-child(6) { border-bottom-color: #2d4a32; transform: scale(0.78); }
+  .tree:nth-child(5) { border-bottom-color: var(--ink-green); transform: scale(0.9); }
+  .tree:nth-child(6) { border-bottom-color: #2d4a32; transform: scale(0.75); }
+
+  /* To 标签 */
+  .to-tag {
+    background: var(--paper);
+    border: 2px dashed var(--gold);
+    border-radius: 10px; padding: 12px 22px;
+    margin-top: 18px; display: inline-block;
+    box-shadow: 0 2px 8px rgba(201,169,110,0.1);
+  }
+  .to-tag .to-label {
+    font-family: 'Dancing Script', cursive;
+    font-size: 1.2rem; color: var(--gold);
+  }
+  .to-tag .to-name {
+    font-family: 'Ma Shan Zheng', cursive;
+    font-size: 1.3rem; color: var(--warm-brown);
+    margin-left: 8px;
+  }
 
   .heart-divider {
-    text-align: center;
-    margin: 28px 0 10px;
-    color: var(--soft-pink);
-    font-size: 1.1rem;
-    letter-spacing: 10px;
-    opacity: 0.5;
+    text-align: center; margin: 20px 0 8px;
+    color: var(--soft-pink); font-size: 1rem;
+    letter-spacing: 8px; opacity: 0.5;
   }
   .footer-sig {
-    text-align: center;
-    margin-top: 8px;
+    text-align: center; margin-top: 6px;
     font-family: 'Dancing Script', cursive;
-    font-size: 0.9rem;
-    color: var(--gold);
-    opacity: 0.4;
-    letter-spacing: 3px;
+    font-size: 0.85rem; color: var(--gold);
+    opacity: 0.4; letter-spacing: 3px;
   }
+
+  /* ===== 底部操作栏 ===== */
+  .action-bar {
+    max-width: 1260px; width: 100%;
+    position: relative; z-index: 1;
+    display: flex; justify-content: center;
+    gap: 16px; margin-top: 28px; flex-wrap: wrap;
+  }
+  .action-bar .qr-box {
+    background: var(--paper);
+    border-radius: 12px; padding: 14px;
+    box-shadow: 0 2px 12px rgba(107,76,59,0.08);
+    text-align: center;
+  }
+  .action-bar .qr-box canvas { display: block; margin: 0 auto 6px; }
+  .action-bar .qr-box .qr-label {
+    font-size: 0.7rem; color: var(--text-light);
+    letter-spacing: 1px;
+  }
+
+  .btn-group { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+  .btn {
+    padding: 14px 28px; border-radius: 10px;
+    font-size: 0.92rem; font-weight: 600;
+    cursor: pointer; border: none;
+    transition: all 0.2s;
+    font-family: inherit;
+    display: inline-flex; align-items: center; gap: 8px;
+  }
+  .btn-primary {
+    background: linear-gradient(135deg, #c9a96e, #b8953a);
+    color: #fff;
+    box-shadow: 0 4px 14px rgba(201,169,110,0.3);
+  }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(201,169,110,0.4); }
+  .btn-primary:active { transform: translateY(0); }
+  .btn-enter {
+    background: linear-gradient(135deg, #8b2252, #a0305a);
+    color: #fff;
+    box-shadow: 0 4px 14px rgba(139,34,82,0.25);
+  }
+  .btn-enter:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(139,34,82,0.35); }
 
   /* Loading */
   .loading-mask {
@@ -450,35 +365,46 @@
     display: flex; align-items: center; justify-content: center;
     z-index: 999;
     font-family: 'ZCOOL KuaiLe', cursive;
-    font-size: 1.2rem;
-    color: var(--gold);
+    font-size: 1.2rem; color: var(--gold);
     transition: opacity 0.5s;
   }
   .loading-mask.hidden { opacity: 0; pointer-events: none; }
 
+  /* Toast */
+  .toast-msg {
+    position: fixed; top: 80px; left: 50%;
+    transform: translateX(-50%) translateY(-20px);
+    background: #3a5a40; color: #fff;
+    padding: 12px 24px; border-radius: 8px;
+    font-size: 0.88rem; z-index: 998;
+    opacity: 0; transition: all 0.3s; pointer-events: none;
+  }
+  .toast-msg.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
   @media (max-width: 1100px) {
     .cards-container { flex-direction: column; align-items: center; }
     .card-left, .card-center, .card-right { width: 100%; max-width: 400px; }
+    .action-bar { flex-direction: column; align-items: center; }
   }
-
   @media print {
     body { background: #fff; padding: 10px; }
     .card { box-shadow: 0 0 1px rgba(0,0,0,0.2); break-inside: avoid; }
     .firework { animation: none; }
-    .loading-mask { display: none; }
+    .loading-mask, .action-bar, .toast-msg { display: none; }
   }
 </style>
 </head>
 <body>
 
 <div class="loading-mask" id="loadingMask">✨ 加载中...</div>
-
+<div class="toast-msg" id="toast"></div>
 <div class="petal-scatter">
   <div class="petal"></div><div class="petal"></div><div class="petal"></div>
   <div class="petal"></div><div class="petal"></div><div class="petal"></div>
 </div>
 
-<div class="invitation-wrapper">
+<!-- ===== 截图区域开始 ===== -->
+<div id="captureArea">
 
   <div class="top-title">
     <h1>喜 帖</h1>
@@ -493,11 +419,10 @@
       <div class="call-to-action">快来搂席！</div>
       <div class="illustration-area">
         <svg viewBox="0 0 240 240" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;">
-          <g transform="translate(35, 20)">
+          <g transform="translate(35,20)">
             <circle cx="45" cy="40" r="22" fill="#f5d0a9"/>
             <ellipse cx="45" cy="28" rx="20" ry="14" fill="#5a3825"/>
-            <circle cx="38" cy="40" r="2" fill="#3d2b1f"/>
-            <circle cx="52" cy="40" r="2" fill="#3d2b1f"/>
+            <circle cx="38" cy="40" r="2" fill="#3d2b1f"/><circle cx="52" cy="40" r="2" fill="#3d2b1f"/>
             <path d="M40 48 Q45 53 50 48" stroke="#c97a5a" fill="none" stroke-width="1.5" stroke-linecap="round"/>
             <rect x="22" y="62" width="46" height="55" rx="8" fill="#5a3825"/>
             <rect x="35" y="62" width="20" height="55" fill="#fff"/>
@@ -510,7 +435,7 @@
             <ellipse cx="36" cy="149" rx="10" ry="5" fill="#2a1a10"/>
             <ellipse cx="54" cy="149" rx="10" ry="5" fill="#2a1a10"/>
           </g>
-          <g transform="translate(115, 15)">
+          <g transform="translate(115,15)">
             <circle cx="45" cy="42" r="22" fill="#f5d0a9"/>
             <ellipse cx="45" cy="28" rx="22" ry="16" fill="#5a3825"/>
             <path d="M25 32 Q35 20 45 25 Q55 20 65 32" fill="#5a3825"/>
@@ -518,8 +443,7 @@
             <circle cx="62" cy="28" r="5" fill="#e8a0a0"/>
             <circle cx="58" cy="22" r="4" fill="#f8c8dc"/>
             <circle cx="66" cy="22" r="3" fill="#e8a0a0"/>
-            <circle cx="38" cy="42" r="2" fill="#3d2b1f"/>
-            <circle cx="52" cy="42" r="2" fill="#3d2b1f"/>
+            <circle cx="38" cy="42" r="2" fill="#3d2b1f"/><circle cx="52" cy="42" r="2" fill="#3d2b1f"/>
             <line x1="36" y1="40" x2="34" y2="38" stroke="#3d2b1f" stroke-width="1"/>
             <line x1="40" y1="40" x2="40" y2="37" stroke="#3d2b1f" stroke-width="1"/>
             <line x1="50" y1="40" x2="50" y2="37" stroke="#3d2b1f" stroke-width="1"/>
@@ -535,7 +459,7 @@
             <ellipse cx="32" cy="162" rx="8" ry="4" fill="#e8a0a0"/>
             <ellipse cx="58" cy="162" rx="8" ry="4" fill="#e8a0a0"/>
           </g>
-          <g transform="translate(85, 120)">
+          <g transform="translate(85,120)">
             <circle cx="0" cy="0" r="6" fill="#e8a0a0"/>
             <circle cx="10" cy="-3" r="7" fill="#f8c8dc"/>
             <circle cx="5" cy="-10" r="5" fill="#e8a0a0"/>
@@ -546,8 +470,8 @@
             <line x1="0" y1="6" x2="5" y2="22" stroke="#3a5a40" stroke-width="2"/>
             <line x1="10" y1="4" x2="5" y2="22" stroke="#3a5a40" stroke-width="2"/>
           </g>
-          <g transform="translate(108, 50)" opacity="0.6">
-            <path d="M0 6 C0 2, -6 -2, -6 2 C-6 6, 0 10, 0 10 C0 10, 6 6, 6 2 C6 -2, 0 2, 0 6Z" fill="#e8a0a0"/>
+          <g transform="translate(108,50)" opacity="0.6">
+            <path d="M0 6 C0 2,-6 -2,-6 2 C-6 6,0 10,0 10 C0 10,6 6,6 2 C6 -2,0 2,0 6Z" fill="#e8a0a0"/>
           </g>
         </svg>
       </div>
@@ -594,7 +518,7 @@
     <!-- 右卡 -->
     <div class="card card-right">
       <div class="welcome-title">- Welcome -</div>
-      <div class="welcome-text">
+      <div class="welcome-text" id="welcomeText">
         Hi，我们最亲爱的家人朋友们<br>
         很开心这一天你为我们而来<br>
         我们的幸福<br>
@@ -637,8 +561,8 @@
 
   </div>
 
-  <!-- To 标签 - 在左卡下方 -->
-  <div style="text-align:center; margin-top: 20px;">
+  <!-- To 标签 -->
+  <div style="text-align:center; margin-top: 16px;">
     <div class="to-tag">
       <span class="to-label">To:</span>
       <span class="to-name" id="guestName">嘉宾</span>
@@ -649,133 +573,199 @@
   <div class="footer-sig">With Love & Joy</div>
 
 </div>
+<!-- ===== 截图区域结束 ===== -->
+
+<!-- 底部操作栏 -->
+<div class="action-bar" id="actionBar">
+  <div class="qr-box">
+    <canvas id="qrCanvas" width="100" height="100"></canvas>
+    <div class="qr-label">扫码查看请帖</div>
+  </div>
+  <div class="btn-group">
+    <button class="btn btn-primary" id="btnSaveImg">📥 保存为图片</button>
+    <button class="btn btn-enter" id="btnEnterWedding">💒 进入婚礼现场</button>
+  </div>
+</div>
+
+<!-- html2canvas -->
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<!-- QRCode -->
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
 
 <script>
 (function() {
-  // ====== 配置 ======
   const params = new URLSearchParams(window.location.search);
-  const slug = params.get('slug') || window.location.pathname.split('/w/')[1]?.split('?')[0] || '';
-  const API_BASE = params.get('api') || '';
-  const guestName = params.get('to') || params.get('guest') || '';
+  const slug = params.get('slug') || '';
+  const API_BASE = '';
+  let weddingSlug = slug;
 
-  // ====== 渲染函数 ======
-  function formatDate(dateStr) {
-    if (!dateStr) return '0000.00.00';
-    const d = dateStr.replace(/[\/\.]/g, '-');
-    const parts = d.split('-');
-    if (parts.length >= 3) {
-      return `${parts[0]}.${parts[1].padStart(2, '0')}.${parts[2].padStart(2, '0')}`;
+  // ====== 工具 ======
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'toast-msg show';
+    setTimeout(() => t.className = 'toast-msg', 2500);
+  }
+
+  function formatDate(d) {
+    if (!d) return '0000.00.00';
+    const p = d.replace(/[\/\.]/g, '-').split('-');
+    return p.length >= 3 ? `${p[0]}.${p[1].padStart(2,'0')}.${p[2].padStart(2,'0')}` : d;
+  }
+  function extractTime(d) {
+    if (!d || !d.includes(' ')) return '00 : 00';
+    const [h,m] = (d.split(' ')[1]||'').split(':');
+    return h&&m ? `${h} : ${m}` : '00 : 00';
+  }
+
+  // ====== QR Code ======
+  function generateQR(url) {
+    try {
+      const qr = qrcode(0, 'M');
+      qr.addData(url);
+      qr.make();
+      const canvas = document.getElementById('qrCanvas');
+      const ctx = canvas.getContext('2d');
+      const size = 100;
+      canvas.width = size;
+      canvas.height = size;
+      const cells = qr.getModuleCount();
+      const cellSize = size / cells;
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, size, size);
+      ctx.fillStyle = '#3d2b1f';
+      for (let r = 0; r < cells; r++) {
+        for (let c = 0; c < cells; c++) {
+          if (qr.isDark(r, c)) {
+            ctx.fillRect(c * cellSize, r * cellSize, cellSize + 0.5, cellSize + 0.5);
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('QR generation failed:', e);
     }
-    return dateStr;
   }
 
-  function extractTime(dateStr) {
-    if (!dateStr || !dateStr.includes(' ')) return '00 : 00';
-    const time = dateStr.split(' ')[1] || '';
-    const [h, m] = time.split(':');
-    return h && m ? `${h} : ${m}` : '00 : 00';
-  }
+  // ====== 保存图片 ======
+  document.getElementById('btnSaveImg').addEventListener('click', async function() {
+    const btn = this;
+    btn.disabled = true;
+    btn.textContent = '⏳ 生成中...';
+    try {
+      const area = document.getElementById('captureArea');
+      const canvas = await html2canvas(area, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: '#fdf6ee',
+        logging: false
+      });
+      const link = document.createElement('a');
+      link.download = 'wedding-invitation.png';
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+      showToast('✅ 图片已保存');
+    } catch (e) {
+      showToast('❌ 保存失败: ' + e.message);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = '📥 保存为图片';
+    }
+  });
 
-  function applyThemeColor(color) {
-    if (!color) return;
-    document.documentElement.style.setProperty('--theme-color', color);
-    document.documentElement.style.setProperty('--gold', color);
-  }
+  // ====== 进入婚礼现场 ======
+  document.getElementById('btnEnterWedding').addEventListener('click', function() {
+    if (weddingSlug) {
+      window.location.href = `/w/${weddingSlug}`;
+    } else {
+      showToast('请通过婚礼链接访问');
+    }
+  });
 
+  // ====== 渲染 ======
   function renderWedding(data) {
     const p1 = data.partner1 || '新郎';
     const p2 = data.partner2 || '新娘';
+    const p1en = data.partner1_en || '';
+    const p2en = data.partner2_en || '';
 
-    // 新人名字
+    // 中文名
     document.getElementById('coupleNames').textContent = `${p1} 🥂 ${p2}`;
-    document.getElementById('coupleNamesEn').textContent = `${p1.toUpperCase()} & ${p2.toUpperCase()}`;
 
-    // 日期时间
+    // 英文名：有英文名用英文，没有就用拼音大写
+    const en1 = p1en || p1.toUpperCase();
+    const en2 = p2en || p2.toUpperCase();
+    document.getElementById('coupleNamesEn').textContent = `${en1} & ${en2}`;
+
     document.getElementById('weddingDate').textContent = formatDate(data.wedding_date);
     document.getElementById('weddingTime').textContent = extractTime(data.wedding_date);
 
-    // 场地
-    if (data.wedding_venue) {
-      document.getElementById('venueName').textContent = data.wedding_venue;
-    }
-    if (data.venue_address) {
-      document.getElementById('venueAddress').textContent = data.venue_address;
+    if (data.wedding_venue) document.getElementById('venueName').textContent = data.wedding_venue;
+    if (data.venue_address) document.getElementById('venueAddress').textContent = data.venue_address;
+
+    if (data.theme_color) {
+      document.documentElement.style.setProperty('--theme-color', data.theme_color);
+      document.documentElement.style.setProperty('--gold', data.theme_color);
     }
 
-    // 主题色
-    applyThemeColor(data.theme_color);
-
-    // 宾客名
-    const gn = guestName || data.default_guest_name || '嘉宾';
+    // 宾客名：优先 URL 参数，其次 RSVP 传来的名字，最后默认
+    const gn = params.get('to') || params.get('guest') || data._rsvpGuestName || data.default_guest_name || '嘉宾';
     document.getElementById('guestName').textContent = gn;
 
-    // 左卡文案
-    if (data.call_to_action) {
-      document.querySelector('.call-to-action').textContent = data.call_to_action;
-    }
-    if (data.married_text) {
-      document.querySelector('.married-text').textContent = data.married_text;
-    }
-
-    // 中卡文案
-    if (data.kids_text) {
-      document.querySelector('.kids-text').textContent = `- ${data.kids_text} -`;
-    }
-    if (data.invite_text) {
-      document.querySelector('.invite-text').textContent = data.invite_text;
-    }
-
-    // 右卡文案
-    if (data.welcome_title) {
-      document.querySelector('.welcome-title').textContent = `- ${data.welcome_title} -`;
-    }
+    if (data.call_to_action) document.querySelector('.call-to-action').textContent = data.call_to_action;
+    if (data.married_text) document.querySelector('.married-text').textContent = data.married_text;
+    if (data.kids_text) document.querySelector('.kids-text').textContent = `- ${data.kids_text} -`;
+    if (data.invite_text) document.querySelector('.invite-text').textContent = data.invite_text;
+    if (data.welcome_title) document.querySelector('.welcome-title').textContent = `- ${data.welcome_title} -`;
     if (data.welcome_text) {
-      const lines = data.welcome_text.split('\n').filter(Boolean);
-      document.querySelector('.welcome-text').innerHTML = lines.join('<br>');
+      document.getElementById('welcomeText').innerHTML = data.welcome_text.split('\n').filter(Boolean).join('<br>');
     }
-    if (data.love_quote) {
-      document.querySelector('.love-quote').textContent = data.love_quote;
-    }
-    if (data.thank_you) {
-      document.querySelector('.thank-you').textContent = `- ${data.thank_you} -`;
-    }
+    if (data.love_quote) document.querySelector('.love-quote').textContent = data.love_quote;
+    if (data.thank_you) document.querySelector('.thank-you').textContent = `- ${data.thank_you} -`;
 
-    // 流程时间表
     if (data.schedule && Array.isArray(data.schedule) && data.schedule.length > 0) {
-      const scheduleEl = document.querySelector('.schedule');
-      const title = scheduleEl.querySelector('.schedule-title').outerHTML;
-      scheduleEl.innerHTML = title + data.schedule.map(item => `
-        <div class="schedule-item">
-          <div class="icon">${item.icon || '📌'}</div>
-          <div class="time-label">${item.time || ''}</div>
-          <div class="desc">${item.label || ''}</div>
-        </div>
-      `).join('');
+      const el = document.querySelector('.schedule');
+      el.innerHTML = '<div class="schedule-title">Wedding Schedule</div>' +
+        data.schedule.map(s => `<div class="schedule-item"><div class="icon">${s.icon||'📌'}</div><div class="time-label">${s.time||''}</div><div class="desc">${s.label||''}</div></div>`).join('');
     }
 
-    // 页面标题
     document.title = `婚礼请帖 - ${p1} & ${p2}`;
 
-    // 隐藏 loading
+    // 生成 QR code
+    const inviteUrl = window.location.origin + '/invite' + (weddingSlug ? '?slug=' + weddingSlug : '');
+    generateQR(inviteUrl);
+
     const mask = document.getElementById('loadingMask');
-    if (mask) {
-      mask.classList.add('hidden');
-      setTimeout(() => mask.remove(), 600);
-    }
+    if (mask) { mask.classList.add('hidden'); setTimeout(() => mask.remove(), 600); }
   }
 
-  function renderAvatar(imageData) {
-    if (!imageData) return;
+  function renderAvatar(data) {
+    if (!data) return;
     const img = document.getElementById('couplePhoto');
-    const placeholder = document.getElementById('photoPlaceholder');
-    img.src = imageData.startsWith('data:') ? imageData : `data:image/jpeg;base64,${imageData}`;
+    const ph = document.getElementById('photoPlaceholder');
+    img.src = data.startsWith('data:') ? data : 'data:image/jpeg;base64,' + data;
     img.style.display = 'block';
-    placeholder.style.display = 'none';
+    ph.style.display = 'none';
   }
 
   // ====== 数据加载 ======
+  async function loadFromSlugAPI() {
+    if (!weddingSlug) return false;
+    try {
+      const res = await fetch(`${API_BASE}/api/wedding/${weddingSlug}`);
+      if (res.ok) {
+        const json = await res.json();
+        if (json.ok && json.wedding) {
+          const merged = { ...json.wedding, ...(json.invitation || {}) };
+          renderWedding(merged);
+          if (json.avatar_data) renderAvatar(json.avatar_data);
+          return true;
+        }
+      }
+    } catch {}
+    return false;
+  }
+
   async function loadFromSettingsAPI() {
-    // 尝试从请帖设置 API 加载（用户登录态）
     try {
       const res = await fetch(`${API_BASE}/api/invitation-settings`, { credentials: 'include' });
       if (res.ok) {
@@ -790,29 +780,12 @@
     return false;
   }
 
-  async function loadFromSlugAPI() {
-    // 从 slug 婚礼页 API 加载（宾客访问）
-    try {
-      const res = await fetch(`${API_BASE}/api/wedding/${slug}`);
-      if (res.ok) {
-        const json = await res.json();
-        if (json.ok && json.wedding) {
-          // 合并 wedding 基础数据 + invitation 扩展设置
-          const merged = { ...json.wedding, ...(json.invitation || {}) };
-          renderWedding(merged);
-          if (json.avatar_data) renderAvatar(json.avatar_data);
-          return true;
-        }
-      }
-    } catch {}
-    return false;
-  }
-
   function loadFromParams() {
-    // 从 URL 参数或默认值加载
     renderWedding({
       partner1: params.get('p1') || '新郎',
       partner2: params.get('p2') || '新娘',
+      partner1_en: params.get('p1en') || '',
+      partner2_en: params.get('p2en') || '',
       wedding_date: params.get('date') || '',
       wedding_venue: params.get('venue') || '',
       venue_address: params.get('address') || '',
@@ -826,19 +799,26 @@
       thank_you: params.get('ty') || 'Thank you',
       kids_text: params.get('kt') || 'These two kids are getting married'
     });
-    const photoUrl = params.get('photo') || params.get('avatar');
-    if (photoUrl) renderAvatar(photoUrl);
+    const photo = params.get('photo') || params.get('avatar');
+    if (photo) renderAvatar(photo);
   }
 
   async function init() {
-    if (slug) {
-      // 有 slug → 宾客模式
+    // 读取 RSVP 存储的宾客名
+    let rsvpName = '';
+    try { rsvpName = sessionStorage.getItem('rsvp_name') || localStorage.getItem('rsvp_name') || ''; } catch {}
+
+    if (weddingSlug) {
       const ok = await loadFromSlugAPI();
       if (!ok) loadFromParams();
     } else {
-      // 无 slug → 尝试登录态 API，失败则用 URL 参数
       const ok = await loadFromSettingsAPI();
       if (!ok) loadFromParams();
+    }
+
+    // 如果有 RSVP 名字，覆盖嘉宾名
+    if (rsvpName) {
+      document.getElementById('guestName').textContent = rsvpName;
     }
   }
 

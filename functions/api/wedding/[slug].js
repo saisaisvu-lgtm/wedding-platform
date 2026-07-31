@@ -17,7 +17,7 @@ export async function onRequestGet(context) {
 
   try {
     const user = await env.DB.prepare(
-      'SELECT id, couple_name, partner1, partner2, wedding_date, wedding_venue, theme_color, bgm_url, bgm_data, arrival_options, transport_options, slug FROM users WHERE slug = ?'
+      'SELECT id, couple_name, partner1, partner2, partner1_en, partner2_en, wedding_date, wedding_venue, theme_color, bgm_url, bgm_data, arrival_options, transport_options, slug FROM users WHERE slug = ?'
     ).bind(slug).first();
 
     if (!user) {
@@ -74,6 +74,8 @@ export async function onRequestGet(context) {
         couple_name: user.couple_name,
         partner1: user.partner1,
         partner2: user.partner2,
+        partner1_en: user.partner1_en || '',
+        partner2_en: user.partner2_en || '',
         wedding_date: user.wedding_date,
         wedding_venue: user.wedding_venue,
         theme_color: user.theme_color || invitationSettings.theme_color || '#d4af37',

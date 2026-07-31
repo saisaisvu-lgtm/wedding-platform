@@ -1,0 +1,3 @@
+-- 新增英文名列（如果不存在）
+ALTER TABLE users ADD COLUMN partner1_en TEXT NOT NULL DEFAULT '';
+ALTER TABLE users ADD COLUMN partner2_en TEXT NOT NULL DEFAULT '';
