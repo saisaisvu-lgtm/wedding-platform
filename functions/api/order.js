@@ -138,14 +138,14 @@ export async function onRequestPost(context) {
     ).bind(contact.trim(), type, orderAmount, (note || '').trim()).run();
 
     // Bark 推送通知管理员（带确认/拒绝按钮）
-    const methodMap = { wechat: '微信', alipay: '支付宝', other: '其他' };
+    const methodMap = { wechat: '📱 微信', alipay: '💳 支付宝', other: '💰 其他' };
     const barkKey = env.BARK_KEY || '';
     if (barkKey) {
       const siteUrl = env.SITE_URL || 'https://mylove.sairx.cn';
       const adminKey = env.ADMIN_KEY || '';
       const orderId = result.meta.last_row_id;
-      const title = `新订单 #${orderId} ¥${orderAmount}`;
-      const body = `${methodMap[type]} · ${contact.trim()}${note ? '\n备注：' + note : ''}\n\n👇 点击确认发放邀请码`;
+      const title = `💰 新订单 #${orderId} · ¥${orderAmount}`;
+      const body = `${methodMap[type] || type} 付款\n联系人：${contact.trim()}${note ? '\n备注：' + note : ''}\n\n⏳ 等待确认，请点击处理`;
       const confirmPageUrl = `${siteUrl}/api/confirm-order?id=${orderId}&key=${encodeURIComponent(adminKey)}`;
       try {
         const barkRes = await fetch('https://api.day.app/push', {
@@ -159,6 +159,7 @@ export async function onRequestPost(context) {
             group: 'wedding-order',
             url: confirmPageUrl,
             isArchive: 1,
+            icon: `${siteUrl}/favicon.ico`,
           }),
         });
         const barkData = await barkRes.text();
@@ -246,8 +247,8 @@ export async function onRequestPut(context) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               device_key: barkKey2,
-              title: `订单已确认 #${id}`,
-              body: `邀请码 ${code} 已发放给 ${order.contact}`,
+              title: `✅ 订单已确认 #${id}`,
+              body: `邀请码 ${code}\n已发放给 ${order.contact} · ¥${order.amount}`,
               sound: 'minuet',
               group: 'wedding-order',
             }),

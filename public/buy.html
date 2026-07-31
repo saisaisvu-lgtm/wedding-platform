@@ -114,9 +114,9 @@
           <label>付款方式</label>
           <div style="display:flex;gap:10px;margin-bottom:16px;">
             <input type="radio" name="payMethod" id="payWechat" value="wechat" checked style="display:none;">
-            <label for="payWechat" style="flex:1;text-align:center;padding:12px;border:1.5px solid var(--primary);border-radius:var(--radius);cursor:pointer;font-size:14px;color:var(--primary);background:var(--primary-pale);font-weight:500;">📱 微信</label>
+            <label for="payWechat" id="labelWechat" onclick="switchPayMethod('wechat')" style="flex:1;text-align:center;padding:12px;border:1.5px solid var(--primary);border-radius:var(--radius);cursor:pointer;font-size:14px;color:var(--primary);background:var(--primary-pale);font-weight:500;transition:all 0.2s;">📱 微信</label>
             <input type="radio" name="payMethod" id="payAlipay" value="alipay" style="display:none;">
-            <label for="payAlipay" style="flex:1;text-align:center;padding:12px;border:1.5px solid var(--border);border-radius:var(--radius);cursor:pointer;font-size:14px;color:var(--text-muted);">💳 支付宝</label>
+            <label for="payAlipay" id="labelAlipay" onclick="switchPayMethod('alipay')" style="flex:1;text-align:center;padding:12px;border:1.5px solid var(--border);border-radius:var(--radius);cursor:pointer;font-size:14px;color:var(--text-muted);transition:all 0.2s;">💳 支付宝</label>
           </div>
         </div>
         <div class="form-group"><label>您的联系方式 *</label><input type="text" id="orderContact" placeholder="微信号或手机号" required maxlength="50"></div>
@@ -189,6 +189,44 @@
       document.querySelector('.qr-tab[data-tab="'+type+'"]').classList.add('active');
       renderQrContent(type);
       document.getElementById(type === 'wechat' ? 'payWechat' : 'payAlipay').checked = true;
+      updatePayMethodStyle(type);
+    }
+
+    function switchPayMethod(type) {
+      document.getElementById(type === 'wechat' ? 'payWechat' : 'payAlipay').checked = true;
+      updatePayMethodStyle(type);
+      // 同步 QR 标签
+      const hasType = type === 'wechat' ? hasWechat : hasAlipay;
+      if (hasType) {
+        document.querySelectorAll('.qr-tab').forEach(t => t.classList.remove('active'));
+        const tab = document.querySelector('.qr-tab[data-tab="'+type+'"]');
+        if (tab) tab.classList.add('active');
+        renderQrContent(type);
+      }
+    }
+
+    function updatePayMethodStyle(active) {
+      const wLabel = document.getElementById('labelWechat');
+      const aLabel = document.getElementById('labelAlipay');
+      if (active === 'wechat') {
+        wLabel.style.borderColor = 'var(--primary)';
+        wLabel.style.color = 'var(--primary)';
+        wLabel.style.background = 'var(--primary-pale)';
+        wLabel.style.fontWeight = '500';
+        aLabel.style.borderColor = 'var(--border)';
+        aLabel.style.color = 'var(--text-muted)';
+        aLabel.style.background = 'transparent';
+        aLabel.style.fontWeight = '400';
+      } else {
+        aLabel.style.borderColor = 'var(--primary)';
+        aLabel.style.color = 'var(--primary)';
+        aLabel.style.background = 'var(--primary-pale)';
+        aLabel.style.fontWeight = '500';
+        wLabel.style.borderColor = 'var(--border)';
+        wLabel.style.color = 'var(--text-muted)';
+        wLabel.style.background = 'transparent';
+        wLabel.style.fontWeight = '400';
+      }
     }
 
     async function confirmPaid() {
