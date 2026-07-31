@@ -268,3 +268,4 @@ wrangler pages dev ./public --d1 DB=wedding-platform-db
 ## 📄 许可证
 
 [MIT License](LICENSE)
+# redeploy trigger Fri Jul 31 20:24:38 CST 2026
