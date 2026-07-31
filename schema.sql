@@ -14,6 +14,7 @@ CREATE TABLE IF NOT EXISTS users (
   arrival_options TEXT NOT NULL DEFAULT '[]',
   transport_options TEXT NOT NULL DEFAULT '[]',
   slug TEXT NOT NULL UNIQUE,
+  participation_code TEXT NOT NULL DEFAULT '',
   created_at TEXT DEFAULT (datetime('now'))
 );
 
@@ -101,3 +102,4 @@ CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);
 CREATE INDEX IF NOT EXISTS idx_images_user ON images(user_id, category);
 CREATE INDEX IF NOT EXISTS idx_rsvp_wedding ON rsvp(wedding_user_id);
 CREATE INDEX IF NOT EXISTS idx_songs_user ON songs(user_id);
+CREATE INDEX IF NOT EXISTS idx_users_participation_code ON users(participation_code);
