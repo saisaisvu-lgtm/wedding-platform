@@ -56,45 +56,34 @@ export async function onRequest(context) {
     .rsvp-skip a:hover{color:#8b6914}
     .rsvp-names{margin-top:20px;font-size:12px;color:#b0a090;letter-spacing:0.1em}
 
-    /* ====== Invitation Card - Ticket Stub Style ====== */
-    #invite-overlay{position:fixed;inset:0;z-index:160;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.7);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);padding:20px;opacity:0;transition:opacity 0.5s}
+    /* ====== Invitation Card - Fresh Illustration Style ====== */
+    #invite-overlay{position:fixed;inset:0;z-index:160;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.5);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);padding:20px;opacity:0;transition:opacity 0.5s}
     #invite-overlay.show{display:flex;opacity:1}
-    .invite-card{width:580px;max-width:95vw;background:#7a0e0e;border-radius:6px;position:relative;overflow:hidden;box-shadow:0 12px 48px rgba(0,0,0,0.4);display:flex}
-    .invite-card::before{content:'';position:absolute;top:0;left:0;right:0;bottom:0;background:radial-gradient(circle at 20% 30%,rgba(212,175,55,0.06) 0%,transparent 50%),radial-gradient(circle at 80% 70%,rgba(212,175,55,0.04) 0%,transparent 50%);pointer-events:none;z-index:0}
-    .ic-main{flex:1;padding:28px 24px;display:flex;flex-direction:column;align-items:center;text-align:center;position:relative;z-index:1;min-width:0}
-    .ic-main::before{content:'';position:absolute;top:8px;left:8px;right:8px;bottom:8px;border:1px solid rgba(212,175,55,0.3);border-radius:4px;pointer-events:none}
-    .ic-xi{font-family:'Ma Shan Zheng',cursive,serif;font-size:48px;color:#d4af37;text-shadow:0 2px 12px rgba(212,175,55,0.3);margin-bottom:2px;line-height:1}
-    .ic-title{font-size:12px;color:rgba(212,175,55,0.6);letter-spacing:0.5em;margin-bottom:14px}
-    .ic-divider{width:50%;height:1px;background:linear-gradient(90deg,transparent,rgba(212,175,55,0.4),transparent);margin-bottom:14px}
-    .ic-avatars{display:flex;align-items:center;gap:10px;margin-bottom:10px}
-    .ic-avatar{width:56px;height:56px;border-radius:50%;object-fit:cover;border:2px solid #d4af37;background:#5a0a0a;box-shadow:0 2px 8px rgba(0,0,0,0.3)}
-    .ic-heart{font-size:20px;color:#d4af37;animation:heartBeat 1.2s ease-in-out infinite}
-    @keyframes heartBeat{0%,100%{transform:scale(1)}15%{transform:scale(1.3)}30%{transform:scale(1)}}
-    .ic-names{font-family:'Ma Shan Zheng',cursive,serif;font-size:22px;color:#d4af37;letter-spacing:0.25em;margin-bottom:2px}
-    .ic-names-en{font-size:9px;color:rgba(212,175,55,0.4);letter-spacing:0.12em;margin-bottom:12px;text-transform:uppercase}
-    .ic-date-box{background:rgba(0,0,0,0.15);border:1px solid rgba(212,175,55,0.25);border-radius:4px;padding:8px 20px;margin-bottom:10px}
-    .ic-date{font-size:14px;color:#d4af37;letter-spacing:0.15em}
-    .ic-date-sub{font-size:10px;color:rgba(212,175,55,0.5);margin-top:2px}
-    .ic-info{font-size:11px;color:rgba(212,175,55,0.5);line-height:1.8;letter-spacing:0.05em;margin-bottom:10px}
-    .ic-thanks{font-size:12px;color:rgba(212,175,55,0.5);line-height:2;letter-spacing:0.08em;opacity:0.7}
-    .ic-bottom{margin-top:8px}
-    .ic-bottom-xi{font-family:'Ma Shan Zheng',cursive,serif;font-size:16px;color:rgba(212,175,55,0.2)}
-    .ic-bottom-text{font-size:9px;color:rgba(212,175,55,0.25);letter-spacing:0.12em;margin-top:2px}
-    .ic-stub{width:180px;flex-shrink:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px 16px;position:relative;z-index:1;background:rgba(0,0,0,0.08)}
-    .ic-stub::before{content:'';position:absolute;left:0;top:16px;bottom:16px;width:0;border-left:2px dashed rgba(212,175,55,0.3)}
-    .ic-qr{text-align:center;margin-bottom:12px}
-    .ic-qr canvas,.ic-qr svg{border-radius:4px}
-    .ic-qr-tip{font-size:9px;color:rgba(212,175,55,0.4);margin-top:4px;margin-bottom:14px}
-    .ic-stub-label{font-size:10px;color:rgba(212,175,55,0.5);letter-spacing:0.15em;margin-bottom:6px}
-    .ic-stub-code{font-family:monospace;font-size:22px;color:#d4af37;letter-spacing:0.2em;font-weight:700;text-shadow:0 0 10px rgba(212,175,55,0.3)}
-    .ic-stub-hint{font-size:8px;color:rgba(212,175,55,0.35);margin-top:6px;letter-spacing:0.05em;line-height:1.6}
+    .invite-card{width:360px;max-width:90vw;background:#fff;border-radius:20px;overflow:hidden;box-shadow:0 12px 48px rgba(0,0,0,0.2);position:relative}
+    .ic-illust{width:100%;height:260px;position:relative;overflow:hidden;background:linear-gradient(180deg,#e8f5e9 0%,#f1f8e9 40%,#fff 100%)}
+    .ic-illust img{width:100%;height:100%;object-fit:cover;object-position:center top}
+    .ic-illust::after{content:'';position:absolute;bottom:0;left:0;right:0;height:40px;background:linear-gradient(0deg,#fff,transparent)}
+    .ic-body{padding:0 24px 24px;text-align:center}
+    .ic-date-fresh{font-size:14px;color:#666;letter-spacing:0.15em;margin-bottom:6px}
+    .ic-names-fresh{font-family:'Ma Shan Zheng',cursive,serif;font-size:26px;color:#2e7d32;letter-spacing:0.2em;margin-bottom:4px}
+    .ic-names-en-fresh{font-size:10px;color:rgba(46,125,50,0.5);letter-spacing:0.1em;margin-bottom:14px;text-transform:uppercase}
+    .ic-msg-fresh{font-size:13px;color:#555;line-height:2;letter-spacing:0.06em;margin-bottom:6px}
+    .ic-venue-fresh{font-size:12px;color:#888;letter-spacing:0.05em;margin-bottom:16px}
+    .ic-divider-fresh{width:60px;height:1px;background:linear-gradient(90deg,transparent,#a5d6a7,transparent);margin:0 auto 16px}
+    .ic-code-section{display:flex;align-items:center;justify-content:center;gap:20px;padding:16px;background:#f9fbe7;border-radius:12px;margin-bottom:12px}
+    .ic-code-left{text-align:left}
+    .ic-code-label{font-size:11px;color:#888;letter-spacing:0.1em;margin-bottom:4px}
+    .ic-code-num{font-family:monospace;font-size:24px;color:#2e7d32;letter-spacing:0.15em;font-weight:700}
+    .ic-code-hint{font-size:9px;color:#aaa;margin-top:4px}
+    .ic-qr-fresh{flex-shrink:0}
+    .ic-qr-fresh canvas,.ic-qr-fresh svg{border-radius:6px}
+    .ic-footer-fresh{font-size:10px;color:#ccc;letter-spacing:0.08em;margin-top:8px}
     .invite-actions{display:flex;gap:12px;margin-top:16px;flex-wrap:wrap;justify-content:center}
     .invite-actions button{padding:12px 28px;border-radius:25px;font-size:14px;cursor:pointer;transition:all 0.3s;font-family:inherit;letter-spacing:0.1em}
-    .btn-invite-save{background:rgba(212,175,55,0.15);border:1.5px solid rgba(212,175,55,0.5);color:#d4af37}
+    .btn-invite-save{background:rgba(46,125,50,0.1);border:1.5px solid rgba(46,125,50,0.4);color:#2e7d32}
     .btn-invite-save:active{transform:scale(0.96)}
-    .btn-invite-enter{background:linear-gradient(135deg,#c41e3a,#a01830);border:none;color:#fff;font-weight:500}
+    .btn-invite-enter{background:linear-gradient(135deg,#e74c7b,#d4547a);border:none;color:#fff;font-weight:500}
     .btn-invite-enter:active{transform:scale(0.96)}
-    @media(max-width:480px){.invite-card{flex-direction:column;width:320px}.ic-stub{width:100%;padding:16px;border-top:2px dashed rgba(212,175,55,0.3)}.ic-stub::before{display:none}}
 
     /* ====== 控制栏 ====== */
     .controls{position:fixed;top:0;left:0;right:0;z-index:100;display:none;align-items:center;justify-content:center;gap:4px;padding:8px;padding-top:max(8px,env(safe-area-inset-top));background:rgba(255,255,255,0.85);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid rgba(184,134,11,0.1);flex-wrap:wrap;min-height:44px;opacity:0;transform:translateY(-100%);transition:opacity 0.4s,transform 0.4s}
@@ -268,39 +257,32 @@ export async function onRequest(context) {
   <div id="invite-overlay">
     <div style="display:flex;flex-direction:column;align-items:center;">
       <div class="invite-card" id="invite-card">
-        <div class="ic-main">
-          <div class="ic-xi">囍</div>
-          <div class="ic-title">婚 礼 请 帖</div>
-          <div class="ic-divider"></div>
-          <div class="ic-avatars" id="ic-avatars"></div>
-          <div class="ic-names" id="ic-names"></div>
-          <div class="ic-names-en" id="ic-names-en"></div>
-          <div class="ic-date-box">
-            <div class="ic-date" id="ic-date"></div>
-            <div class="ic-date-sub" id="ic-date-sub"></div>
-          </div>
-          <div class="ic-info" id="ic-info"></div>
-          <div class="ic-thanks">诚挚邀请您出席我们的婚礼<br>见证我们人生中最重要的时刻</div>
-          <div class="ic-bottom">
-            <div class="ic-bottom-xi">囍</div>
-            <div class="ic-bottom-text">永结同心 · 百年好合</div>
-          </div>
+        <div class="ic-illust">
+          <img src="https://img.icons8.com/external-flatart-icons-flat-flatarticons/512/external-wedding-love-flatart-icons-flat-flatarticons.png" alt="wedding" crossorigin="anonymous" onerror="this.style.display='none'">
         </div>
-        <div class="ic-stub">
-          <div class="ic-qr" id="ic-qr"></div>
-          <div class="ic-qr-tip">扫码查看婚礼现场</div>
-          <div class="ic-stub-label">抽奖券码</div>
-          <div class="ic-stub-code" id="ic-participation-code">------</div>
-          <div class="ic-stub-hint">请截图保存<br>用于后续抽奖活动</div>
+        <div class="ic-body">
+          <div class="ic-date-fresh" id="ic-date"></div>
+          <div class="ic-names-fresh" id="ic-names"></div>
+          <div class="ic-names-en-fresh" id="ic-names-en"></div>
+          <div class="ic-msg-fresh">诚挚邀请您出席我们的婚礼<br>见证我们人生中最重要的时刻</div>
+          <div class="ic-venue-fresh" id="ic-info"></div>
+          <div class="ic-divider-fresh"></div>
+          <div class="ic-code-section">
+            <div class="ic-code-left">
+              <div class="ic-code-label">参与码</div>
+              <div class="ic-code-num" id="ic-participation-code">------</div>
+              <div class="ic-code-hint">请截图保存 · 用于后续活动</div>
+            </div>
+            <div class="ic-qr-fresh" id="ic-qr"></div>
+          </div>
+          <div class="ic-footer-fresh">光影婚礼墙 · 永结同心</div>
         </div>
       </div>
       <div class="invite-actions">
         <button class="btn-invite-save" onclick="saveInvite()">💾 保存请帖</button>
         <button class="btn-invite-enter" onclick="enterFromInvite()">进入婚礼现场 →</button>
       </div>
-      <div style="text-align:center;margin-top:10px;font-size:11px;color:rgba(212,175,55,0.5);letter-spacing:0.05em;">💡 请保存请帖截图，参与码可用于后续抽奖活动</div>
-    </div>
-  </div>
+      <div style="text-align:center;margin-top:10px;font-size:11px;color:rgba(255,255,255,0.6);letter-spacing:0.05em;">💡 请保存请帖截图，参与码可用于后续活动参与</div>
     </div>
   </div>
 
@@ -487,7 +469,7 @@ export async function onRequest(context) {
             rects.forEach(r => {
               const fill = r.getAttribute('fill');
               if (fill === '#000000' || fill === '#000' || fill === 'black') {
-                r.setAttribute('fill', '#d4af37');
+                r.setAttribute('fill', '#2e7d32');
               } else if (fill === '#ffffff' || fill === '#fff' || fill === 'white' || !fill || fill === 'none') {
                 r.setAttribute('fill', 'transparent');
               }
