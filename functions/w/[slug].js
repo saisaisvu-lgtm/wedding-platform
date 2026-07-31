@@ -60,7 +60,7 @@ export async function onRequest(context) {
     #invite-overlay{position:fixed;inset:0;z-index:160;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.45);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);padding:20px;opacity:0;transition:opacity 0.5s}
     #invite-overlay.show{display:flex;opacity:1}
     .invite-card{width:380px;max-width:92vw;background:#fff;border-radius:24px;overflow:hidden;box-shadow:0 16px 60px rgba(219,112,147,0.25),0 4px 20px rgba(0,0,0,0.1);position:relative;border:2px solid rgba(255,182,193,0.4)}
-    .ic-header{width:100%;padding:28px 24px 20px;text-align:center;background:linear-gradient(160deg,#fff0f5 0%,#ffe4ec 40%,#ffd6e0 100%);position:relative;overflow:hidden}
+    .ic-header{width:100%;padding:24px 24px 16px;text-align:center;background:linear-gradient(160deg,#fff0f5 0%,#ffe4ec 40%,#ffd6e0 100%);position:relative;overflow:hidden}
     .ic-header::before{content:'';position:absolute;top:-30px;right:-30px;width:100px;height:100px;background:radial-gradient(circle,rgba(255,182,193,0.3),transparent 70%);border-radius:50%}
     .ic-header::after{content:'';position:absolute;bottom:-20px;left:-20px;width:80px;height:80px;background:radial-gradient(circle,rgba(255,192,203,0.25),transparent 70%);border-radius:50%}
     .ic-sparkle{position:absolute;font-size:14px;opacity:0.6;animation:sparkleFloat 2s ease-in-out infinite}
@@ -69,32 +69,34 @@ export async function onRequest(context) {
     .ic-sparkle:nth-child(3){bottom:15px;left:40px;animation-delay:1.4s}
     .ic-sparkle:nth-child(4){bottom:10px;right:45px;animation-delay:0.3s}
     @keyframes sparkleFloat{0%,100%{transform:scale(1) rotate(0deg);opacity:0.6}50%{transform:scale(1.3) rotate(15deg);opacity:1}}
-    .ic-envelope{font-size:64px;margin-bottom:8px;filter:drop-shadow(0 4px 8px rgba(219,112,147,0.3))}
-    .ic-title{font-size:20px;color:#db7093;letter-spacing:0.3em;font-weight:600;margin-bottom:4px}
+    .ic-title{font-size:18px;color:#db7093;letter-spacing:0.3em;font-weight:600;margin-bottom:2px}
     .ic-title-en{font-size:10px;color:rgba(219,112,147,0.5);letter-spacing:0.15em;text-transform:uppercase}
-    .ic-illust{width:100%;height:220px;position:relative;overflow:hidden;background:linear-gradient(180deg,#fff5f8 0%,#fff 100%)}
+    .ic-avatars{display:flex;align-items:center;justify-content:center;gap:0;margin:14px 0 10px;position:relative}
+    .ic-avatar{width:72px;height:72px;border-radius:50%;object-fit:cover;border:3px solid rgba(255,182,193,0.6);box-shadow:0 4px 16px rgba(219,112,147,0.2);background:#fff5f8;position:relative;z-index:1}
+    .ic-avatar-heart{font-size:28px;margin:0 -10px;z-index:2;filter:drop-shadow(0 2px 4px rgba(219,112,147,0.3));position:relative}
+    .ic-illust{width:100%;height:180px;position:relative;overflow:hidden;background:linear-gradient(180deg,#fff5f8 0%,#fff 100%)}
     .ic-illust img{width:100%;height:100%;object-fit:cover;object-position:center top}
     .ic-illust::after{content:'';position:absolute;bottom:0;left:0;right:0;height:50px;background:linear-gradient(0deg,#fff,transparent)}
-    .ic-body{padding:0 24px 24px;text-align:center}
+    .ic-body{padding:0 24px 20px;text-align:center}
     .ic-date{font-size:14px;color:#999;letter-spacing:0.15em;margin-bottom:8px}
     .ic-names{font-family:'Ma Shan Zheng',cursive,serif;font-size:28px;color:#e75480;letter-spacing:0.2em;margin-bottom:4px;text-shadow:0 2px 8px rgba(231,84,128,0.15)}
-    .ic-names-en{font-size:11px;color:rgba(219,112,147,0.45);letter-spacing:0.12em;margin-bottom:16px;text-transform:uppercase}
+    .ic-names-en{font-size:11px;color:rgba(219,112,147,0.45);letter-spacing:0.12em;margin-bottom:14px;text-transform:uppercase}
     .ic-msg{font-size:13px;color:#777;line-height:2;letter-spacing:0.06em;margin-bottom:6px}
-    .ic-venue{font-size:12px;color:#aaa;letter-spacing:0.05em;margin-bottom:18px}
-    .ic-divider{width:60px;height:1px;background:linear-gradient(90deg,transparent,#ffb6c1,transparent);margin:0 auto 18px}
-    .ic-code-section{display:flex;align-items:center;justify-content:center;gap:20px;padding:18px;background:linear-gradient(135deg,#fff5f8,#fff0f5);border-radius:16px;margin-bottom:14px;border:1px solid rgba(255,182,193,0.3)}
-    .ic-code-left{text-align:left}
+    .ic-venue{font-size:12px;color:#aaa;letter-spacing:0.05em;margin-bottom:16px}
+    .ic-divider{width:60px;height:1px;background:linear-gradient(90deg,transparent,#ffb6c1,transparent);margin:0 auto 16px}
+    .ic-code-section{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px;background:linear-gradient(135deg,#fff5f8,#fff0f5);border-radius:16px;margin-bottom:14px;border:1px solid rgba(255,182,193,0.3)}
+    .ic-code-left{text-align:left;flex:1}
     .ic-code-label{font-size:11px;color:#db7093;letter-spacing:0.1em;margin-bottom:6px;font-weight:500}
     .ic-code-num{font-family:'Courier New',monospace;font-size:26px;color:#e75480;letter-spacing:0.2em;font-weight:700}
     .ic-code-hint{font-size:9px;color:#ccc;margin-top:4px}
     .ic-qr{flex-shrink:0}
     .ic-qr canvas{border-radius:8px}
-    .ic-footer{font-size:10px;color:#ddd;letter-spacing:0.08em;margin-top:10px}
-    .invite-actions{display:flex;gap:12px;margin-top:18px;flex-wrap:wrap;justify-content:center}
+    .ic-footer{font-size:10px;color:#ddd;letter-spacing:0.08em;margin-top:8px}
+    .invite-actions{display:flex;gap:12px;margin-top:16px;flex-wrap:wrap;justify-content:center}
     .invite-actions button{padding:12px 28px;border-radius:25px;font-size:14px;cursor:pointer;transition:all 0.3s;font-family:inherit;letter-spacing:0.1em;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
     .btn-invite-save{background:rgba(231,84,128,0.08);border:1.5px solid rgba(231,84,128,0.4);color:#e75480}
     .btn-invite-save:active{transform:scale(0.96)}
-    .btn-invite-enter{background:linear-gradient(135deg,#ff69b4,#db7093);border:none;color:#fff;font-weight:500;box-shadow:0 4px 15px rgba(219,112,147,0.3)}
+    .btn-invite-enter{background:linear-gradient(135deg,#ff69b4,#db7093);border:none;color:#fff;font-weight:500;box-shadow:0 4px 15px rgba(219,112,147,0.3);letter-spacing:0.15em}
     .btn-invite-enter:active{transform:scale(0.96)}
 
     /* ====== 控制栏 ====== */
@@ -274,9 +276,13 @@ export async function onRequest(context) {
           <span class="ic-sparkle">💖</span>
           <span class="ic-sparkle">✨</span>
           <span class="ic-sparkle">💫</span>
-          <div class="ic-envelope">💌</div>
           <div class="ic-title">电子请帖</div>
           <div class="ic-title-en">Wedding Invitation</div>
+          <div class="ic-avatars">
+            <img class="ic-avatar" id="ic-avatar1" src="" alt="">
+            <span class="ic-avatar-heart">❤️</span>
+            <img class="ic-avatar" id="ic-avatar2" src="" alt="">
+          </div>
         </div>
         <div class="ic-illust">
           <img src="https://img.icons8.com/external-flatart-icons-flat-flatarticons/512/external-wedding-love-flatart-icons-flat-flatarticons.png" alt="wedding" crossorigin="anonymous" onerror="this.style.display='none'">
@@ -303,7 +309,6 @@ export async function onRequest(context) {
         <button class="btn-invite-save" onclick="saveInvite()">💾 保存请帖</button>
         <button class="btn-invite-enter" onclick="enterFromInvite()">进入婚礼现场 →</button>
       </div>
-      <div style="text-align:center;margin-top:10px;font-size:11px;color:rgba(255,255,255,0.6);letter-spacing:0.05em;">💡 请保存请帖截图，参与码可用于后续活动参与</div>
     </div>
   </div>
 
@@ -445,7 +450,13 @@ export async function onRequest(context) {
     }
     function showInviteCard() {
       document.getElementById('rsvp-screen').classList.add('hidden');
-      // Populate invite card
+      // Populate avatars
+      const av1 = document.getElementById('ic-avatar1');
+      const av2 = document.getElementById('ic-avatar2');
+      if (AVATARS[0]) { av1.src = AVATARS[0]; } else { av1.style.display = 'none'; }
+      if (AVATARS.length > 1) { av2.src = AVATARS[1]; } else { av2.src = AVATARS[0] || ''; }
+      if (!AVATARS[0] && !AVATARS[1]) { av1.style.display = 'none'; av2.style.display = 'none'; }
+      // Populate info
       document.getElementById('ic-names').textContent = WEDDING.couple_name;
       document.getElementById('ic-names-en').textContent = WEDDING.couple_name.toUpperCase();
       if (WEDDING.wedding_date) {
@@ -456,9 +467,7 @@ export async function onRequest(context) {
       const infoArr = [];
       if (WEDDING.wedding_venue) infoArr.push('📍 ' + WEDDING.wedding_venue);
       document.getElementById('ic-info').innerHTML = infoArr.join('<br>');
-      // Generate QR code
       generateInviteQR();
-      // Show overlay
       document.getElementById('invite-overlay').classList.add('show');
     }
 
