@@ -1837,6 +1837,9 @@
       0%, 100% { transform: scale(1) rotate(0deg); opacity: 0.6; }
       50% { transform: scale(1.3) rotate(15deg); opacity: 1; }
     }
+    .ic-avatars { display: flex; align-items: center; justify-content: center; gap: 0; margin: 14px 0 10px; position: relative; }
+    .ic-avatar { width: 72px; height: 72px; border-radius: 50%; object-fit: cover; border: 3px solid rgba(255,182,193,0.6); box-shadow: 0 4px 16px rgba(219,112,147,0.2); background: #fff5f8; position: relative; z-index: 1; }
+    .ic-avatar-heart { font-size: 28px; margin: 0 -10px; z-index: 2; filter: drop-shadow(0 2px 4px rgba(219,112,147,0.3)); position: relative; }
     .ic-envelope { font-size: 64px; margin-bottom: 8px; filter: drop-shadow(0 4px 8px rgba(219,112,147,0.3)); }
     .ic-title { font-size: 20px; color: #db7093; letter-spacing: 0.3em; font-weight: 600; margin-bottom: 4px; }
     .ic-title-en { font-size: 10px; color: rgba(219,112,147,0.5); letter-spacing: 0.15em; text-transform: uppercase; }
@@ -1931,9 +1934,13 @@
           <span class="ic-sparkle">💖</span>
           <span class="ic-sparkle">✨</span>
           <span class="ic-sparkle">💫</span>
-          <div class="ic-envelope">💌</div>
           <div class="ic-title">电子请帖</div>
           <div class="ic-title-en">Wedding Invitation</div>
+          <div class="ic-avatars">
+            <img class="ic-avatar" id="ic-avatar1" src="" alt="">
+            <span class="ic-avatar-heart">❤️</span>
+            <img class="ic-avatar" id="ic-avatar2" src="" alt="">
+          </div>
         </div>
         <div class="ic-illust">
           <img src="https://img.icons8.com/external-flatart-icons-flat-flatarticons/512/external-wedding-love-flatart-icons-flat-flatarticons.png" alt="wedding" crossorigin="anonymous" onerror="this.style.display='none'">
@@ -3316,12 +3323,13 @@
         (WEDDING.arrival_options || []).forEach(o => { const op = document.createElement('option'); op.value = o; op.textContent = o; arrSel.appendChild(op); });
         const trSel = document.getElementById('rsvp-transport');
         (WEDDING.transport_options || []).forEach(o => { const op = document.createElement('option'); op.value = o; op.textContent = o; trSel.appendChild(op); });
-        // Invite card
-        const avDiv = document.getElementById('ic-avatars');
-        AVATAR_FILES.forEach((url, i) => {
-          if (i > 0) { const heart = document.createElement('span'); heart.className = 'ic-heart'; heart.textContent = '♥'; avDiv.appendChild(heart); }
-          const img = document.createElement('img'); img.className = 'ic-avatar'; img.src = url; img.alt = ''; img.crossOrigin = 'anonymous'; avDiv.appendChild(img);
-        });
+        // Invite card avatars
+        const av1 = document.getElementById('ic-avatar1');
+        const av2 = document.getElementById('ic-avatar2');
+        if (av1 && AVATAR_FILES[0]) { av1.src = AVATAR_FILES[0]; av1.crossOrigin = 'anonymous'; } else if (av1) { av1.style.display = 'none'; }
+        if (av2 && AVATAR_FILES.length > 1) { av2.src = AVATAR_FILES[1]; av2.crossOrigin = 'anonymous'; } else if (av2) { av2.src = AVATAR_FILES[0] || ''; av2.crossOrigin = 'anonymous'; }
+        if (!AVATAR_FILES[0] && av1) av1.style.display = 'none';
+        if (!AVATAR_FILES[0] && !AVATAR_FILES[1] && av2) av2.style.display = 'none';
         document.getElementById('ic-names').textContent = WEDDING.partner1 + ' & ' + WEDDING.partner2;
         document.getElementById('ic-names-en').textContent = (WEDDING.partner1 + ' & ' + WEDDING.partner2).toUpperCase();
         if (WEDDING.wedding_date) {
