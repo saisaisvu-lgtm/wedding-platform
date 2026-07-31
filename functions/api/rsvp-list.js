@@ -18,16 +18,16 @@ export async function onRequestGet(context) {
     const format = url.searchParams.get('format');
 
     const { results } = await env.DB.prepare(
-      'SELECT id, name, phone, guests, arrival_time, transport, message, created_at FROM rsvp WHERE wedding_user_id = ? ORDER BY created_at DESC'
+      'SELECT id, name, phone, guests, arrival_time, transport, message, participation_code, created_at FROM rsvp WHERE wedding_user_id = ? ORDER BY created_at DESC'
     ).bind(userId).all();
 
     // 统计
     const totalGuests = results.reduce((sum, r) => sum + (r.guests || 1), 0);
 
     if (format === 'csv') {
-      const header = '姓名,联系电话,人数,到达时间,出行方式,留言,提交时间';
+      const header = '姓名,联系电话,人数,到达时间,出行方式,留言,参与码,提交时间';
       const rows = results.map(r =>
-        [r.name, r.phone, r.guests, r.arrival_time, r.transport, r.message, r.created_at]
+        [r.name, r.phone, r.guests, r.arrival_time, r.transport, r.message, r.participation_code, r.created_at]
           .map(v => `"${String(v || '').replace(/"/g, '""')}"`)
           .join(',')
       );

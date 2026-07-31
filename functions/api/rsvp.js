@@ -38,9 +38,17 @@ export async function onRequestPost(context) {
       return Response.json({ ok: false, error: '婚礼页面不存在' }, { status: 404, headers: corsHeaders });
     }
 
+    // 生成6位随机参与码（纯数字）
+    let participationCode = '';
+    let codeAttempts = 0;
+    do {
+      participationCode = String(Math.floor(100000 + Math.random() * 900000));
+      codeAttempts++;
+    } while (codeAttempts < 20 && await env.DB.prepare('SELECT id FROM rsvp WHERE wedding_user_id = ? AND participation_code = ?').bind(user.id, participationCode).first());
+
     await env.DB.prepare(
-      `INSERT INTO rsvp (wedding_user_id, name, phone, guests, arrival_time, transport, message, created_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now'))`
+      `INSERT INTO rsvp (wedding_user_id, name, phone, guests, arrival_time, transport, message, participation_code, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))`
     ).bind(
       user.id,
       name.trim(),
@@ -48,12 +56,14 @@ export async function onRequestPost(context) {
       guestCount,
       (arrival_time || '').trim(),
       (transport || '').trim(),
-      (message || '').trim()
+      (message || '').trim(),
+      participationCode
     ).run();
 
     return Response.json({
       ok: true,
-      message: '感谢您的回复，期待与您相聚！🎉'
+      message: '感谢您的回复，期待与您相聚！🎉',
+      participation_code: participationCode,
     }, { headers: corsHeaders });
 
   } catch (err) {

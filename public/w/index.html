@@ -3264,6 +3264,11 @@
           if (data.ok) {
             msgEl.className = 'rsvp-msg ok';
             msgEl.textContent = data.message;
+            // 显示参与码
+            if (data.participation_code) {
+              document.getElementById('invite-participation').style.display = 'block';
+              document.getElementById('invite-participation-code').textContent = data.participation_code;
+            }
             setTimeout(() => showInviteCard(), 1200);
           } else {
             msgEl.className = 'rsvp-msg err';
@@ -3461,11 +3466,6 @@
         const infoArr = [];
         if (WEDDING.wedding_venue) infoArr.push('<div class="ic-info-row">婚礼地点：' + WEDDING.wedding_venue + '</div>');
         document.getElementById('ic-info').innerHTML = infoArr.join('');
-        // 参与码
-        if (WEDDING.participation_code) {
-          document.getElementById('invite-participation').style.display = 'block';
-          document.getElementById('invite-participation-code').textContent = WEDDING.participation_code;
-        }
         // Sing bar
         if (AVATAR_FILES[0]) document.getElementById('sing-avatar-1').src = AVATAR_FILES[0];
         if (AVATAR_FILES[1]) document.getElementById('sing-avatar-2').src = AVATAR_FILES[1] || AVATAR_FILES[0];

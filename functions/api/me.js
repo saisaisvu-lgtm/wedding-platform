@@ -11,7 +11,7 @@ export async function onRequestGet(context) {
 
   try {
     const user = await env.DB.prepare(
-      'SELECT id, username, couple_name, partner1, partner2, wedding_date, wedding_venue, bgm_url, bgm_data, arrival_options, transport_options, slug, participation_code FROM users WHERE id = ?'
+      'SELECT id, username, couple_name, partner1, partner2, wedding_date, wedding_venue, bgm_url, bgm_data, arrival_options, transport_options, slug FROM users WHERE id = ?'
     ).bind(userId).first();
 
     if (!user) {

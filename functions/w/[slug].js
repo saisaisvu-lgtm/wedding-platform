@@ -288,12 +288,11 @@ export async function onRequest(context) {
           <div class="ic-thanks">诚挚邀请您出席我们的婚礼<br>见证我们人生中最重要的时刻</div>
           <div class="ic-qr" id="ic-qr"></div>
           <div class="ic-qr-tip">扫码查看婚礼现场</div>
-          ${WEDDING.participation_code ? `
-          <div style="margin-top:12px;text-align:center;">
+          <div id="ic-participation-box" style="display:none;margin-top:12px;text-align:center;">
             <div style="font-size:10px;color:rgba(212,175,55,0.5);letter-spacing:0.08em;">参与码</div>
-            <div style="font-family:monospace;font-size:18px;color:#d4af37;letter-spacing:0.2em;margin-top:4px;">${WEDDING.participation_code}</div>
+            <div id="ic-participation-code" style="font-family:monospace;font-size:18px;color:#d4af37;letter-spacing:0.2em;margin-top:4px;"></div>
             <div style="font-size:9px;color:rgba(212,175,55,0.35);margin-top:3px;">请截图保存，用于后续活动参与</div>
-          </div>` : ''}
+          </div>
           <div class="ic-bottom">
             <div class="ic-bottom-xi">囍</div>
             <div class="ic-bottom-text">永结同心 · 百年好合</div>
@@ -544,7 +543,16 @@ export async function onRequest(context) {
           transport: document.getElementById('rsvp-transport').value
         })});
         const data = await res.json();
-        if (data.ok) { msg.textContent = '✅ 提交成功！'; msg.className = 'rsvp-msg ok'; setTimeout(showInviteCard, 1200); }
+        if (data.ok) {
+          msg.textContent = '✅ 提交成功！';
+          msg.className = 'rsvp-msg ok';
+          // 显示参与码
+          if (data.participation_code) {
+            document.getElementById('ic-participation-box').style.display = 'block';
+            document.getElementById('ic-participation-code').textContent = data.participation_code;
+          }
+          setTimeout(showInviteCard, 1200);
+        }
         else { msg.textContent = data.error || '提交失败'; msg.className = 'rsvp-msg err'; }
       } catch { msg.textContent = '网络错误'; msg.className = 'rsvp-msg err'; }
     }

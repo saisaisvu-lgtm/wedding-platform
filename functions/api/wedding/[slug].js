@@ -16,7 +16,7 @@ export async function onRequestGet(context) {
 
   try {
     const user = await env.DB.prepare(
-      'SELECT id, couple_name, partner1, partner2, wedding_date, wedding_venue, bgm_url, bgm_data, arrival_options, transport_options, slug, participation_code FROM users WHERE slug = ?'
+      'SELECT id, couple_name, partner1, partner2, wedding_date, wedding_venue, bgm_url, bgm_data, arrival_options, transport_options, slug FROM users WHERE slug = ?'
     ).bind(slug).first();
 
     if (!user) {
@@ -64,7 +64,6 @@ export async function onRequestGet(context) {
         bgm_data: user.bgm_data || '',
         arrival_options: JSON.parse(user.arrival_options || '[]'),
         transport_options: JSON.parse(user.transport_options || '[]'),
-        participation_code: user.participation_code || '',
       },
       images: {
         avatars: imagesWithUrl.filter(i => i.category === 'avatar'),
