@@ -695,14 +695,13 @@
     if (data.venue_address) document.getElementById('venueAddress').textContent = data.venue_address;
     if (data.venue_map_url || data.wedding_venue) {
       var mapArea = document.getElementById('mapArea');
-      var mapPreview = document.getElementById('mapPreview');
+      var mapFrame = document.getElementById('mapFrame');
       mapArea.setAttribute('data-url', data.venue_map_url || '');
       mapArea.setAttribute('data-venue', data.wedding_venue || '');
       mapArea.setAttribute('data-address', data.venue_address || '');
-      if (data.venue_address) {
-        mapPreview.src = 'https://restapi.amap.com/v3/staticmap?zoom=15&size=600*240&markers=mid,,:A&key=ce45d72292afc4484f7016c776d3a2e3';
-        mapPreview.style.display = 'block';
-        mapPreview.onerror = function() { this.style.display = 'none'; };
+      var addr = data.venue_address || data.wedding_venue || '';
+      if (addr) {
+        mapFrame.src = 'https://ditu.amap.com/embed?center=&zoom=14&search=' + encodeURIComponent(addr);
       }
     }
 
