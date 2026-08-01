@@ -390,14 +390,15 @@
     .action-bar { flex-direction: column; align-items: center; }
   }
   @media print {
-    body { background: #f5e6d0 !important; padding: 20px !important; min-height: auto !important; }
-    .card { box-shadow: 0 2px 8px rgba(107,76,59,0.15) !important; break-inside: avoid; border-radius: 14px !important; }
-    .cards-container { flex-direction: column !important; align-items: center !important; gap: 20px !important; }
-    .card-left, .card-center, .card-right { width: 100% !important; max-width: 400px !important; }
+    * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
+    html, body { background: #f5e6d0 !important; margin: 0 !important; padding: 0 !important; min-height: auto !important; width: 100% !important; }
+    .petal-scatter, .loading-mask, .action-bar, .toast-msg, body::before { display: none !important; }
+    #captureArea { max-width: none !important; width: 100% !important; }
+    .cards-container { flex-direction: row !important; flex-wrap: nowrap !important; gap: 16px !important; justify-content: center !important; align-items: stretch !important; }
+    .card-left, .card-center, .card-right { width: 320px !important; max-width: none !important; flex-shrink: 0 !important; }
+    .card { box-shadow: 0 2px 8px rgba(107,76,59,0.12) !important; break-inside: avoid !important; border-radius: 14px !important; }
     .firework { animation: none !important; }
-    .petal-scatter { display: none !important; }
-    .loading-mask, .action-bar, .toast-msg { display: none !important; }
-    @page { margin: 10mm; size: A4 portrait; }
+    @page { size: A4 landscape; margin: 8mm; }
   }
 </style>
 </head>
