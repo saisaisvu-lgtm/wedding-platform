@@ -599,15 +599,80 @@
     btn.textContent = '⏳ 生成中...';
     try {
       const area = document.querySelector('.cards-container');
-      const canvas = await html2canvas(area, {
+      const rawCanvas = await html2canvas(area, {
         scale: 2,
         useCORS: true,
         backgroundColor: '#f5e6d0',
         logging: false
       });
+
+      // 添加边距和纪念相框
+      const pad = 60;
+      const frameW = 4;
+      const totalPad = pad + frameW;
+      const w = rawCanvas.width + totalPad * 2;
+      const h = rawCanvas.height + totalPad * 2;
+      const fc = document.createElement('canvas');
+      fc.width = w; fc.height = h;
+      const ctx = fc.getContext('2d');
+
+      // 背景
+      ctx.fillStyle = '#f5e6d0';
+      ctx.fillRect(0, 0, w, h);
+
+      // 绘制原图
+      ctx.drawImage(rawCanvas, totalPad, totalPad);
+
+      // 金色相框边框
+      ctx.strokeStyle = '#c9a96e';
+      ctx.lineWidth = frameW;
+      const r = 18;
+      const x = pad, y = pad, bw = w - pad * 2, bh = h - pad * 2;
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.lineTo(x + bw - r, y); ctx.quadraticCurveTo(x + bw, y, x + bw, y + r);
+      ctx.lineTo(x + bw, y + bh - r); ctx.quadraticCurveTo(x + bw, y + bh, x + bw - r, y + bh);
+      ctx.lineTo(x + r, y + bh); ctx.quadraticCurveTo(x, y + bh, x, y + bh - r);
+      ctx.lineTo(x, y + r); ctx.quadraticCurveTo(x, y, x + r, y);
+      ctx.closePath(); ctx.stroke();
+
+      // 内边细线
+      ctx.strokeStyle = 'rgba(201,169,110,0.3)';
+      ctx.lineWidth = 1;
+      const m = 12;
+      ctx.beginPath();
+      ctx.moveTo(x + m + r, y + m);
+      ctx.lineTo(x + bw - m - r, y + m); ctx.quadraticCurveTo(x + bw - m, y + m, x + bw - m, y + m + r);
+      ctx.lineTo(x + bw - m, y + bh - m - r); ctx.quadraticCurveTo(x + bw - m, y + bh - m, x + bw - m - r, y + bh - m);
+      ctx.lineTo(x + m + r, y + bh - m); ctx.quadraticCurveTo(x + m, y + bh - m, x + m, y + bh - m - r);
+      ctx.lineTo(x + m, y + m + r); ctx.quadraticCurveTo(x + m, y + m, x + m + r, y + m);
+      ctx.closePath(); ctx.stroke();
+
+      // 四角装饰花
+      function drawCornerFlower(cx, cy, scale) {
+        ctx.save(); ctx.translate(cx, cy); ctx.scale(scale, scale);
+        ctx.fillStyle = 'rgba(232,160,160,0.6)';
+        [[0,0,6],[8,-4,5],[-8,-4,5],[4,8,4],[-4,8,4]].forEach(([dx,dy,r]) => {
+          ctx.beginPath(); ctx.arc(dx, dy, r, 0, Math.PI * 2); ctx.fill();
+        });
+        ctx.fillStyle = 'rgba(201,169,110,0.7)';
+        ctx.beginPath(); ctx.arc(0, 2, 3, 0, Math.PI * 2); ctx.fill();
+        ctx.restore();
+      }
+      drawCornerFlower(x + 28, y + 28, 1.2);
+      drawCornerFlower(x + bw - 28, y + 28, 1.2);
+      drawCornerFlower(x + 28, y + bh - 28, 1.2);
+      drawCornerFlower(x + bw - 28, y + bh - 28, 1.2);
+
+      // 顶部囍字
+      ctx.font = '28px serif';
+      ctx.fillStyle = 'rgba(201,169,110,0.5)';
+      ctx.textAlign = 'center';
+      ctx.fillText('囍', w / 2, y + 26);
+
       const link = document.createElement('a');
       link.download = 'wedding-invitation.png';
-      link.href = canvas.toDataURL('image/png');
+      link.href = fc.toDataURL('image/png');
       link.click();
       showToast('✅ 图片已保存');
     } catch (e) {
