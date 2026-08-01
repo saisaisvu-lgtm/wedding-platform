@@ -8,24 +8,24 @@
   @import url('https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=ZCOOL+KuaiLe&family=Noto+Serif+SC:wght@400;700&family=Dancing+Script:wght@400;700&family=Poppins:wght@300;400;600&display=swap');
 
   :root {
-    --paper: #f5f0e8;
-    --paper-dark: #e8dfd2;
+    --paper: #faf3ea;
+    --paper-dark: #f0e4d4;
     --warm-brown: #6b4c3b;
     --soft-pink: #e8a0a0;
     --wine-red: #8b2252;
     --ink-green: #3a5a40;
     --sky-blue: #7ab8d4;
-    --warm-orange: #e8a84c;
+    --warm-orange: #e8943c;
     --gold: #c9a96e;
     --text-dark: #3d2b1f;
     --text-light: #7a6555;
-    --theme-color: #d4af37;
+    --theme-color: #e8943c;
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
   body {
-    background: linear-gradient(135deg, #fdf6ee 0%, #f0e6d8 50%, #e8dfd2 100%);
+    background: #f5e6d0;
     min-height: 100vh;
     display: flex;
     flex-direction: column;
@@ -40,9 +40,9 @@
     content: '';
     position: fixed; top: 0; left: 0; right: 0; bottom: 0;
     background-image:
-      radial-gradient(circle at 8% 15%, rgba(232,160,160,0.12) 0%, transparent 40%),
-      radial-gradient(circle at 92% 85%, rgba(122,184,212,0.1) 0%, transparent 40%),
-      radial-gradient(circle at 50% 50%, rgba(201,169,110,0.06) 0%, transparent 60%);
+      radial-gradient(circle at 8% 15%, rgba(232,148,60,0.12) 0%, transparent 40%),
+      radial-gradient(circle at 92% 85%, rgba(232,148,60,0.08) 0%, transparent 40%),
+      radial-gradient(circle at 50% 50%, rgba(245,166,35,0.06) 0%, transparent 60%);
     pointer-events: none; z-index: 0;
   }
 
@@ -91,6 +91,7 @@
     box-shadow: 0 8px 32px rgba(107,76,59,0.1), 0 2px 6px rgba(107,76,59,0.06);
     overflow: hidden;
     display: flex; flex-direction: column;
+    background-image: url("data:image/svg+xml,%3Csvg width='300' height='300' viewBox='0 0 300 300' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
   }
   .card::before {
     content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
@@ -110,12 +111,12 @@
   /* 左卡 */
   .card-left {
     width: 320px;
-    background: linear-gradient(170deg, #fdf2e9 0%, #fce4d6 35%, #f5e6d0 100%);
+    background: linear-gradient(170deg, #fdf5ec 0%, #f8ecdd 35%, #f2e4d2 100%);
     align-items: center; justify-content: flex-start; text-align: center;
     padding-top: 20px;
   }
   .card-left .call-to-action {
-    font-family: 'ZCOOL KuaiLe', cursive;
+    font-family: 'Ma Shan Zheng', cursive;
     font-size: 2.2rem; color: var(--wine-red);
     margin-bottom: 8px; text-shadow: 1px 1px 3px rgba(139,34,82,0.15);
   }
@@ -146,7 +147,7 @@
   }
   .card-center .couple-names {
     font-family: 'Ma Shan Zheng', cursive;
-    font-size: 2.2rem; color: var(--warm-brown);
+    font-size: 2.4rem; color: var(--warm-brown);
     margin-bottom: 2px; line-height: 1.3;
   }
   .card-center .couple-names-en {
@@ -185,8 +186,8 @@
     margin-bottom: 8px; letter-spacing: 2px;
   }
   .card-center .invite-text {
-    font-family: 'ZCOOL KuaiLe', cursive;
-    font-size: 1.05rem; color: var(--wine-red); margin-bottom: 10px;
+    font-family: 'Ma Shan Zheng', cursive;
+    font-size: 1.1rem; color: var(--wine-red); margin-bottom: 10px;
   }
   .map-area {
     width: 100%; height: 95px;
@@ -218,8 +219,8 @@
     text-align: center; margin-bottom: 12px; letter-spacing: 3px;
   }
   .card-right .welcome-text {
-    font-family: 'ZCOOL KuaiLe', cursive;
-    font-size: 0.85rem; color: var(--text-dark);
+    font-family: 'Ma Shan Zheng', cursive;
+    font-size: 0.9rem; color: var(--text-dark);
     line-height: 2; text-align: center; margin-bottom: 10px;
   }
   .card-right .love-quote {
@@ -257,8 +258,8 @@
     color: var(--warm-brown); min-width: 42px;
   }
   .schedule-item .desc {
-    font-family: 'ZCOOL KuaiLe', cursive;
-    font-size: 0.85rem; color: var(--text-dark);
+    font-family: 'Ma Shan Zheng', cursive;
+    font-size: 0.88rem; color: var(--text-dark);
   }
   .card-right .thank-you {
     font-family: 'Dancing Script', cursive;
@@ -362,11 +363,11 @@
   /* Loading */
   .loading-mask {
     position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-    background: linear-gradient(135deg, #fdf6ee 0%, #f0e6d8 100%);
+    background: #f5e6d0;
     display: flex; align-items: center; justify-content: center;
     z-index: 999;
-    font-family: 'ZCOOL KuaiLe', cursive;
-    font-size: 1.2rem; color: var(--gold);
+    font-family: 'Ma Shan Zheng', cursive;
+    font-size: 1.2rem; color: var(--warm-orange);
     transition: opacity 0.5s;
   }
   .loading-mask.hidden { opacity: 0; pointer-events: none; }
