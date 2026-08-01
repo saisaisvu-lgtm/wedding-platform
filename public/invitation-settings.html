@@ -709,10 +709,13 @@
     document.getElementById('partner1En').value = data.partner1_en || '';
     document.getElementById('partner2En').value = data.partner2_en || '';
     document.getElementById('coupleName').value = data.couple_name || '';
-    document.getElementById('weddingDate').value = data.wedding_date || '';
-    // 提取时间
-    if (data.wedding_date && data.wedding_date.includes(' ')) {
-      document.getElementById('weddingTime').value = data.wedding_date.split(' ')[1] || '';
+    // wedding_date 格式可能是 "2026-10-02 12:29" 或 "2026-10-02"，需要拆分日期和时间
+    const wd = data.wedding_date || '';
+    if (wd.includes(' ')) {
+      document.getElementById('weddingDate').value = wd.split(' ')[0];
+      document.getElementById('weddingTime').value = wd.split(' ')[1] || '';
+    } else {
+      document.getElementById('weddingDate').value = wd;
     }
     document.getElementById('venueName').value = data.wedding_venue || '';
     document.getElementById('venueAddress').value = data.venue_address || '';
