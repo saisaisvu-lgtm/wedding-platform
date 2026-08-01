@@ -553,8 +553,9 @@
 
   function formatDate(d) {
     if (!d) return '0000.00.00';
-    const p = d.replace(/[\/\.]/g, '-').split('-');
-    return p.length >= 3 ? `${p[0]}.${p[1].padStart(2,'0')}.${p[2].padStart(2,'0')}` : d;
+    const dateOnly = d.split(' ')[0];
+    const p = dateOnly.replace(/[\/\.]/g, '-').split('-');
+    return p.length >= 3 ? `${p[0]}.${p[1].padStart(2,'0')}.${p[2].padStart(2,'0')}` : dateOnly;
   }
   function extractTime(d) {
     if (!d || !d.includes(' ')) return '00 : 00';
