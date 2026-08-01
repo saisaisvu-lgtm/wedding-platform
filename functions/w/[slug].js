@@ -566,10 +566,13 @@ export async function onRequest(context) {
         if (data.ok) {
           msg.textContent = '✅ 提交成功！';
           msg.className = 'rsvp-msg ok';
-          // 存储宾客名并跳转请帖页
+          // 存储宾客名和参与码，跳转请帖页
           try { sessionStorage.setItem('rsvp_name', name); } catch {}
+          try { if (data.participation_code) localStorage.setItem('rsvp_participation_code_' + slug, data.participation_code); } catch {}
           setTimeout(function() {
-            window.location.href = '/invite.html?slug=' + encodeURIComponent(slug) + '&guest=' + encodeURIComponent(name);
+            var inviteUrl = '/invite.html?slug=' + encodeURIComponent(slug) + '&guest=' + encodeURIComponent(name);
+            if (data.participation_code) inviteUrl += '&code=' + encodeURIComponent(data.participation_code);
+            window.location.href = inviteUrl;
           }, 800);
         }
         else { msg.textContent = data.error || '提交失败'; msg.className = 'rsvp-msg err'; }
