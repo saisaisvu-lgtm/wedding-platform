@@ -255,7 +255,8 @@
       if (!currentUser) return;
       document.getElementById('s_partner1').value = currentUser.partner1 || '';
       document.getElementById('s_partner2').value = currentUser.partner2 || '';
-      document.getElementById('s_wedding_date').value = currentUser.wedding_date || '';
+      const wd = currentUser.wedding_date || '';
+      document.getElementById('s_wedding_date').value = wd.includes(' ') ? wd.split(' ')[0] : wd;
       document.getElementById('s_wedding_venue').value = currentUser.wedding_venue || '';
       if (currentUser.bgm_url) {
         document.getElementById('bgmUrlInput').value = currentUser.bgm_url;
