@@ -542,6 +542,7 @@
   const slug = params.get('slug') || '';
   const API_BASE = '';
   let weddingSlug = slug;
+  let siteUrl = '';
 
   // ====== 工具 ======
   function showToast(msg) {
@@ -676,8 +677,9 @@
     document.title = `婚礼请帖 - ${p1} & ${p2}`;
 
     // 生成 QR codes
-    const inviteUrl = window.location.origin + '/invite.html' + (weddingSlug ? '?slug=' + weddingSlug : '');
-    const weddingUrl = window.location.origin + '/w/' + (weddingSlug || '');
+    const base = siteUrl || window.location.origin;
+    const inviteUrl = base + '/invite.html' + (weddingSlug ? '?slug=' + weddingSlug : '');
+    const weddingUrl = base + '/w/' + (weddingSlug || '');
     generateQR('qrInvite', inviteUrl);
     generateQR('qrWedding', weddingUrl);
 
@@ -703,6 +705,7 @@
         const json = await res.json();
         if (json.ok && json.wedding) {
           const merged = { ...json.wedding, ...(json.invitation || {}) };
+          if (json.site_url) siteUrl = json.site_url;
           renderWedding(merged);
           if (json.avatar_data) renderAvatar(json.avatar_data);
           return true;
@@ -718,6 +721,7 @@
       if (res.ok) {
         const json = await res.json();
         if (json.ok && json.data) {
+          if (json.data.site_url) siteUrl = json.data.site_url;
           renderWedding(json.data);
           if (json.data.avatar_data) renderAvatar(json.data.avatar_data);
           return true;

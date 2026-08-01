@@ -113,6 +113,7 @@ export async function onRequestGet(context) {
         gallery: imagesWithUrl.filter(i => i.category === 'gallery'),
       },
       songs: songsData,
+      site_url: env.SITE_URL || '',
     }, { headers: corsHeaders });
 
   } catch (err) {

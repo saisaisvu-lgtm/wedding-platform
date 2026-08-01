@@ -77,7 +77,8 @@ export async function onRequestGet(context) {
         default_guest_name: settings.default_guest_name || '嘉宾',
         bgm_url: user.bgm_url || settings.bgm_url || '',
         avatar_data: avatar ? `data:${avatar.mime_type};base64,${avatar.data}` : '',
-        credits_data: credits ? `data:${credits.mime_type};base64,${credits.data}` : ''
+        credits_data: credits ? `data:${credits.mime_type};base64,${credits.data}` : '',
+        site_url: env.SITE_URL || ''
       }
     }, { headers: corsHeaders });
 
