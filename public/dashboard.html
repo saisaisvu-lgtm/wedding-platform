@@ -229,6 +229,7 @@
             <a href="/api/rsvp-list?format=csv" class="btn btn-sm btn-outline" target="_blank">📥 导出 CSV</a>
             <button class="btn btn-sm btn-outline" onclick="printRsvp()">🖨️ 打印</button>
             <button class="btn btn-sm btn-outline" onclick="loadRsvp()">🔄 刷新</button>
+            <button class="btn btn-sm btn-danger" id="batchDeleteBtn" onclick="batchDeleteRsvp()" style="display:none;">🗑️ 批量删除</button>
           </div>
         </div>
         <div id="rsvpTable"><div style="text-align:center;color:var(--text-muted);padding:30px;font-size:13px;">加载中...</div></div>
@@ -461,12 +462,15 @@
         document.getElementById('statRsvp').textContent = res.stats.total; document.getElementById('statGuests').textContent = res.stats.totalGuests;
         cachedRsvpData = res.data;
         if (res.data.length === 0) { container.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:30px;font-size:13px;">暂无回执，分享你的婚礼页面给宾客吧！</div>'; return; }
-        container.innerHTML = `<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;"><thead><tr><th style="padding:12px 14px;text-align:left;border-bottom:2px solid var(--border);color:var(--text-secondary);font-size:13px;font-weight:600;">姓名</th><th style="padding:12px 14px;text-align:left;border-bottom:2px solid var(--border);color:var(--text-secondary);font-size:13px;font-weight:600;">电话</th><th style="padding:12px 14px;text-align:left;border-bottom:2px solid var(--border);color:var(--text-secondary);font-size:13px;font-weight:600;">人数</th><th style="padding:12px 14px;text-align:left;border-bottom:2px solid var(--border);color:var(--text-secondary);font-size:13px;font-weight:600;">到达</th><th style="padding:12px 14px;text-align:left;border-bottom:2px solid var(--border);color:var(--text-secondary);font-size:13px;font-weight:600;">出行</th><th style="padding:12px 14px;text-align:left;border-bottom:2px solid var(--border);color:var(--text-secondary);font-size:13px;font-weight:600;">留言</th><th style="padding:12px 14px;text-align:left;border-bottom:2px solid var(--border);color:var(--text-secondary);font-size:13px;font-weight:600;">时间</th><th style="padding:12px 14px;text-align:left;border-bottom:2px solid var(--border);color:var(--text-secondary);font-size:13px;font-weight:600;">参与码</th><th style="padding:12px 14px;text-align:right;border-bottom:2px solid var(--border);font-size:13px;"></th></tr></thead><tbody>${res.data.map(r => `<tr style="border-bottom:1px solid var(--border-light);"><td style="padding:10px 14px;font-size:14px;">${esc(r.name)}</td><td style="padding:10px 14px;font-size:14px;color:var(--text-secondary);">${esc(r.phone)}</td><td style="padding:10px 14px;font-size:14px;">${r.guests}</td><td style="padding:10px 14px;font-size:14px;color:var(--text-secondary);">${esc(r.arrival_time || '-')}</td><td style="padding:10px 14px;font-size:14px;">${r.transport ? '<span style="display:inline-block;padding:3px 12px;border-radius:20px;font-size:12px;background:var(--primary-pale);color:var(--primary);font-weight:500;">' + esc(r.transport) + '</span>' : '-'}</td><td style="padding:10px 14px;font-size:13px;color:var(--text-secondary);max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(r.message || '-')}</td><td style="padding:10px 14px;font-size:12px;color:var(--text-muted);">${r.created_at ? r.created_at.slice(0, 16).replace('T', ' ') : ''}</td><td style="padding:10px 14px;font-size:13px;font-family:monospace;letter-spacing:0.05em;color:var(--primary);">${esc(r.participation_code || '-')}</td><td style="padding:10px 14px;text-align:right;"><button class="btn btn-sm btn-danger" onclick="deleteRsvp(${r.id})" style="padding:4px 12px;font-size:12px;">删除</button></td></tr>`).join('')}</tbody></table></div>`;
+        container.innerHTML = `<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;"><thead><tr><th style="padding:12px 14px;text-align:center;border-bottom:2px solid var(--border);font-size:13px;"><input type="checkbox" id="selectAllRsvp" onchange="toggleSelectAllRsvp(this)"></th><th style="padding:12px 14px;text-align:left;border-bottom:2px solid var(--border);color:var(--text-secondary);font-size:13px;font-weight:600;">姓名</th><th style="padding:12px 14px;text-align:left;border-bottom:2px solid var(--border);color:var(--text-secondary);font-size:13px;font-weight:600;">电话</th><th style="padding:12px 14px;text-align:left;border-bottom:2px solid var(--border);color:var(--text-secondary);font-size:13px;font-weight:600;">人数</th><th style="padding:12px 14px;text-align:left;border-bottom:2px solid var(--border);color:var(--text-secondary);font-size:13px;font-weight:600;">到达</th><th style="padding:12px 14px;text-align:left;border-bottom:2px solid var(--border);color:var(--text-secondary);font-size:13px;font-weight:600;">出行</th><th style="padding:12px 14px;text-align:left;border-bottom:2px solid var(--border);color:var(--text-secondary);font-size:13px;font-weight:600;">留言</th><th style="padding:12px 14px;text-align:left;border-bottom:2px solid var(--border);color:var(--text-secondary);font-size:13px;font-weight:600;">时间</th><th style="padding:12px 14px;text-align:left;border-bottom:2px solid var(--border);color:var(--text-secondary);font-size:13px;font-weight:600;">参与码</th><th style="padding:12px 14px;text-align:right;border-bottom:2px solid var(--border);font-size:13px;"></th></tr></thead><tbody>${res.data.map(r => `<tr style="border-bottom:1px solid var(--border-light);"><td style="padding:10px 14px;text-align:center;"><input type="checkbox" class="rsvp-checkbox" value="${r.id}" onchange="updateBatchDeleteBtn()"></td><td style="padding:10px 14px;font-size:14px;">${esc(r.name)}</td><td style="padding:10px 14px;font-size:14px;color:var(--text-secondary);">${esc(r.phone)}</td><td style="padding:10px 14px;font-size:14px;">${r.guests}</td><td style="padding:10px 14px;font-size:14px;color:var(--text-secondary);">${esc(r.arrival_time || '-')}</td><td style="padding:10px 14px;font-size:14px;">${r.transport ? '<span style="display:inline-block;padding:3px 12px;border-radius:20px;font-size:12px;background:var(--primary-pale);color:var(--primary);font-weight:500;">' + esc(r.transport) + '</span>' : '-'}</td><td style="padding:10px 14px;font-size:13px;color:var(--text-secondary);max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(r.message || '-')}</td><td style="padding:10px 14px;font-size:12px;color:var(--text-muted);">${r.created_at ? r.created_at.slice(0, 16).replace('T', ' ') : ''}</td><td style="padding:10px 14px;font-size:13px;font-family:monospace;letter-spacing:0.05em;color:var(--primary);">${esc(r.participation_code || '-')}</td><td style="padding:10px 14px;text-align:right;"><button class="btn btn-sm btn-danger" onclick="deleteRsvp(${r.id})" style="padding:4px 12px;font-size:12px;">删除</button></td></tr>`).join('')}</tbody></table></div>`;
       } catch (err) { container.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:20px;font-size:13px;">网络错误</div>'; }
     }
 
     function esc(s) { const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
     async function deleteRsvp(id) { if (!confirm('确定删除这条回执吗？')) return; try { const res = await apiDelete(`/api/rsvp-list?id=${id}`); if (res.ok) loadRsvp(); else alert(res.error || '删除失败'); } catch (err) { alert('网络错误'); } }
+    function toggleSelectAllRsvp(el) { document.querySelectorAll('.rsvp-checkbox').forEach(cb => cb.checked = el.checked); updateBatchDeleteBtn(); }
+    function updateBatchDeleteBtn() { const checked = document.querySelectorAll('.rsvp-checkbox:checked').length; document.getElementById('batchDeleteBtn').style.display = checked > 0 ? 'inline-flex' : 'none'; }
+    async function batchDeleteRsvp() { const ids = [...document.querySelectorAll('.rsvp-checkbox:checked')].map(cb => cb.value); if (ids.length === 0) return; if (!confirm(`确定删除选中的 ${ids.length} 条回执吗？`)) return; let ok = 0, fail = 0; for (const id of ids) { try { const res = await apiDelete(`/api/rsvp-list?id=${id}`); if (res.ok) ok++; else fail++; } catch { fail++; } } loadRsvp(); alert(fail ? `删除完成：${ok} 成功，${fail} 失败` : `✅ 已删除 ${ok} 条回执`); }
 
     let cachedRsvpData = null;
     function printRsvp() {
@@ -474,8 +478,13 @@
       const data = cachedRsvpData;
       const totalGuests = data.reduce((s, r) => s + (r.guests || 1), 0);
       const coupleName = currentUser ? (currentUser.partner1 + ' & ' + currentUser.partner2) : '';
-      const printWindow = window.open('', '_blank');
 
+      // 统计出行方式
+      const transportStats = {};
+      data.forEach(r => { const t = r.transport || '未填写'; transportStats[t] = (transportStats[t] || 0) + 1; });
+      const transportHtml = Object.entries(transportStats).map(([k, v]) => `<span class="stat-tag">${esc(k)}: ${v}</span>`).join('');
+
+      const printWindow = window.open('', '_blank');
       const rowsHtml = data.map((r, i) => `
         <div class="rsvp-row">
           <div class="row-num">${i + 1}</div>
@@ -502,39 +511,39 @@
 <meta charset="UTF-8">
 <title>回执统计 - ${coupleName}</title>
 <style>
-  @page { size: A4 landscape; margin: 12mm; }
+  @page { size: A4 portrait; margin: 15mm; }
   @media print {
     html, body { margin: 0; padding: 0; }
     .no-print { display: none !important; }
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  html, body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; color: #2c2c2c; background: #fff; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-  body { padding: 16px 20px; }
+  html, body { font-family: -apple-system, 'PingFang SC', 'Noto Sans SC', 'Microsoft YaHei', sans-serif; color: #2c2c2c; background: #fff; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body { padding: 20px 24px; }
 
-  .header { text-align: center; margin-bottom: 18px; padding-bottom: 14px; border-bottom: 2px solid #b8860b; }
-  .header .xi { font-size: 32px; color: #b8860b; }
-  .header h1 { font-size: 18px; color: #2c2c2c; margin: 6px 0 3px; font-weight: 600; letter-spacing: 0.06em; }
-  .header .sub { font-size: 11px; color: #999; }
+  .header { text-align: center; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 2px solid #b8860b; }
+  .header .xi { font-size: 36px; color: #b8860b; margin-bottom: 4px; }
+  .header h1 { font-size: 20px; color: #2c2c2c; margin: 6px 0 4px; font-weight: 600; letter-spacing: 0.08em; }
+  .header .sub { font-size: 12px; color: #999; }
 
-  .stats { display: flex; gap: 16px; justify-content: center; margin-bottom: 16px; }
-  .stat { text-align: center; padding: 8px 20px; border: 1px solid #e8e4dd; border-radius: 8px; background: #fdf6e3; }
-  .stat .num { font-size: 24px; font-weight: 700; color: #b8860b; }
-  .stat .label { font-size: 11px; color: #999; margin-top: 2px; }
+  .stats { display: flex; gap: 16px; justify-content: center; margin-bottom: 16px; flex-wrap: wrap; }
+  .stat { text-align: center; padding: 10px 24px; border: 1px solid #e8e4dd; border-radius: 10px; background: #fdf6e3; min-width: 100px; }
+  .stat .num { font-size: 28px; font-weight: 700; color: #b8860b; }
+  .stat .label { font-size: 12px; color: #999; margin-top: 2px; }
 
-  .rsvp-row { display: flex; align-items: flex-start; padding: 10px 0; border-bottom: 1px solid #eee; page-break-inside: avoid; }
-  .rsvp-row:last-child { border-bottom: none; }
-  .row-num { width: 28px; height: 28px; border-radius: 50%; background: #b8860b; color: #fff; font-size: 12px; font-weight: 600; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-right: 12px; margin-top: 2px; }
-  .row-body { flex: 1; min-width: 0; }
-  .row-main { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-  .row-main .field { font-size: 14px; color: #2c2c2c; }
-  .row-main .field.name { font-weight: 600; font-size: 15px; color: #b8860b; min-width: 80px; }
-  .row-main .badge { display: inline-block; padding: 1px 10px; border-radius: 12px; font-size: 12px; background: #fdf6e3; border: 1px solid rgba(184,134,11,0.3); color: #8b6914; }
-  .row-sub { display: flex; align-items: center; gap: 12px; margin-top: 4px; flex-wrap: wrap; }
-  .row-sub .msg { font-size: 12px; color: #666; max-width: 500px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .row-sub .code { font-size: 13px; color: #b8860b; font-family: monospace; letter-spacing: 0.08em; font-weight: 600; }
-  .row-sub .time { font-size: 11px; color: #bbb; margin-left: auto; }
+  .transport-stats { display: flex; gap: 8px; justify-content: center; margin-bottom: 20px; flex-wrap: wrap; }
+  .stat-tag { display: inline-block; padding: 4px 14px; border-radius: 20px; font-size: 12px; background: #f5f0e8; border: 1px solid #e0d8cc; color: #6b4c3b; }
 
-  .footer { text-align: center; margin-top: 16px; padding-top: 10px; border-top: 1px solid #e8e4dd; color: #ccc; font-size: 11px; }
+  table { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
+  thead th { padding: 10px 12px; text-align: left; font-size: 12px; font-weight: 600; color: #666; border-bottom: 2px solid #ddd; background: #faf8f5; }
+  tbody td { padding: 9px 12px; font-size: 13px; border-bottom: 1px solid #eee; vertical-align: top; }
+  tbody tr:last-child td { border-bottom: none; }
+  .cell-name { font-weight: 600; color: #b8860b; font-size: 14px; }
+  .cell-guests { text-align: center; }
+  .cell-msg { font-size: 12px; color: #888; max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .cell-code { font-family: monospace; color: #b8860b; letter-spacing: 0.05em; font-size: 12px; }
+  .cell-time { font-size: 11px; color: #bbb; }
+
+  .footer { text-align: center; margin-top: 20px; padding-top: 12px; border-top: 1px solid #e8e4dd; color: #ccc; font-size: 11px; }
 </style>
 </head>
 <body>
@@ -547,12 +556,16 @@
     <div class="stat"><div class="num">${data.length}</div><div class="label">回执总数</div></div>
     <div class="stat"><div class="num">${totalGuests}</div><div class="label">出席总人数</div></div>
   </div>
-  <div class="rsvp-list">${rowsHtml}</div>
+  <div class="transport-stats">${transportHtml}</div>
+  <table>
+    <thead><tr><th style="width:36px">#</th><th>姓名</th><th>电话</th><th style="width:50px">人数</th><th>到达时间</th><th>出行方式</th><th>留言</th><th>参与码</th><th>提交时间</th></tr></thead>
+    <tbody>${data.map((r, i) => `<tr><td>${i+1}</td><td class="cell-name">${esc(r.name)}</td><td>${esc(r.phone)}</td><td class="cell-guests">${r.guests}</td><td>${esc(r.arrival_time || '-')}</td><td>${esc(r.transport || '-')}</td><td class="cell-msg" title="${esc(r.message || '')}">${esc(r.message || '-')}</td><td class="cell-code">${esc(r.participation_code || '-')}</td><td class="cell-time">${r.created_at ? r.created_at.slice(0, 16).replace('T', ' ') : ''}</td></tr>`).join('')}</tbody>
+  </table>
   <div class="footer">囍 · 光影婚礼墙 · 请在打印设置中取消勾选「页眉和页脚」以获得最佳效果</div>
 </body>
 </html>`);
       printWindow.document.close();
-      setTimeout(() => printWindow.print(), 400);
+      setTimeout(() => printWindow.print(), 500);
     }
 
     // Songs Management
