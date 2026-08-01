@@ -745,7 +745,7 @@
     const base = siteUrl || window.location.origin;
     const guestName = document.getElementById('guestName').textContent;
     const inviteUrl = base + '/invite.html' + (weddingSlug ? '?slug=' + weddingSlug : '') + (guestName && guestName !== '嘉宾' ? '&guest=' + encodeURIComponent(guestName) : '');
-    const weddingUrl = base + '/w/' + (weddingSlug || '');
+    const weddingUrl = base + '/w/' + (weddingSlug || '') + '?direct=1';
     generateQR('qrInvite', inviteUrl);
     generateQR('qrWedding', weddingUrl);
 

@@ -466,7 +466,7 @@ export async function onRequest(context) {
       document.getElementById('loading-screen').style.opacity = '0';
       setTimeout(() => {
         document.getElementById('loading-screen').style.display = 'none';
-        showGallery();
+        document.getElementById('rsvp-screen').classList.remove('hidden');
       }, 600);
     }
     function showInviteCard() {
