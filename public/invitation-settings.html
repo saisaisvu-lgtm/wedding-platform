@@ -685,8 +685,8 @@
     try {
       const res = await fetch(`${API_BASE}/api/me`, { credentials: 'include' });
       const json = await res.json();
-      if (json.ok && json.slug) {
-        userSlug = json.slug;
+      if (json.ok && json.user && json.user.slug) {
+        userSlug = json.user.slug;
         updatePreviewUrl();
       }
     } catch {
@@ -938,10 +938,11 @@
 
   // ====== 预览 ======
   window.previewInvitation = function() {
-    const url = userSlug
-      ? `/w/${userSlug}`
-      : `/invite.html?slug=demo`;
-    window.open(url, '_blank');
+    if (userSlug) {
+      window.open(`/w/${userSlug}`, '_blank');
+    } else {
+      showToast('请先保存婚礼信息后再预览', true);
+    }
   };
 
   // ====== 复制链接 ======
