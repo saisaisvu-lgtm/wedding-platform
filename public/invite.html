@@ -391,14 +391,14 @@
   }
   @media print {
     * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
-    html, body { background: #f5e6d0 !important; margin: 0 !important; padding: 0 !important; min-height: auto !important; width: 100% !important; }
+    html, body { background: #f5e6d0 !important; margin: 0 !important; padding: 0 !important; min-height: auto !important; width: 100% !important; height: 100% !important; overflow: hidden !important; }
     .petal-scatter, .loading-mask, .action-bar, .toast-msg, body::before { display: none !important; }
-    #captureArea { max-width: none !important; width: 100% !important; }
-    .cards-container { flex-direction: row !important; flex-wrap: nowrap !important; gap: 16px !important; justify-content: center !important; align-items: stretch !important; }
-    .card-left, .card-center, .card-right { width: 320px !important; max-width: none !important; flex-shrink: 0 !important; }
-    .card { box-shadow: 0 2px 8px rgba(107,76,59,0.12) !important; break-inside: avoid !important; border-radius: 14px !important; }
+    #captureArea { max-width: none !important; width: 100% !important; transform: scale(0.7) !important; transform-origin: top center !important; }
+    .cards-container { flex-direction: row !important; flex-wrap: nowrap !important; gap: 12px !important; justify-content: center !important; align-items: stretch !important; }
+    .card-left, .card-center, .card-right { width: 280px !important; max-width: none !important; flex-shrink: 0 !important; }
+    .card { box-shadow: 0 2px 8px rgba(107,76,59,0.12) !important; break-inside: avoid !important; border-radius: 14px !important; padding: 20px 16px 16px !important; }
     .firework { animation: none !important; }
-    @page { size: A4 landscape; margin: 8mm; }
+    @page { size: A4 landscape; margin: 5mm; }
   }
 </style>
 </head>
