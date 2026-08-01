@@ -360,11 +360,13 @@ export async function onRequest(context) {
         document.title = '囍 · ' + WEDDING.couple_name;
         // Update countdown
         if (WEDDING.wedding_date) {
-          const d = new Date(WEDDING.wedding_date + 'T00:00:00');
+          const datePart = WEDDING.wedding_date.split(' ')[0];
+          const timePart = WEDDING.wedding_date.includes(' ') ? WEDDING.wedding_date.split(' ')[1] : '00:00';
+          const d = new Date(datePart + 'T' + timePart);
           document.getElementById('cd-date-label').textContent = '距离婚礼 · ' + WEDDING.wedding_date;
-          const dp = WEDDING.wedding_date.split('-');
+          const dp = datePart.split('-');
           document.getElementById('save-date-num').textContent = dp[0] + '.' + dp[1] + '.' + dp[2];
-          const target = new Date(WEDDING.wedding_date + 'T11:58:00').getTime();
+          const target = d.getTime();
           function tickCd() {
             const diff = target - Date.now();
             if (diff <= 0) { document.getElementById('cd-days').textContent = '0'; document.getElementById('cd-hours').textContent = '00'; document.getElementById('cd-mins').textContent = '00'; document.getElementById('cd-secs').textContent = '00'; return; }
