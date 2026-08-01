@@ -531,11 +531,25 @@ export async function onRequest(context) {
       var tip = card.parentElement.lastElementChild;
       if (actions) actions.style.display = 'none';
       if (tip) tip.style.display = 'none';
-      html2canvas(card, { backgroundColor: '#fff5f8', scale: 3, useCORS: true, allowTaint: true, logging: false }).then(function(canvas) {
+      var crossImgs = card.querySelectorAll('img[crossorigin]');
+      var placeholders = [];
+      crossImgs.forEach(function(img) {
+        var ph = document.createElement('div');
+        ph.style.cssText = 'width:' + img.offsetWidth + 'px;height:' + img.offsetHeight + 'px;background:linear-gradient(135deg,#fce4ec,#f3e5f5);border-radius:inherit;display:flex;align-items:center;justify-content:center;font-size:2rem;opacity:0.5';
+        ph.textContent = '\u{1f492}';
+        img.parentNode.replaceChild(ph, img);
+        placeholders.push({ ph: ph, img: img });
+      });
+      html2canvas(card, { backgroundColor: '#fff5f8', scale: 3, useCORS: false, allowTaint: false, logging: false }).then(function(canvas) {
+        placeholders.forEach(function(p) { p.ph.parentNode.replaceChild(p.img, p.ph); });
         if (actions) actions.style.display = '';
         if (tip) tip.style.display = '';
         var dataUrl;
-        try { dataUrl = canvas.toDataURL('image/png'); } catch(e) { dataUrl = canvas.toDataURL('image/jpeg', 0.95); }
+        try { dataUrl = canvas.toDataURL('image/png'); } catch(e) {
+          try { dataUrl = canvas.toDataURL('image/jpeg', 0.92); } catch(e2) {
+            alert('\u4fdd\u5b58\u5931\u8d25'); btn.disabled = false; btn.textContent = '\u{1f4be} \u4fdd\u5b58\u8bf7\u5e16'; return;
+          }
+        }
         if (navigator.share && /mobile|android|iphone|ipad/i.test(navigator.userAgent)) {
           try {
             var arr = dataUrl.split(',');
@@ -568,6 +582,7 @@ export async function onRequest(context) {
         document.body.removeChild(a);
         btn.disabled = false; btn.textContent = '\u{1f4be} \u4fdd\u5b58\u8bf7\u5e16';
       }).catch(function() {
+        placeholders.forEach(function(p) { p.ph.parentNode.replaceChild(p.img, p.ph); });
         if (actions) actions.style.display = '';
         if (tip) tip.style.display = '';
         alert('\u4fdd\u5b58\u5931\u8d25\uff0c\u8bf7\u622a\u56fe\u4fdd\u5b58');
