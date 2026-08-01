@@ -941,7 +941,8 @@
 
   // ====== 预览 ======
   window.previewInvitation = function() {
-    window.open('/invite.html', '_blank');
+    const url = document.getElementById('previewUrl').textContent;
+    window.open(url, '_blank');
   };
 
   // ====== 复制链接 ======
