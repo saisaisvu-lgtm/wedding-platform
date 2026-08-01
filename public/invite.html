@@ -435,6 +435,11 @@
           <div style="font-size: 0.6rem; color: var(--text-light); margin-top: 3px; letter-spacing: 1px;">扫码进入婚礼现场</div>
         </div>
       </div>
+      <div id="participationCodeSection" style="margin-top: 14px; text-align: center; display: none;">
+        <div style="font-size: 0.65rem; color: var(--text-light); letter-spacing: 2px; margin-bottom: 4px;">🎫 参与码</div>
+        <div id="participationCode" style="font-family: 'Poppins', monospace; font-size: 1.5rem; font-weight: 600; color: var(--wine-red); letter-spacing: 6px; text-shadow: 1px 1px 2px rgba(139,34,82,0.1);"></div>
+        <div style="font-size: 0.55rem; color: var(--text-light); margin-top: 3px; letter-spacing: 1px;">请截图保存 · 现场签到出示</div>
+      </div>
     </div>
 
     <!-- 中卡 -->
@@ -748,6 +753,15 @@
     const weddingUrl = base + '/w/' + (weddingSlug || '') + '?direct=1';
     generateQR('qrInvite', inviteUrl);
     generateQR('qrWedding', weddingUrl);
+
+    // 显示参与码（从 URL 参数或 localStorage 读取）
+    const codeFromUrl = params.get('code');
+    const codeFromStorage = localStorage.getItem('rsvp_participation_code_' + (weddingSlug || ''));
+    const participationCode = codeFromUrl || codeFromStorage;
+    if (participationCode) {
+      document.getElementById('participationCode').textContent = participationCode;
+      document.getElementById('participationCodeSection').style.display = 'block';
+    }
 
     const mask = document.getElementById('loadingMask');
     if (mask) { mask.classList.add('hidden'); setTimeout(() => mask.remove(), 600); }

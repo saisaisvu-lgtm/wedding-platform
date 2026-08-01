@@ -3148,6 +3148,8 @@
             // 显示参与码
             if (data.participation_code) {
               document.getElementById('invite-participation-code').textContent = data.participation_code;
+              // 存储参与码到 localStorage，供 invite.html 页面读取
+              try { localStorage.setItem('rsvp_participation_code_' + SLUG, data.participation_code); } catch(e) {}
             }
             setTimeout(() => showInviteCard(), 1200);
           } else {
