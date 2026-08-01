@@ -118,8 +118,11 @@
   }
   .card-left .call-to-action {
     font-family: 'Ma Shan Zheng', cursive;
-    font-size: 2.2rem; color: var(--wine-red);
+    font-size: clamp(1.2rem, 5vw, 2.2rem); color: var(--wine-red);
     margin-bottom: 8px; text-shadow: 1px 1px 3px rgba(139,34,82,0.15);
+    max-width: 100%; padding: 0 8px; box-sizing: border-box;
+    word-break: keep-all; overflow-wrap: break-word;
+    line-height: 1.3;
   }
   .card-left .call-to-action::before,
   .card-left .call-to-action::after {
@@ -136,7 +139,10 @@
   .flower:nth-child(5) { background: var(--soft-pink); width: 13px; height: 13px; }
   .married-text {
     font-family: 'Dancing Script', cursive;
-    font-size: 1.5rem; color: var(--gold); letter-spacing: 4px; margin-top: 10px;
+    font-size: clamp(0.9rem, 3vw, 1.5rem); color: var(--gold); letter-spacing: 4px; margin-top: 10px;
+    max-width: 100%; padding: 0 8px; box-sizing: border-box;
+    word-break: keep-all; overflow-wrap: break-word;
+    line-height: 1.3;
   }
 
   /* 中卡 */
