@@ -743,7 +743,8 @@
 
     // 生成 QR codes
     const base = siteUrl || window.location.origin;
-    const inviteUrl = base + '/invite.html' + (weddingSlug ? '?slug=' + weddingSlug : '');
+    const guestName = document.getElementById('guestName').textContent;
+    const inviteUrl = base + '/invite.html' + (weddingSlug ? '?slug=' + weddingSlug : '') + (guestName && guestName !== '嘉宾' ? '&guest=' + encodeURIComponent(guestName) : '');
     const weddingUrl = base + '/w/' + (weddingSlug || '');
     generateQR('qrInvite', inviteUrl);
     generateQR('qrWedding', weddingUrl);
