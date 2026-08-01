@@ -195,12 +195,22 @@
     border-radius: 10px; margin: 8px 0; position: relative; overflow: hidden;
     box-shadow: 0 2px 8px rgba(0,0,0,0.12);
     cursor: pointer; transition: transform 0.2s;
+    background: #f5edd6;
   }
   .map-area:active { transform: scale(0.98); }
-  .map-area .map-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; border-radius: 10px; }
-  .map-area .map-overlay { position: absolute; bottom: 0; left: 0; right: 0; z-index: 2; text-align: center; background: linear-gradient(transparent, rgba(255,255,255,0.95)); padding: 20px 16px 10px; }
-  .map-area .map-overlay .venue-name { font-family: 'ZCOOL KuaiLe', cursive; font-size: 0.85rem; color: var(--ink-green); }
-  .map-area .map-overlay .nav-text { font-size: 0.65rem; color: var(--text-light); margin-top: 2px; letter-spacing: 1px; }
+  .css-map { position: absolute; inset: 0; }
+  .css-map .road { position: absolute; background: #e8dcc8; }
+  .css-map .road-h { height: 3px; left: 0; right: 0; }
+  .css-map .road-v { width: 3px; top: 0; bottom: 0; }
+  .css-map .road-main { background: #e8c88a; height: 5px; }
+  .css-map .road-main-v { background: #e8c88a; width: 5px; }
+  .css-map .block { position: absolute; background: #f0e8d4; border-radius: 3px; }
+  .css-map .label { position: absolute; font-size: 8px; color: #b8a88a; font-family: sans-serif; white-space: nowrap; }
+  .map-pin-center { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -80%); z-index: 3; font-size: 2rem; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3)); animation: pinBounce 2s ease-in-out infinite; }
+  @keyframes pinBounce { 0%,100%{transform:translate(-50%,-80%)} 50%{transform:translate(-50%,-90%)} }
+  .map-overlay { position: absolute; bottom: 0; left: 0; right: 0; z-index: 2; text-align: center; background: linear-gradient(transparent, rgba(255,255,255,0.95)); padding: 20px 16px 10px; }
+  .map-overlay .venue-name { font-family: 'ZCOOL KuaiLe', cursive; font-size: 0.85rem; color: var(--ink-green); }
+  .map-overlay .nav-text { font-size: 0.65rem; color: var(--text-light); margin-top: 2px; letter-spacing: 1px; }
   .map-area .map-pin-center { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -80%); z-index: 3; font-size: 2rem; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3)); animation: pinBounce 2s ease-in-out infinite; }
   @keyframes pinBounce { 0%,100%{transform:translate(-50%,-80%)} 50%{transform:translate(-50%,-90%)} }
   .map-pin { position: relative; z-index: 1; text-align: center; }
@@ -468,7 +478,36 @@
       <div class="spacer"></div>
 
       <div class="map-area" id="mapArea" onclick="openMap()">
-        <img class="map-img" id="mapImg" src="/map-bg.jpg" alt="map">
+        <div class="css-map">
+          <div class="road road-h" style="top:20%"></div>
+          <div class="road road-h road-main" style="top:45%"></div>
+          <div class="road road-h" style="top:70%"></div>
+          <div class="road road-h" style="top:85%"></div>
+          <div class="road road-v" style="left:15%"></div>
+          <div class="road road-v" style="left:35%"></div>
+          <div class="road road-v road-main-v" style="left:55%"></div>
+          <div class="road road-v" style="left:75%"></div>
+          <div class="road road-v" style="left:90%"></div>
+          <div class="block" style="top:5%;left:5%;width:22%;height:12%"></div>
+          <div class="block" style="top:5%;left:40%;width:12%;height:12%"></div>
+          <div class="block" style="top:5%;left:60%;width:12%;height:12%"></div>
+          <div class="block" style="top:25%;left:5%;width:8%;height:15%"></div>
+          <div class="block" style="top:25%;left:20%;width:12%;height:15%"></div>
+          <div class="block" style="top:25%;left:40%;width:12%;height:15%"></div>
+          <div class="block" style="top:25%;left:60%;width:12%;height:15%"></div>
+          <div class="block" style="top:25%;left:80%;width:8%;height:15%"></div>
+          <div class="block" style="top:50%;left:5%;width:18%;height:15%"></div>
+          <div class="block" style="top:50%;left:28%;width:10%;height:15%"></div>
+          <div class="block" style="top:50%;left:60%;width:12%;height:15%"></div>
+          <div class="block" style="top:50%;left:80%;width:8%;height:15%"></div>
+          <div class="block" style="top:75%;left:5%;width:25%;height:8%"></div>
+          <div class="block" style="top:75%;left:40%;width:15%;height:8%"></div>
+          <div class="block" style="top:75%;left:62%;width:10%;height:8%"></div>
+          <div class="block" style="top:75%;left:80%;width:8%;height:8%"></div>
+          <div class="label" style="top:8%;left:8%">车夫山镇</div>
+          <div class="label" style="top:55%;left:62%">邳州</div>
+          <div class="label" style="top:30%;left:62%">徐州</div>
+        </div>
         <div class="map-pin-center">📍</div>
         <div class="map-overlay">
           <div class="venue-name" id="venueName">婚礼场地</div>
