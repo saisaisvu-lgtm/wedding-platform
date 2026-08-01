@@ -358,6 +358,8 @@ export async function onRequest(context) {
           WEDDING._songs = data.songs || [];
           PHOTOS = data.images.gallery.map(img => ({ src: img.url, label: img.filename, quote: '' }));
           AVATARS = data.images.avatars.map(img => img.url);
+          document.getElementById('loading-screen').style.display = 'none';
+          document.getElementById('rsvp-screen').classList.add('hidden');
           buildGridwall();
           buildMagazine();
           showGallery();
