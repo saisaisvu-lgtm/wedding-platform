@@ -598,11 +598,11 @@
     btn.disabled = true;
     btn.textContent = '⏳ 生成中...';
     try {
-      const area = document.getElementById('captureArea');
+      const area = document.querySelector('.cards-container');
       const canvas = await html2canvas(area, {
         scale: 2,
         useCORS: true,
-        backgroundColor: '#fdf6ee',
+        backgroundColor: '#f5e6d0',
         logging: false
       });
       const link = document.createElement('a');
