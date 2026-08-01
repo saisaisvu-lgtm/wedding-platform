@@ -191,18 +191,17 @@
     font-size: 1.1rem; color: var(--wine-red); margin-bottom: 10px;
   }
   .map-area {
-    width: 100%; height: 95px;
+    width: 100%; height: 120px;
     background: linear-gradient(135deg, #e8f5e9, #f1f8e9);
     border-radius: 10px; margin: 8px 0; position: relative; overflow: hidden;
     display: flex; align-items: center; justify-content: center;
     box-shadow: inset 0 1px 4px rgba(0,0,0,0.05);
+    cursor: pointer; transition: transform 0.2s;
   }
-  .map-area::before {
-    content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
-    background-image:
-      repeating-linear-gradient(0deg, transparent, transparent 20px, rgba(58,90,64,0.06) 20px, rgba(58,90,64,0.06) 21px),
-      repeating-linear-gradient(90deg, transparent, transparent 20px, rgba(58,90,64,0.06) 20px, rgba(58,90,64,0.06) 21px);
-  }
+  .map-area:active { transform: scale(0.98); }
+  .map-area .map-preview { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; border-radius: 10px; opacity: 0.85; }
+  .map-area .map-overlay { position: relative; z-index: 2; text-align: center; background: rgba(255,255,255,0.92); padding: 8px 16px; border-radius: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+  .map-area .map-overlay .nav-text { font-size: 0.65rem; color: var(--ink-green); margin-top: 2px; font-weight: 600; letter-spacing: 1px; }
   .map-pin { position: relative; z-index: 1; text-align: center; }
   .map-pin .pin-icon { font-size: 2rem; }
   .map-pin .venue-name {
@@ -467,10 +466,12 @@
 
       <div class="spacer"></div>
 
-      <div class="map-area">
-        <div class="map-pin">
-          <div class="pin-icon">📍</div>
+      <div class="map-area" id="mapArea" onclick="openMap()">
+        <img class="map-preview" id="mapPreview" src="" alt="map" style="display:none;">
+        <div class="map-overlay">
+          <div class="nav-icon">📍</div>
           <div class="venue-name" id="venueName">婚礼场地</div>
+          <div class="nav-text">点击导航 · 高德地图</div>
         </div>
       </div>
       <div class="venue-address" id="venueAddress"></div>
@@ -697,6 +698,18 @@
 
     if (data.wedding_venue) document.getElementById('venueName').textContent = data.wedding_venue;
     if (data.venue_address) document.getElementById('venueAddress').textContent = data.venue_address;
+    if (data.venue_map_url || data.wedding_venue) {
+      var mapArea = document.getElementById('mapArea');
+      var mapPreview = document.getElementById('mapPreview');
+      mapArea.setAttribute('data-url', data.venue_map_url || '');
+      mapArea.setAttribute('data-venue', data.wedding_venue || '');
+      mapArea.setAttribute('data-address', data.venue_address || '');
+      if (data.venue_address) {
+        mapPreview.src = 'https://restapi.amap.com/v3/staticmap?zoom=15&size=600*240&markers=mid,,:A&key=ce45d72292afc4484f7016c776d3a2e3';
+        mapPreview.style.display = 'block';
+        mapPreview.onerror = function() { this.style.display = 'none'; };
+      }
+    }
 
     if (data.theme_color) {
       document.documentElement.style.setProperty('--theme-color', data.theme_color);
@@ -835,6 +848,15 @@
 
   init();
 })();
+
+    function openMap() {
+      var mapArea = document.getElementById('mapArea');
+      var url = mapArea.getAttribute('data-url');
+      var venue = mapArea.getAttribute('data-venue') || '';
+      var address = mapArea.getAttribute('data-address') || '';
+      if (url) { window.open(url, '_blank'); return; }
+      window.open('https://uri.amap.com/search?keyword=' + encodeURIComponent(address || venue), '_blank');
+    }
 </script>
 
 </body>
