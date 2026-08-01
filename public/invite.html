@@ -390,10 +390,14 @@
     .action-bar { flex-direction: column; align-items: center; }
   }
   @media print {
-    body { background: #fff; padding: 10px; }
-    .card { box-shadow: 0 0 1px rgba(0,0,0,0.2); break-inside: avoid; }
-    .firework { animation: none; }
-    .loading-mask, .action-bar, .toast-msg { display: none; }
+    body { background: #f5e6d0 !important; padding: 20px !important; min-height: auto !important; }
+    .card { box-shadow: 0 2px 8px rgba(107,76,59,0.15) !important; break-inside: avoid; border-radius: 14px !important; }
+    .cards-container { flex-direction: column !important; align-items: center !important; gap: 20px !important; }
+    .card-left, .card-center, .card-right { width: 100% !important; max-width: 400px !important; }
+    .firework { animation: none !important; }
+    .petal-scatter { display: none !important; }
+    .loading-mask, .action-bar, .toast-msg { display: none !important; }
+    @page { margin: 10mm; size: A4 portrait; }
   }
 </style>
 </head>
@@ -600,22 +604,19 @@
 
   // ====== 保存图片 ======
   document.getElementById('btnSaveImg').addEventListener('click', async function() {
+    var isMobile = /mobile|android|iphone|ipad/i.test(navigator.userAgent);
+    if (isMobile) {
+      window.print();
+      return;
+    }
     const btn = this;
     btn.disabled = true;
     btn.textContent = '\u23f3 \u751f\u6210\u4e2d...';
     try {
       const area = document.querySelector('.cards-container');
-      var origDir = area.style.flexDirection;
-      var origGap = area.style.gap;
-      if (/mobile|android|iphone|ipad/i.test(navigator.userAgent) || window.innerWidth <= 1100) {
-        area.style.flexDirection = 'column';
-        area.style.gap = '16px';
-      }
       const rawCanvas = await html2canvas(area, {
-        scale: 2, useCORS: false, allowTaint: false, backgroundColor: '#f5e6d0', logging: false
+        scale: 2, useCORS: true, backgroundColor: '#f5e6d0', logging: false
       });
-      area.style.flexDirection = origDir;
-      area.style.gap = origGap;
       const pad = 60, frameW = 4, totalPad = pad + frameW;
       const w = rawCanvas.width + totalPad * 2, h = rawCanvas.height + totalPad * 2;
       const fc = document.createElement('canvas');
@@ -653,42 +654,16 @@
       drawCF(x+28,y+bh-28,1.2); drawCF(x+bw-28,y+bh-28,1.2);
       ctx.font = '28px serif'; ctx.fillStyle = 'rgba(201,169,110,0.5)';
       ctx.textAlign = 'center'; ctx.fillText('\u56df', w/2, y+26);
-      var dataUrl;
-      try { dataUrl = fc.toDataURL('image/png'); } catch(e) {
-        try { dataUrl = fc.toDataURL('image/jpeg', 0.92); } catch(e2) {
-          showToast('\u274c \u4fdd\u5b58\u5931\u8d25');
-          btn.disabled = false; btn.textContent = '\ud83d\udce5 \u4fdd\u5b58\u4e3a\u56fe\u7247'; return;
-        }
-      }
-      if (/mobile|android|iphone|ipad/i.test(navigator.userAgent)) {
-        try {
-          var arr = dataUrl.split(','), mime = arr[0].match(/:(.*?);/)[1];
-          var bstr = atob(arr[1]), n = bstr.length, u8 = new Uint8Array(n);
-          while (n--) u8[n] = bstr.charCodeAt(n);
-          var blob = new Blob([u8], {type: mime});
-          var ext = mime === 'image/jpeg' ? '.jpg' : '.png';
-          var file = new File([blob], 'wedding-invitation'+ext, {type: mime});
-          if (navigator.canShare && navigator.canShare({files:[file]})) {
-            navigator.share({files:[file], title:'\u5a5a\u793c\u8bf7\u5e16'}).catch(function(){});
-            showToast('\u2705 \u56fe\u7247\u5df2\u751f\u6210');
-            btn.disabled = false; btn.textContent = '\ud83d\udce5 \u4fdd\u5b58\u4e3a\u56fe\u7247'; return;
-          }
-        } catch(e) {}
-        var w2 = window.open('');
-        if (w2) {
-          w2.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>\u4fdd\u5b58\u8bf7\u5e16</title><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"></head><body style="margin:0;background:#f5e6d0;padding:16px;text-align:center"><img src="'+dataUrl+'" style="max-width:100%;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,0.15)"><p style="font-family:sans-serif;color:#8b6914;margin-top:16px;font-size:15px">\ud83d\udc46 \u957f\u6309\u56fe\u7247\u4fdd\u5b58\u5230\u76f8\u518c</p></body></html>');
-          showToast('\u2705 \u56fe\u7247\u5df2\u751f\u6210');
-          btn.disabled = false; btn.textContent = '\ud83d\udce5 \u4fdd\u5b58\u4e3a\u56fe\u7247'; return;
-        }
-      }
       var link = document.createElement('a');
-      link.download = 'wedding-invitation.png'; link.href = dataUrl;
+      link.download = 'wedding-invitation.png';
+      link.href = fc.toDataURL('image/png');
       document.body.appendChild(link); link.click(); document.body.removeChild(link);
       showToast('\u2705 \u56fe\u7247\u5df2\u4fdd\u5b58');
     } catch (e) {
       showToast('\u274c \u4fdd\u5b58\u5931\u8d25: ' + e.message);
     } finally {
-      btn.disabled = false; btn.textContent = '\ud83d\udce5 \u4fdd\u5b58\u4e3a\u56fe\u7247';
+      btn.disabled = false;
+      btn.textContent = '\ud83d\udce5 \u4fdd\u5b58\u4e3a\u56fe\u7247';
     }
   });
 
