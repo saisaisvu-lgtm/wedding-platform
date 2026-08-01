@@ -522,39 +522,58 @@ export async function onRequest(context) {
     }
 
     window.saveInvite = function() {
-      const card = document.getElementById('invite-card');
-      const btn = document.getElementById('btn-invite-save');
-      if (typeof html2canvas !== 'function') { alert('保存功能加载中'); return; }
+      var card = document.getElementById('invite-card');
+      var btn = document.getElementById('btn-invite-save');
+      if (typeof html2canvas !== 'function') { alert('\u4fdd\u5b58\u529f\u80fd\u52a0\u8f7d\u4e2d'); return; }
       btn.disabled = true;
-      btn.textContent = '生成中...';
-      html2canvas(card, { backgroundColor: '#fff5f8', scale: 3, useCORS: true, allowTaint: true }).then(canvas => {
-        canvas.toBlob(function(blob) {
-          if (!blob) { btn.disabled = false; btn.textContent = '\u{1f4be} 保存请帖'; return; }
-          if (navigator.share && navigator.canShare) {
-            var file = new File([blob], 'wedding-invitation.png', { type: 'image/png' });
-            if (navigator.canShare({ files: [file] })) {
-              navigator.share({ files: [file], title: '婚礼请帖' }).catch(function(){});
-              btn.disabled = false;
-              btn.textContent = '\u{1f4be} 保存请帖';
+      btn.textContent = '\u751f\u6210\u4e2d...';
+      var actions = card.parentElement.querySelector('.invite-actions');
+      var tip = card.parentElement.lastElementChild;
+      if (actions) actions.style.display = 'none';
+      if (tip) tip.style.display = 'none';
+      html2canvas(card, { backgroundColor: '#fff5f8', scale: 3, useCORS: true, allowTaint: true, logging: false }).then(function(canvas) {
+        if (actions) actions.style.display = '';
+        if (tip) tip.style.display = '';
+        var dataUrl;
+        try { dataUrl = canvas.toDataURL('image/png'); } catch(e) { dataUrl = canvas.toDataURL('image/jpeg', 0.95); }
+        if (navigator.share && /mobile|android|iphone|ipad/i.test(navigator.userAgent)) {
+          try {
+            var arr = dataUrl.split(',');
+            var mime = arr[0].match(/:(.*?);/)[1];
+            var bstr = atob(arr[1]);
+            var n = bstr.length;
+            var u8 = new Uint8Array(n);
+            while (n--) u8[n] = bstr.charCodeAt(n);
+            var blob = new Blob([u8], { type: mime });
+            var ext = mime === 'image/jpeg' ? '.jpg' : '.png';
+            var file = new File([blob], 'wedding-invitation' + ext, { type: mime });
+            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+              navigator.share({ files: [file], title: '\u5a5a\u793c\u8bf7\u5e16' }).catch(function(){});
+              btn.disabled = false; btn.textContent = '\u{1f4be} \u4fdd\u5b58\u8bf7\u5e16';
               return;
             }
-          }
-          var url = URL.createObjectURL(blob);
-          var w = window.open('');
-          if (w) {
-            w.document.write('<html><head><title>保存请帖</title><meta name="viewport" content="width=device-width,initial-scale=1"></head><body style="margin:0;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;background:#f5e6d0;padding:16px"><img src="'+url+'" style="max-width:100%;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,0.15)"><p style="font-family:sans-serif;color:#8b6914;margin-top:12px;font-size:14px">\u{1f446} 长按图片保存</p></body></html>');
-          } else {
-            var a = document.createElement('a');
-            a.download = 'wedding-invitation.png';
-            a.href = url;
-            a.click();
-          }
-          btn.disabled = false;
-          btn.textContent = '\u{1f4be} 保存请帖';
-        }, 'image/png');
-      }).catch(function() { alert('保存失败'); btn.disabled = false; btn.textContent = '\u{1f4be} 保存请帖'; });
+          } catch(e) {}
+        }
+        var w = window.open('');
+        if (w) {
+          w.document.write('<!DOCTYPE html><html><head><meta charset=\"UTF-8\"><title>\u4fdd\u5b58\u8bf7\u5e16</title><meta name=\"viewport\" content=\"width=device-width,initial-scale=1,maximum-scale=1\"></head><body style=\"margin:0;display:flex;flex-direction:column;align-items:center;min-height:100vh;background:#f5e6d0;padding:20px 16px\"><img src=\"'+dataUrl+'\" style=\"max-width:100%;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,0.15)\"><p style=\"font-family:sans-serif;color:#8b6914;margin-top:16px;font-size:15px;text-align:center\">\u{1f446} \u957f\u6309\u56fe\u7247\u4fdd\u5b58\u5230\u76f8\u518c</p></body></html>');
+          btn.disabled = false; btn.textContent = '\u{1f4be} \u4fdd\u5b58\u8bf7\u5e16';
+          return;
+        }
+        var a = document.createElement('a');
+        a.download = 'wedding-invitation.png';
+        a.href = dataUrl;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        btn.disabled = false; btn.textContent = '\u{1f4be} \u4fdd\u5b58\u8bf7\u5e16';
+      }).catch(function() {
+        if (actions) actions.style.display = '';
+        if (tip) tip.style.display = '';
+        alert('\u4fdd\u5b58\u5931\u8d25\uff0c\u8bf7\u622a\u56fe\u4fdd\u5b58');
+        btn.disabled = false; btn.textContent = '\u{1f4be} \u4fdd\u5b58\u8bf7\u5e16';
+      });
     };
-
     window.enterFromInvite = function() {
       document.getElementById('invite-overlay').classList.remove('show');
       showGallery();
