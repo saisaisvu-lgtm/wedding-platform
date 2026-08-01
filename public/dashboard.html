@@ -332,7 +332,7 @@
         const transportArr = transportText ? transportText.split('\n').map(s=>s.trim()).filter(Boolean) : [];
         const res = await apiPut('/api/me', {
           partner1: document.getElementById('s_partner1').value.trim(), partner2: document.getElementById('s_partner2').value.trim(),
-          wedding_date: document.getElementById('s_wedding_date').value, wedding_venue: document.getElementById('s_wedding_venue').value.trim(),
+          wedding_date: (function(){ const d = document.getElementById('s_wedding_date').value; if(!d) return ''; const old = currentUser.wedding_date || ''; const t = old.includes(' ') ? old.split(' ')[1] : ''; return t ? d + ' ' + t : d; })(), wedding_venue: document.getElementById('s_wedding_venue').value.trim(),
           bgm_url: pendingBgmUrl || currentUser.bgm_url || '', bgm_data: pendingBgmData || '',
           arrival_options: arrivalArr, transport_options: transportArr,
         });
