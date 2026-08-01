@@ -111,7 +111,8 @@
   .card-left {
     width: 320px;
     background: linear-gradient(170deg, #fdf2e9 0%, #fce4d6 35%, #f5e6d0 100%);
-    align-items: center; justify-content: center; text-align: center;
+    align-items: center; justify-content: flex-start; text-align: center;
+    padding-top: 20px;
   }
   .card-left .call-to-action {
     font-family: 'ZCOOL KuaiLe', cursive;
@@ -131,7 +132,7 @@
   .flower:nth-child(3) { background: var(--wine-red); width: 14px; height: 14px; }
   .flower:nth-child(4) { background: var(--sky-blue); width: 16px; height: 16px; }
   .flower:nth-child(5) { background: var(--soft-pink); width: 13px; height: 13px; }
-  .card-left .married-text {
+  .married-text {
     font-family: 'Dancing Script', cursive;
     font-size: 1.5rem; color: var(--gold); letter-spacing: 4px; margin-top: 10px;
   }
@@ -406,12 +407,6 @@
 <!-- ===== 截图区域开始 ===== -->
 <div id="captureArea">
 
-  <div class="top-title">
-    <h1>喜 帖</h1>
-    <div class="sub">Wedding Invitation</div>
-    <div class="ornament">✦ ✦ ✦</div>
-  </div>
-
   <div class="cards-container">
 
     <!-- 左卡 -->
@@ -474,11 +469,6 @@
             <path d="M0 6 C0 2,-6 -2,-6 2 C-6 6,0 10,0 10 C0 10,6 6,6 2 C6 -2,0 2,0 6Z" fill="#e8a0a0"/>
           </g>
         </svg>
-      </div>
-      <div class="married-text">WE ARE MARRIED</div>
-      <div class="trees-decoration">
-        <div class="tree"></div><div class="tree"></div><div class="tree"></div>
-        <div class="tree"></div><div class="tree"></div><div class="tree"></div>
       </div>
     </div>
 
@@ -561,8 +551,13 @@
 
   </div>
 
-  <!-- To 标签 -->
+  <!-- WE ARE MARRIED + To 标签 -->
   <div style="text-align:center; margin-top: 16px;">
+    <div class="married-text" style="margin-bottom: 12px;">WE ARE MARRIED</div>
+    <div class="trees-decoration" style="margin-top: 0; margin-bottom: 14px;">
+      <div class="tree"></div><div class="tree"></div><div class="tree"></div>
+      <div class="tree"></div><div class="tree"></div><div class="tree"></div>
+    </div>
     <div class="to-tag">
       <span class="to-label">To:</span>
       <span class="to-name" id="guestName">嘉宾</span>
