@@ -346,7 +346,24 @@ export async function onRequest(context) {
     let magInterval = 4000;
 
     // ====== 加载 ======
+    const isDirect = new URLSearchParams(location.search).has('direct');
     async function init() {
+      if (isDirect) {
+        // Direct mode: load data and go straight to gallery
+        try {
+          const res = await fetch('/api/wedding/' + slug);
+          const data = await res.json();
+          if (!data.ok) return;
+          WEDDING = data.wedding;
+          WEDDING._songs = data.songs || [];
+          PHOTOS = data.images.gallery.map(img => ({ src: img.url, label: img.filename, quote: '' }));
+          AVATARS = data.images.avatars.map(img => img.url);
+          buildGridwall();
+          buildMagazine();
+          showGallery();
+          return;
+        } catch {}
+      }
       updateProgress(10);
       try {
         const res = await fetch('/api/wedding/' + slug);

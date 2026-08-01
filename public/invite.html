@@ -686,7 +686,7 @@
   // ====== 进入婚礼现场 ======
   document.getElementById('btnEnterWedding').addEventListener('click', function() {
     if (weddingSlug) {
-      window.location.href = `/w/${weddingSlug}`;
+      window.location.href = `/w/${weddingSlug}?direct=1`;
     } else {
       showToast('请通过婚礼链接访问');
     }
