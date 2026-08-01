@@ -249,7 +249,9 @@
       const res = await apiGet('/api/me');
       if (!res.ok) { window.location.href = '/login.html'; return; }
       currentUser = res.user; currentImages = res.images || []; allSongs = res.songs || [];
-      renderUser(); renderImages(); renderSongsList();
+      renderUser(); renderSongsList();
+      // 图片异步加载，不阻塞表单渲染
+      setTimeout(function() { renderImages(); }, 0);
     }
 
     function renderUser() {
