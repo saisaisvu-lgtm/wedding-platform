@@ -48,6 +48,10 @@ export async function onRequestGet(context) {
       // songs table may not exist yet
     }
 
+    // Parse JSON fields from SQLite
+    try { user.arrival_options = JSON.parse(user.arrival_options || '[]'); } catch { user.arrival_options = []; }
+    try { user.transport_options = JSON.parse(user.transport_options || '[]'); } catch { user.transport_options = []; }
+
     return Response.json({ ok: true, user, images: imagesWithUrl, songs: songsData }, { headers: corsHeaders });
 
   } catch (err) {
