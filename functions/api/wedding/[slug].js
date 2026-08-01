@@ -65,7 +65,7 @@ export async function onRequestGet(context) {
 
     // 获取头像 base64（供请帖直接使用）
     const avatar = await env.DB.prepare(
-      'SELECT data, mime_type FROM images WHERE user_id = ? AND category = ? ORDER BY sort_order LIMIT 1'
+      'SELECT data, mime_type FROM images WHERE user_id = ? AND category = ? ORDER BY sort_order DESC LIMIT 1'
     ).bind(user.id, 'avatar').first();
 
     return Response.json({

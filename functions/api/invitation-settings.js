@@ -27,12 +27,12 @@ export async function onRequestGet(context) {
 
     // 从 images 表读取头像
     const avatar = await env.DB.prepare(
-      `SELECT data, mime_type FROM images WHERE user_id = ? AND category = 'avatar' ORDER BY sort_order LIMIT 1`
+      `SELECT data, mime_type FROM images WHERE user_id = ? AND category = 'avatar' ORDER BY sort_order DESC LIMIT 1`
     ).bind(userId).first();
 
     // 从 images 表读取致谢照
     const credits = await env.DB.prepare(
-      `SELECT data, mime_type FROM images WHERE user_id = ? AND category = 'credits' ORDER BY sort_order LIMIT 1`
+      `SELECT data, mime_type FROM images WHERE user_id = ? AND category = 'credits' ORDER BY sort_order DESC LIMIT 1`
     ).bind(userId).first();
 
     // 从 invitation_settings 表读取扩展设置
