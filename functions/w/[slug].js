@@ -523,13 +523,36 @@ export async function onRequest(context) {
 
     window.saveInvite = function() {
       const card = document.getElementById('invite-card');
+      const btn = document.getElementById('btn-invite-save');
       if (typeof html2canvas !== 'function') { alert('保存功能加载中'); return; }
+      btn.disabled = true;
+      btn.textContent = '生成中...';
       html2canvas(card, { backgroundColor: '#fff5f8', scale: 3, useCORS: true, allowTaint: true }).then(canvas => {
-        const a = document.createElement('a');
-        a.download = 'wedding-invitation.png';
-        a.href = canvas.toDataURL('image/png');
-        a.click();
-      }).catch(() => alert('保存失败'));
+        canvas.toBlob(function(blob) {
+          if (!blob) { btn.disabled = false; btn.textContent = '\u{1f4be} 保存请帖'; return; }
+          if (navigator.share && navigator.canShare) {
+            var file = new File([blob], 'wedding-invitation.png', { type: 'image/png' });
+            if (navigator.canShare({ files: [file] })) {
+              navigator.share({ files: [file], title: '婚礼请帖' }).catch(function(){});
+              btn.disabled = false;
+              btn.textContent = '\u{1f4be} 保存请帖';
+              return;
+            }
+          }
+          var url = URL.createObjectURL(blob);
+          var w = window.open('');
+          if (w) {
+            w.document.write('<html><head><title>保存请帖</title><meta name="viewport" content="width=device-width,initial-scale=1"></head><body style="margin:0;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;background:#f5e6d0;padding:16px"><img src="'+url+'" style="max-width:100%;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,0.15)"><p style="font-family:sans-serif;color:#8b6914;margin-top:12px;font-size:14px">\u{1f446} 长按图片保存</p></body></html>');
+          } else {
+            var a = document.createElement('a');
+            a.download = 'wedding-invitation.png';
+            a.href = url;
+            a.click();
+          }
+          btn.disabled = false;
+          btn.textContent = '\u{1f4be} 保存请帖';
+        }, 'image/png');
+      }).catch(function() { alert('保存失败'); btn.disabled = false; btn.textContent = '\u{1f4be} 保存请帖'; });
     };
 
     window.enterFromInvite = function() {
