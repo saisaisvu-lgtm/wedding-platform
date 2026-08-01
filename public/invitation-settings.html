@@ -697,7 +697,7 @@
   function updatePreviewUrl() {
     const base = window.location.origin;
     const url = userSlug
-      ? `${base}/w/${userSlug}`
+      ? `${base}/invite.html?slug=${userSlug}`
       : `${base}/invite.html`;
     document.getElementById('previewUrl').textContent = url;
   }
@@ -938,11 +938,7 @@
 
   // ====== 预览 ======
   window.previewInvitation = function() {
-    if (userSlug) {
-      window.open(`/w/${userSlug}`, '_blank');
-    } else {
-      showToast('请先保存婚礼信息后再预览', true);
-    }
+    window.open('/invite.html', '_blank');
   };
 
   // ====== 复制链接 ======
