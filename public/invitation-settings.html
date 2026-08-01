@@ -599,7 +599,7 @@
   <!-- 图片上传 -->
   <div class="form-card">
     <h2><span class="icon">🖼️</span> 图片管理</h2>
-    <div class="card-desc">上传合照（显示在中卡照片区域）和致谢照</div>
+    <div class="card-desc">上传合照（显示在中卡照片区域），大图自动压缩</div>
 
     <div class="image-upload-area">
       <div class="image-box" id="avatarBox" onclick="document.getElementById('avatarInput').click()">
@@ -611,17 +611,6 @@
         <button class="remove-btn" onclick="event.stopPropagation(); removeImage('avatar')">✕</button>
         <div class="label-tag">合照 / 婚纱照</div>
         <input type="file" id="avatarInput" accept="image/*" style="display:none" onchange="handleImageUpload(this, 'avatar')">
-      </div>
-
-      <div class="image-box" id="creditsBox" onclick="document.getElementById('creditsInput').click()">
-        <img id="creditsPreview" src="" alt="">
-        <div class="placeholder" id="creditsPlaceholder">
-          <div class="plus">+</div>
-          <span>上传致谢照</span>
-        </div>
-        <button class="remove-btn" onclick="event.stopPropagation(); removeImage('credits')">✕</button>
-        <div class="label-tag">致谢照</div>
-        <input type="file" id="creditsInput" accept="image/*" style="display:none" onchange="handleImageUpload(this, 'credits')">
       </div>
     </div>
   </div>
@@ -646,7 +635,7 @@
   let currentData = {};
   let scheduleItems = [];
   let avatarChanged = false;
-  let creditsChanged = false;
+
   let userSlug = '';
 
   // ====== 工具函数 ======
@@ -750,11 +739,7 @@
       document.getElementById('avatarPreview').style.display = 'block';
       document.getElementById('avatarPlaceholder').style.display = 'none';
     }
-    if (data.credits_data) {
-      document.getElementById('creditsPreview').src = data.credits_data;
-      document.getElementById('creditsPreview').style.display = 'block';
-      document.getElementById('creditsPlaceholder').style.display = 'none';
-    }
+
   }
 
   // ====== 颜色 ======
@@ -818,15 +803,32 @@
     const file = input.files[0];
     if (!file) return;
 
-    // 限制 5MB
-    if (file.size > 5 * 1024 * 1024) {
-      showToast('图片不能超过 5MB', true);
+    // 限制 20MB（压缩后会自动缩小）
+    if (file.size > 20 * 1024 * 1024) {
+      showToast('图片不能超过 20MB', true);
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = function(e) {
-      const dataUrl = e.target.result;
+    const img = new Image();
+    img.onload = function() {
+      const MAX_SIZE = 1600;
+      let w = img.width, h = img.height;
+
+      // 大图等比缩放
+      if (w > MAX_SIZE || h > MAX_SIZE) {
+        if (w > h) { h = Math.round(h * MAX_SIZE / w); w = MAX_SIZE; }
+        else { w = Math.round(w * MAX_SIZE / h); h = MAX_SIZE; }
+      }
+
+      const canvas = document.createElement('canvas');
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, w, h);
+
+      // 压缩为 JPEG，质量 0.85
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+
       const preview = document.getElementById(category + 'Preview');
       const placeholder = document.getElementById(category + 'Placeholder');
       preview.src = dataUrl;
@@ -834,9 +836,8 @@
       placeholder.style.display = 'none';
 
       if (category === 'avatar') avatarChanged = true;
-      if (category === 'credits') creditsChanged = true;
     };
-    reader.readAsDataURL(file);
+    img.src = URL.createObjectURL(file);
   };
 
   window.removeImage = function(category) {
@@ -847,7 +848,6 @@
     placeholder.style.display = 'flex';
 
     if (category === 'avatar') avatarChanged = true;
-    if (category === 'credits') creditsChanged = true;
   };
 
   // ====== 保存 ======
@@ -898,13 +898,9 @@
       if (avatarChanged) {
         await uploadImage('avatar');
       }
-      if (creditsChanged) {
-        await uploadImage('credits');
-      }
 
       showToast('✅ 保存成功！');
       avatarChanged = false;
-      creditsChanged = false;
 
     } catch (err) {
       showToast('保存失败: ' + err.message, true);
