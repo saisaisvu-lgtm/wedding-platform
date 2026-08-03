@@ -286,7 +286,10 @@
 见证我们人生中最重要的时刻">诚挚邀请您出席我们的婚礼
 见证我们人生中最重要的时刻</textarea>
           </div>
-          <button class="btn btn-sm btn-outline" onclick="refreshCard()" style="margin-bottom:16px;">🔄 刷新预览</button>
+          <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;">
+            <button class="btn btn-sm btn-outline" onclick="refreshCard()">🔄 刷新预览</button>
+            <button class="btn btn-sm btn-outline" onclick="swapCardSides()">🔄 交换左右位置</button>
+          </div>
         </div>
 
         <!-- 卡片预览 -->
@@ -864,13 +867,26 @@
     };
 
     // ===== 邀请卡片 =====
+    let cardSwapped = false;
+
+    function swapCardSides() {
+      cardSwapped = !cardSwapped;
+      refreshCard();
+    }
+
     function refreshCard() {
       if (!currentUser) return;
       const wrap = document.getElementById('inviteCardWrap');
-      const p1 = currentUser.partner1 || '新郎';
-      const p2 = currentUser.partner2 || '新娘';
-      const p1en = (currentUser.partner1_en || p1).toUpperCase();
-      const p2en = (currentUser.partner2_en || p2).toUpperCase();
+      let p1 = currentUser.partner1 || '新郎';
+      let p2 = currentUser.partner2 || '新娘';
+      let p1en = (currentUser.partner1_en || p1).toUpperCase();
+      let p2en = (currentUser.partner2_en || p2).toUpperCase();
+
+      // 交换位置
+      if (cardSwapped) {
+        [p1, p2] = [p2, p1];
+        [p1en, p2en] = [p2en, p1en];
+      }
 
       // 日期格式化
       let dateStr = '';
@@ -887,8 +903,9 @@
 
       // 头像
       const avatarImgs = (currentImages || []).filter(i => i.category === 'avatar');
-      const av1Src = avatarImgs.length > 0 ? avatarImgs[0].url : '';
-      const av2Src = avatarImgs.length > 1 ? avatarImgs[1].url : av1Src;
+      let av1Src = avatarImgs.length > 0 ? avatarImgs[0].url : '';
+      let av2Src = avatarImgs.length > 1 ? avatarImgs[1].url : av1Src;
+      if (cardSwapped) { [av1Src, av2Src] = [av2Src, av1Src]; }
       const av1Html = av1Src
         ? '<img src="' + av1Src + '" alt="">'
         : '<svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg"><rect fill="#f5e6d0" width="80" height="80"/><text x="40" y="50" text-anchor="middle" font-size="30">🤵</text></svg>';
