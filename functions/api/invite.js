@@ -3,13 +3,13 @@
 // POST   /api/invite { key, count }       — 批量生成邀请码
 // DELETE /api/invite?key=***&id=X         — 删除邀请码
 
-import { corsHeaders } from './_auth.js';
+import { getCorsHeaders } from './_auth.js';
 
 function checkAdmin(request, env) {
   const url = new URL(request.url);
-  const key = url.searchParams.get('key');
+  const key = request.headers.get('X-Admin-Key') || url.searchParams.get('key');
   if (!key || key !== env.ADMIN_KEY) {
-    return Response.json({ ok: false, error: 'Unauthorized' }, { status: 401, headers: corsHeaders });
+    return Response.json({ ok: false, error: 'Unauthorized' }, { status: 401, headers: getCorsHeaders(env) });
   }
   return null;
 }
@@ -21,8 +21,8 @@ function genCode() {
   return code;
 }
 
-export async function onRequestOptions() {
-  return new Response(null, { headers: corsHeaders });
+export async function onRequestOptions(context) {
+  return new Response(null, { headers: getCorsHeaders(env) });
 }
 
 // 列出邀请码
@@ -45,10 +45,10 @@ export async function onRequestGet(context) {
       used: results.filter(r => r.used_by).length,
     };
 
-    return Response.json({ ok: true, codes: results, stats }, { headers: corsHeaders });
+    return Response.json({ ok: true, codes: results, stats }, { headers: getCorsHeaders(env) });
   } catch (err) {
     console.error('Invite list error:', err);
-    return Response.json({ ok: false, error: '获取失败' }, { status: 500, headers: corsHeaders });
+    return Response.json({ ok: false, error: '获取失败' }, { status: 500, headers: getCorsHeaders(env) });
   }
 }
 
@@ -76,10 +76,10 @@ export async function onRequestPost(context) {
       codes.push(code);
     }
 
-    return Response.json({ ok: true, message: `已生成 ${codes.length} 个邀请码`, codes }, { headers: corsHeaders });
+    return Response.json({ ok: true, message: `已生成 ${codes.length} 个邀请码`, codes }, { headers: getCorsHeaders(env) });
   } catch (err) {
     console.error('Invite create error:', err);
-    return Response.json({ ok: false, error: '生成失败' }, { status: 500, headers: corsHeaders });
+    return Response.json({ ok: false, error: '生成失败' }, { status: 500, headers: getCorsHeaders(env) });
   }
 }
 
@@ -92,12 +92,12 @@ export async function onRequestDelete(context) {
   try {
     const url = new URL(request.url);
     const id = url.searchParams.get('id');
-    if (!id) return Response.json({ ok: false, error: '缺少ID' }, { status: 400, headers: corsHeaders });
+    if (!id) return Response.json({ ok: false, error: '缺少ID' }, { status: 400, headers: getCorsHeaders(env) });
 
     await env.DB.prepare('DELETE FROM invite_codes WHERE id = ?').bind(id).run();
-    return Response.json({ ok: true, message: '删除成功' }, { headers: corsHeaders });
+    return Response.json({ ok: true, message: '删除成功' }, { headers: getCorsHeaders(env) });
   } catch (err) {
     console.error('Invite delete error:', err);
-    return Response.json({ ok: false, error: '删除失败' }, { status: 500, headers: corsHeaders });
+    return Response.json({ ok: false, error: '删除失败' }, { status: 500, headers: getCorsHeaders(env) });
   }
 }

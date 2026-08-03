@@ -3,7 +3,7 @@
 // GET /api/poster?action=template&id=X — 模板详情+配置
 // GET /api/poster?action=data — 用户婚礼数据
 
-import { corsHeaders, requireAuth } from './_auth.js';
+import {getCorsHeaders, requireAuth} from './_auth.js';
 
 // ====== 模板配置 ======
 // cleanImage: 去除人物后的模板图片（需放入 public/posters/ 目录）
@@ -185,13 +185,13 @@ export async function onRequest(context) {
   const action = url.searchParams.get('action');
 
   if (action === 'list') {
-    return Response.json({ ok: true, templates: TEMPLATES.map(t => ({ id: t.id, name: t.name, style: t.style, layout: t.layout, thumb: t.thumb, desc: t.desc })) }, { headers: corsHeaders });
+    return Response.json({ ok: true, templates: TEMPLATES.map(t => ({ id: t.id, name: t.name, style: t.style, layout: t.layout, thumb: t.thumb, desc: t.desc })) }, { headers: getCorsHeaders(env) });
   }
 
   if (action === 'template') {
     const tpl = TEMPLATES.find(t => t.id === url.searchParams.get('id'));
-    if (!tpl) return Response.json({ ok: false, error: '模板不存在' }, { status: 404, headers: corsHeaders });
-    return Response.json({ ok: true, template: tpl }, { headers: corsHeaders });
+    if (!tpl) return Response.json({ ok: false, error: '模板不存在' }, { status: 404, headers: getCorsHeaders(env) });
+    return Response.json({ ok: true, template: tpl }, { headers: getCorsHeaders(env) });
   }
 
   if (action === 'data') {
@@ -199,7 +199,7 @@ export async function onRequest(context) {
     if (userId instanceof Response) return userId;
     try {
       const user = await env.DB.prepare('SELECT partner1, partner2, wedding_date, wedding_venue, slug FROM users WHERE id = ?').bind(userId).first();
-      if (!user) return Response.json({ ok: false, error: '用户不存在' }, { status: 404, headers: corsHeaders });
+      if (!user) return Response.json({ ok: false, error: '用户不存在' }, { status: 404, headers: getCorsHeaders(env) });
       let wedding_date_cn = '';
       if (user.wedding_date) {
         const d = new Date(user.wedding_date + 'T00:00:00');
@@ -211,9 +211,9 @@ export async function onRequest(context) {
         partner1: user.partner1 || '新郎', partner2: user.partner2 || '新娘',
         wedding_date_cn, wedding_venue: user.wedding_venue || '', slug: user.slug || '',
         gallery: imgs.map(i => ({ id: i.id, url: `/api/image?id=${i.id}` })),
-      }}, { headers: corsHeaders });
-    } catch (e) { return Response.json({ ok: false, error: '获取失败' }, { status: 500, headers: corsHeaders }); }
+      }}, { headers: getCorsHeaders(env) });
+    } catch (e) { return Response.json({ ok: false, error: '获取失败' }, { status: 500, headers: getCorsHeaders(env) }); }
   }
 
-  return Response.json({ ok: false, error: '未知操作' }, { status: 400, headers: corsHeaders });
+  return Response.json({ ok: false, error: '未知操作' }, { status: 400, headers: getCorsHeaders(env) });
 }

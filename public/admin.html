@@ -246,6 +246,13 @@
     let adminKey = '';
     let pendingDeleteId = null;
 
+    // 统一管理请求，admin key 通过 header 传递
+    function adminFetch(url, options) {
+      options = options || {};
+      options.headers = Object.assign({}, options.headers || {}, { 'X-Admin-Key': adminKey });
+      return fetch(url, options);
+    }
+
     // 检查本地存储
     const saved = localStorage.getItem('admin_key');
     if (saved) { adminKey = saved; showAdmin(); }
@@ -260,7 +267,7 @@
 
       // 验证密钥
       try {
-        const res = await fetch('/api/admin?key=' + encodeURIComponent(adminKey));
+        const res = await adminFetch('/api/admin');
         const data = await res.json();
         if (data.ok) {
           localStorage.setItem('admin_key', adminKey);
@@ -292,7 +299,7 @@
       container.innerHTML = '<div class="empty-msg"><span class="spinner"></span></div>';
 
       try {
-        const res = await fetch('/api/admin?key=' + encodeURIComponent(adminKey));
+        const res = await adminFetch('/api/admin');
         const data = await res.json();
         if (!data.ok) { container.innerHTML = '<div class="empty-msg">加载失败</div>'; return; }
 
@@ -354,7 +361,7 @@
       btn.textContent = '删除中...'; btn.disabled = true;
 
       try {
-        const res = await fetch('/api/admin?key=' + encodeURIComponent(adminKey) + '&userId=' + pendingDeleteId, { method: 'DELETE' });
+        const res = await adminFetch('/api/admin?userId=' + pendingDeleteId, { method: 'DELETE' });
         const data = await res.json();
         if (data.ok) {
           closeConfirm();
@@ -388,7 +395,7 @@
       container.innerHTML = '<div class="empty-msg"><span class="spinner"></span></div>';
 
       try {
-        const res = await fetch('/api/invite?key=' + encodeURIComponent(adminKey));
+        const res = await adminFetch('/api/invite');
         const data = await res.json();
         if (!data.ok) { container.innerHTML = '<div class="empty-msg">加载失败</div>'; return; }
 
@@ -422,7 +429,7 @@
       hideAlert(alertEl);
 
       try {
-        const res = await fetch('/api/invite?key=' + encodeURIComponent(adminKey), {
+        const res = await adminFetch('/api/invite', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ count }),
@@ -445,7 +452,7 @@
     async function deleteInvite(id) {
       if (!confirm('确定删除此邀请码？')) return;
       try {
-        const res = await fetch('/api/invite?key=' + encodeURIComponent(adminKey) + '&id=' + id, { method: 'DELETE' });
+        const res = await adminFetch('/api/invite?id=' + id, { method: 'DELETE' });
         const data = await res.json();
         if (data.ok) loadInvites();
         else alert(data.error || '删除失败');
@@ -457,7 +464,7 @@
 
     async function loadPaymentSettings() {
       try {
-        const res = await fetch('/api/payment?key=' + encodeURIComponent(adminKey));
+        const res = await adminFetch('/api/payment');
         const data = await res.json();
         if (!data.ok) return;
 
@@ -516,7 +523,7 @@
       if (isNaN(price) || price < 0) { showAlert(alertEl, '请输入有效的价格'); return; }
 
       try {
-        const res = await fetch('/api/payment?key=' + encodeURIComponent(adminKey), {
+        const res = await adminFetch('/api/payment', {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -545,8 +552,8 @@
 
       try {
         const filter = document.getElementById('orderFilter').value;
-        const url = '/api/order?key=' + encodeURIComponent(adminKey) + (filter ? '&status=' + filter : '');
-        const res = await fetch(url);
+        const url = '/api/order' + (filter ? '?status=' + filter : '');
+        const res = await adminFetch(url);
         const data = await res.json();
         if (!data.ok) { container.innerHTML = '<div class="empty-msg">加载失败</div>'; return; }
 
@@ -614,7 +621,7 @@
       const inviteCode = document.getElementById('confirmInviteCode').value.trim();
 
       try {
-        const res = await fetch('/api/order?key=' + encodeURIComponent(adminKey), {
+        const res = await adminFetch('/api/order', {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -638,7 +645,7 @@
     async function rejectOrder(id) {
       if (!confirm('确定拒绝此订单？')) return;
       try {
-        const res = await fetch('/api/order?key=' + encodeURIComponent(adminKey), {
+        const res = await adminFetch('/api/order', {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ id, status: 'rejected' }),
@@ -652,7 +659,7 @@
     async function deleteOrder(id) {
       if (!confirm('确定删除此订单？')) return;
       try {
-        const res = await fetch('/api/order?key=' + encodeURIComponent(adminKey) + '&id=' + id, { method: 'DELETE' });
+        const res = await adminFetch('/api/order?id=' + id, { method: 'DELETE' });
         const data = await res.json();
         if (data.ok) loadOrders();
         else alert(data.error || '删除失败');
@@ -670,7 +677,7 @@
       document.getElementById('cleanupExecBtn').style.display = 'none';
 
       try {
-        const res = await fetch('/api/cleanup?key=' + encodeURIComponent(adminKey));
+        const res = await adminFetch('/api/cleanup');
         const data = await res.json();
         if (!data.ok) { result.innerHTML = '<div class="empty-msg">扫描失败</div>'; return; }
 
@@ -708,7 +715,7 @@
       hideAlert(alertEl);
 
       try {
-        const res = await fetch('/api/cleanup?key=' + encodeURIComponent(adminKey), { method: 'POST' });
+        const res = await adminFetch('/api/cleanup', { method: 'POST' });
         const data = await res.json();
         if (data.ok) {
           showAlert(alertEl, `✅ ${data.message}`, 'success');

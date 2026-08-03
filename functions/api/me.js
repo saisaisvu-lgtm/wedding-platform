@@ -1,7 +1,7 @@
-import { requireAuth, corsHeaders } from './_auth.js';
+import {requireAuth, getCorsHeaders} from './_auth.js';
 
-export async function onRequestOptions() {
-  return new Response(null, { headers: corsHeaders });
+export async function onRequestOptions(context) {
+  return new Response(null, { headers: getCorsHeaders(env) });
 }
 
 export async function onRequestGet(context) {
@@ -15,7 +15,7 @@ export async function onRequestGet(context) {
     ).bind(userId).first();
 
     if (!user) {
-      return Response.json({ ok: false, error: '用户不存在' }, { status: 404, headers: corsHeaders });
+      return Response.json({ ok: false, error: '用户不存在' }, { status: 404, headers: getCorsHeaders(env) });
     }
 
     // 获取图片列表
@@ -52,11 +52,11 @@ export async function onRequestGet(context) {
     try { user.arrival_options = JSON.parse(user.arrival_options || '[]'); } catch { user.arrival_options = []; }
     try { user.transport_options = JSON.parse(user.transport_options || '[]'); } catch { user.transport_options = []; }
 
-    return Response.json({ ok: true, user, images: imagesWithUrl, songs: songsData }, { headers: corsHeaders });
+    return Response.json({ ok: true, user, images: imagesWithUrl, songs: songsData }, { headers: getCorsHeaders(env) });
 
   } catch (err) {
     console.error('Me error:', err);
-    return Response.json({ ok: false, error: '获取信息失败' }, { status: 500, headers: corsHeaders });
+    return Response.json({ ok: false, error: '获取信息失败' }, { status: 500, headers: getCorsHeaders(env) });
   }
 }
 
@@ -70,7 +70,7 @@ export async function onRequestPut(context) {
     const { partner1, partner2, wedding_date, wedding_venue, bgm_url, bgm_data, arrival_options, transport_options } = body;
 
     if (!partner1 || !partner2) {
-      return Response.json({ ok: false, error: '请填写双方姓名' }, { status: 400, headers: corsHeaders });
+      return Response.json({ ok: false, error: '请填写双方姓名' }, { status: 400, headers: getCorsHeaders(env) });
     }
 
     const coupleName = `${partner1} & ${partner2}`;
@@ -91,10 +91,10 @@ export async function onRequestPut(context) {
       userId
     ).run();
 
-    return Response.json({ ok: true, message: '保存成功' }, { headers: corsHeaders });
+    return Response.json({ ok: true, message: '保存成功' }, { headers: getCorsHeaders(env) });
 
   } catch (err) {
     console.error('Update settings error:', err);
-    return Response.json({ ok: false, error: '保存失败' }, { status: 500, headers: corsHeaders });
+    return Response.json({ ok: false, error: '保存失败' }, { status: 500, headers: getCorsHeaders(env) });
   }
 }

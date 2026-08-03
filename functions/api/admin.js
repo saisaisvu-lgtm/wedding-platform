@@ -3,19 +3,19 @@
 // DELETE /api/admin?key=***&userId=X       — 删除指定用户及其所有数据
 // DELETE /api/admin?key=***&username=X     — 按用户名删除
 
-import { corsHeaders } from './_auth.js';
+import { getCorsHeaders } from './_auth.js';
 
 function checkAdmin(request, env) {
-  const url = new URL(request.url);
-  const key = url.searchParams.get('key');
+  // 优先读 X-Admin-Key 请求头，兼容 URL 参数
+  const key = request.headers.get('X-Admin-Key') || new URL(request.url).searchParams.get('key');
   if (!key || key !== env.ADMIN_KEY) {
-    return Response.json({ ok: false, error: 'Unauthorized' }, { status: 401, headers: corsHeaders });
+    return Response.json({ ok: false, error: 'Unauthorized' }, { status: 401, headers: getCorsHeaders(env) });
   }
   return null;
 }
 
-export async function onRequestOptions() {
-  return new Response(null, { headers: corsHeaders });
+export async function onRequestOptions(context) {
+  return new Response(null, { headers: getCorsHeaders(context.env) });
 }
 
 // 列出所有用户
@@ -41,11 +41,11 @@ export async function onRequestGet(context) {
       });
     }
 
-    return Response.json({ ok: true, users: usersWithStats }, { headers: corsHeaders });
+    return Response.json({ ok: true, users: usersWithStats }, { headers: getCorsHeaders(env) });
 
   } catch (err) {
     console.error('Admin list error:', err);
-    return Response.json({ ok: false, error: '获取失败' }, { status: 500, headers: corsHeaders });
+    return Response.json({ ok: false, error: '获取失败' }, { status: 500, headers: getCorsHeaders(env) });
   }
 }
 
@@ -66,11 +66,11 @@ export async function onRequestDelete(context) {
     } else if (username) {
       user = await env.DB.prepare('SELECT id, username, couple_name FROM users WHERE username = ?').bind(username).first();
     } else {
-      return Response.json({ ok: false, error: '请提供 userId 或 username' }, { status: 400, headers: corsHeaders });
+      return Response.json({ ok: false, error: '请提供 userId 或 username' }, { status: 400, headers: getCorsHeaders(env) });
     }
 
     if (!user) {
-      return Response.json({ ok: false, error: '用户不存在' }, { status: 404, headers: corsHeaders });
+      return Response.json({ ok: false, error: '用户不存在' }, { status: 404, headers: getCorsHeaders(env) });
     }
 
     // 删除关联数据（顺序：images → rsvp → user）
@@ -81,10 +81,10 @@ export async function onRequestDelete(context) {
     return Response.json({
       ok: true,
       message: `已删除用户 "${user.username}"（${user.couple_name}）及其所有数据`,
-    }, { headers: corsHeaders });
+    }, { headers: getCorsHeaders(env) });
 
   } catch (err) {
     console.error('Admin delete error:', err);
-    return Response.json({ ok: false, error: '删除失败' }, { status: 500, headers: corsHeaders });
+    return Response.json({ ok: false, error: '删除失败' }, { status: 500, headers: getCorsHeaders(env) });
   }
 }

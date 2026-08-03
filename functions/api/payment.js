@@ -2,19 +2,19 @@
 // GET    /api/payment?key=***              — 获取当前付款设置
 // PUT    /api/payment?key=***              — 更新付款设置（价格、收款码、联系方式）
 
-import { corsHeaders } from './_auth.js';
+import { getCorsHeaders } from './_auth.js';
 
 function checkAdmin(request, env) {
   const url = new URL(request.url);
-  const key = url.searchParams.get('key');
+  const key = request.headers.get('X-Admin-Key') || url.searchParams.get('key');
   if (!key || key !== env.ADMIN_KEY) {
-    return Response.json({ ok: false, error: 'Unauthorized' }, { status: 401, headers: corsHeaders });
+    return Response.json({ ok: false, error: 'Unauthorized' }, { status: 401, headers: getCorsHeaders(env) });
   }
   return null;
 }
 
-export async function onRequestOptions() {
-  return new Response(null, { headers: corsHeaders });
+export async function onRequestOptions(context) {
+  return new Response(null, { headers: getCorsHeaders(env) });
 }
 
 // 获取付款设置
@@ -52,7 +52,7 @@ export async function onRequestGet(context) {
 
     if (isAdmin) {
       // 管理员返回完整数据
-      return Response.json({ ok: true, settings }, { headers: corsHeaders });
+      return Response.json({ ok: true, settings }, { headers: getCorsHeaders(env) });
     } else {
       // 公开接口：只返回是否有收款码、价格、联系方式
       return Response.json({
@@ -64,11 +64,11 @@ export async function onRequestGet(context) {
           has_alipay: !!settings.alipay_qr,
           contact_info: settings.contact_info,
         }
-      }, { headers: corsHeaders });
+      }, { headers: getCorsHeaders(env) });
     }
   } catch (err) {
     console.error('Payment get error:', err);
-    return Response.json({ ok: false, error: '获取失败' }, { status: 500, headers: corsHeaders });
+    return Response.json({ ok: false, error: '获取失败' }, { status: 500, headers: getCorsHeaders(env) });
   }
 }
 
@@ -127,9 +127,9 @@ export async function onRequestPut(context) {
       ).run();
     }
 
-    return Response.json({ ok: true, message: '付款设置已更新' }, { headers: corsHeaders });
+    return Response.json({ ok: true, message: '付款设置已更新' }, { headers: getCorsHeaders(env) });
   } catch (err) {
     console.error('Payment update error:', err);
-    return Response.json({ ok: false, error: '更新失败' }, { status: 500, headers: corsHeaders });
+    return Response.json({ ok: false, error: '更新失败' }, { status: 500, headers: getCorsHeaders(env) });
   }
 }

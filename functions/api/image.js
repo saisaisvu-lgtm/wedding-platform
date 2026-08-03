@@ -29,7 +29,7 @@ export async function onRequest(context) {
     const headers = new Headers();
     headers.set('Content-Type', image.mime_type || 'image/jpeg');
     headers.set('Cache-Control', 'public, max-age=86400');
-    headers.set('Access-Control-Allow-Origin', '*');
+    headers.set('Access-Control-Allow-Origin', env.SITE_URL || 'https://mylove.sairx.cn');
 
     return new Response(bytes, { headers });
 

@@ -2,10 +2,10 @@
 // DELETE /api/rsvp-list?id=X   — 删除一条回执
 // GET  /api/rsvp-list?format=csv — 导出 CSV
 
-import { requireAuth, corsHeaders } from './_auth.js';
+import {requireAuth, getCorsHeaders} from './_auth.js';
 
-export async function onRequestOptions() {
-  return new Response(null, { headers: corsHeaders });
+export async function onRequestOptions(context) {
+  return new Response(null, { headers: getCorsHeaders(env) });
 }
 
 export async function onRequestGet(context) {
@@ -36,7 +36,7 @@ export async function onRequestGet(context) {
         headers: {
           'Content-Type': 'text/csv; charset=utf-8',
           'Content-Disposition': `attachment; filename="rsvp-${new Date().toISOString().slice(0, 10)}.csv"`,
-          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Origin': 'https://mylove.sairx.cn',
         }
       });
     }
@@ -48,11 +48,11 @@ export async function onRequestGet(context) {
         total: results.length,
         totalGuests,
       }
-    }, { headers: corsHeaders });
+    }, { headers: getCorsHeaders(env) });
 
   } catch (err) {
     console.error('RSVP list error:', err);
-    return Response.json({ ok: false, error: '获取失败' }, { status: 500, headers: corsHeaders });
+    return Response.json({ ok: false, error: '获取失败' }, { status: 500, headers: getCorsHeaders(env) });
   }
 }
 
@@ -66,7 +66,7 @@ export async function onRequestDelete(context) {
     const id = url.searchParams.get('id');
 
     if (!id) {
-      return Response.json({ ok: false, error: '缺少 ID' }, { status: 400, headers: corsHeaders });
+      return Response.json({ ok: false, error: '缺少 ID' }, { status: 400, headers: getCorsHeaders(env) });
     }
 
     // 确保属于当前用户
@@ -75,15 +75,15 @@ export async function onRequestDelete(context) {
     ).bind(id, userId).first();
 
     if (!record) {
-      return Response.json({ ok: false, error: '记录不存在' }, { status: 404, headers: corsHeaders });
+      return Response.json({ ok: false, error: '记录不存在' }, { status: 404, headers: getCorsHeaders(env) });
     }
 
     await env.DB.prepare('DELETE FROM rsvp WHERE id = ?').bind(id).run();
 
-    return Response.json({ ok: true, message: '删除成功' }, { headers: corsHeaders });
+    return Response.json({ ok: true, message: '删除成功' }, { headers: getCorsHeaders(env) });
 
   } catch (err) {
     console.error('RSVP delete error:', err);
-    return Response.json({ ok: false, error: '删除失败' }, { status: 500, headers: corsHeaders });
+    return Response.json({ ok: false, error: '删除失败' }, { status: 500, headers: getCorsHeaders(env) });
   }
 }

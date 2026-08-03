@@ -8,9 +8,11 @@ binding = "DB"
 database_name = "wedding-platform-db"
 database_id = "bc7c4338-fb40-4367-a038-e11324e71be5"
 
-# 环境变量
+# 非敏感环境变量
 [vars]
-SESSION_SECRET = "weddin…2026"
-ADMIN_KEY = "Jss981019@"
-BARK_KEY = "8oBEyypdnqi98w99dWgBHo"
 SITE_URL = "https://mylove.sairx.cn"
+
+# ⚠️ 以下密钥请通过 Cloudflare Dashboard 或 wrangler secret 设置，不要写在仓库里！
+# wrangler pages secret put SESSION_SECRET
+# wrangler pages secret put ADMIN_KEY
+# wrangler pages secret put BARK_KEY

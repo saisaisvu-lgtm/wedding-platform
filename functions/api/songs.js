@@ -1,7 +1,7 @@
-import { requireAuth, corsHeaders } from './_auth.js';
+import {requireAuth, getCorsHeaders} from './_auth.js';
 
-export async function onRequestOptions() {
-  return new Response(null, { headers: corsHeaders });
+export async function onRequestOptions(context) {
+  return new Response(null, { headers: getCorsHeaders(env) });
 }
 
 // GET - 获取当前用户的歌曲列表
@@ -25,10 +25,10 @@ export async function onRequestGet(context) {
       sort_order: s.sort_order,
     }));
 
-    return Response.json({ ok: true, songs }, { headers: corsHeaders });
+    return Response.json({ ok: true, songs }, { headers: getCorsHeaders(env) });
   } catch (err) {
     console.error('Songs GET error:', err);
-    return Response.json({ ok: false, error: '获取失败' }, { status: 500, headers: corsHeaders });
+    return Response.json({ ok: false, error: '获取失败' }, { status: 500, headers: getCorsHeaders(env) });
   }
 }
 
@@ -43,7 +43,7 @@ export async function onRequestPost(context) {
     const { song_name, artist, audio_url, audio_data, lyrics } = body;
 
     if (!song_name) {
-      return Response.json({ ok: false, error: '请输入歌名' }, { status: 400, headers: corsHeaders });
+      return Response.json({ ok: false, error: '请输入歌名' }, { status: 400, headers: getCorsHeaders(env) });
     }
 
     // 获取最大排序号
@@ -76,10 +76,10 @@ export async function onRequestPost(context) {
         lyrics: lyrics || [],
         sort_order: sortOrder,
       },
-    }, { headers: corsHeaders });
+    }, { headers: getCorsHeaders(env) });
   } catch (err) {
     console.error('Songs POST error:', err);
-    return Response.json({ ok: false, error: '保存失败' }, { status: 500, headers: corsHeaders });
+    return Response.json({ ok: false, error: '保存失败' }, { status: 500, headers: getCorsHeaders(env) });
   }
 }
 
@@ -94,7 +94,7 @@ export async function onRequestPut(context) {
     const { id, song_name, artist, audio_url, audio_data, lyrics } = body;
 
     if (!id) {
-      return Response.json({ ok: false, error: '缺少歌曲ID' }, { status: 400, headers: corsHeaders });
+      return Response.json({ ok: false, error: '缺少歌曲ID' }, { status: 400, headers: getCorsHeaders(env) });
     }
 
     // 验证所有权
@@ -102,7 +102,7 @@ export async function onRequestPut(context) {
       'SELECT id FROM songs WHERE id = ? AND user_id = ?'
     ).bind(id, userId).first();
     if (!existing) {
-      return Response.json({ ok: false, error: '歌曲不存在' }, { status: 404, headers: corsHeaders });
+      return Response.json({ ok: false, error: '歌曲不存在' }, { status: 404, headers: getCorsHeaders(env) });
     }
 
     await env.DB.prepare(
@@ -117,10 +117,10 @@ export async function onRequestPut(context) {
       id
     ).run();
 
-    return Response.json({ ok: true }, { headers: corsHeaders });
+    return Response.json({ ok: true }, { headers: getCorsHeaders(env) });
   } catch (err) {
     console.error('Songs PUT error:', err);
-    return Response.json({ ok: false, error: '更新失败' }, { status: 500, headers: corsHeaders });
+    return Response.json({ ok: false, error: '更新失败' }, { status: 500, headers: getCorsHeaders(env) });
   }
 }
 
@@ -134,16 +134,16 @@ export async function onRequestDelete(context) {
     const url = new URL(request.url);
     const id = url.searchParams.get('id');
     if (!id) {
-      return Response.json({ ok: false, error: '缺少歌曲ID' }, { status: 400, headers: corsHeaders });
+      return Response.json({ ok: false, error: '缺少歌曲ID' }, { status: 400, headers: getCorsHeaders(env) });
     }
 
     await env.DB.prepare(
       'DELETE FROM songs WHERE id = ? AND user_id = ?'
     ).bind(id, userId).run();
 
-    return Response.json({ ok: true }, { headers: corsHeaders });
+    return Response.json({ ok: true }, { headers: getCorsHeaders(env) });
   } catch (err) {
     console.error('Songs DELETE error:', err);
-    return Response.json({ ok: false, error: '删除失败' }, { status: 500, headers: corsHeaders });
+    return Response.json({ ok: false, error: '删除失败' }, { status: 500, headers: getCorsHeaders(env) });
   }
 }

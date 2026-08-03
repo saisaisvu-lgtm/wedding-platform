@@ -1,11 +1,12 @@
-import { hashPassword, createToken, setCookie, corsHeaders } from './_auth.js';
+import { verifyPassword, createToken, setCookie, getCorsHeaders } from './_auth.js';
 
-export async function onRequestOptions() {
-  return new Response(null, { headers: corsHeaders });
+export async function onRequestOptions(context) {
+  return new Response(null, { headers: getCorsHeaders(context.env) });
 }
 
 export async function onRequestPost(context) {
   const { request, env } = context;
+  const corsHeaders = getCorsHeaders(env);
 
   try {
     const body = await request.json();
@@ -20,8 +21,8 @@ export async function onRequestPost(context) {
       return Response.json({ ok: false, error: '用户名或密码错误' }, { status: 401, headers: corsHeaders });
     }
 
-    const passwordHash = await hashPassword(password);
-    if (passwordHash !== user.password_hash) {
+    const valid = await verifyPassword(password, user.password_hash);
+    if (!valid) {
       return Response.json({ ok: false, error: '用户名或密码错误' }, { status: 401, headers: corsHeaders });
     }
 

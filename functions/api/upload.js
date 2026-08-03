@@ -1,10 +1,10 @@
-import { requireAuth, corsHeaders } from './_auth.js';
+import {requireAuth, getCorsHeaders} from './_auth.js';
 
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
 const MAX_SIZE = 2 * 1024 * 1024; // 2MB（D1 存 base64 限制）
 
-export async function onRequestOptions() {
-  return new Response(null, { headers: corsHeaders });
+export async function onRequestOptions(context) {
+  return new Response(null, { headers: getCorsHeaders(env) });
 }
 
 export async function onRequestPost(context) {
@@ -18,19 +18,19 @@ export async function onRequestPost(context) {
     const category = formData.get('category') || 'gallery'; // avatar / credits / gallery
 
     if (!file || !(file instanceof File)) {
-      return Response.json({ ok: false, error: '请选择文件' }, { status: 400, headers: corsHeaders });
+      return Response.json({ ok: false, error: '请选择文件' }, { status: 400, headers: getCorsHeaders(env) });
     }
 
     if (!ALLOWED_TYPES.includes(file.type)) {
-      return Response.json({ ok: false, error: '仅支持 JPG/PNG/WebP/GIF 格式' }, { status: 400, headers: corsHeaders });
+      return Response.json({ ok: false, error: '仅支持 JPG/PNG/WebP/GIF 格式' }, { status: 400, headers: getCorsHeaders(env) });
     }
 
     if (file.size > MAX_SIZE) {
-      return Response.json({ ok: false, error: '文件大小不能超过 2MB' }, { status: 400, headers: corsHeaders });
+      return Response.json({ ok: false, error: '文件大小不能超过 2MB' }, { status: 400, headers: getCorsHeaders(env) });
     }
 
     if (!['avatar', 'credits', 'gallery'].includes(category)) {
-      return Response.json({ ok: false, error: '无效的图片分类' }, { status: 400, headers: corsHeaders });
+      return Response.json({ ok: false, error: '无效的图片分类' }, { status: 400, headers: getCorsHeaders(env) });
     }
 
     // 转 base64（分块处理，避免栈溢出）
@@ -64,10 +64,10 @@ export async function onRequestPost(context) {
         filename: file.name,
         url: `/api/image?id=${result.meta.last_row_id}`,
       }
-    }, { headers: corsHeaders });
+    }, { headers: getCorsHeaders(env) });
 
   } catch (err) {
     console.error('Upload error:', err);
-    return Response.json({ ok: false, error: '上传失败' }, { status: 500, headers: corsHeaders });
+    return Response.json({ ok: false, error: '上传失败' }, { status: 500, headers: getCorsHeaders(env) });
   }
 }

@@ -4,19 +4,19 @@
 // PUT  /api/order?key=***      — 管理员更新订单状态（发放邀请码）
 // DELETE /api/order?key=***&id=X — 管理员删除订单
 
-import { corsHeaders } from './_auth.js';
+import { getCorsHeaders } from './_auth.js';
 
 function checkAdmin(request, env) {
   const url = new URL(request.url);
-  const key = url.searchParams.get('key');
+  const key = request.headers.get('X-Admin-Key') || url.searchParams.get('key');
   if (!key || key !== env.ADMIN_KEY) {
-    return Response.json({ ok: false, error: 'Unauthorized' }, { status: 401, headers: corsHeaders });
+    return Response.json({ ok: false, error: 'Unauthorized' }, { status: 401, headers: getCorsHeaders(env) });
   }
   return null;
 }
 
-export async function onRequestOptions() {
-  return new Response(null, { headers: corsHeaders });
+export async function onRequestOptions(context) {
+  return new Response(null, { headers: getCorsHeaders(env) });
 }
 
 // 公开查询订单状态（无需登录，用于前端轮询）
@@ -25,7 +25,7 @@ export async function onRequestGet(context) {
   const url = new URL(request.url);
 
   // 如果带 key 参数则走管理员逻辑
-  const key = url.searchParams.get('key');
+  const key = request.headers.get('X-Admin-Key') || url.searchParams.get('key');
   if (key) {
     // 管理员查看所有订单
     const authErr = checkAdmin(request, env);
@@ -60,17 +60,17 @@ export async function onRequestGet(context) {
       if (allOrders.results) {
         allOrders.results.forEach(r => { stats[r.status] = r.c; stats.total += r.c; });
       }
-      return Response.json({ ok: true, orders, stats }, { headers: corsHeaders });
+      return Response.json({ ok: true, orders, stats }, { headers: getCorsHeaders(env) });
     } catch (err) {
       console.error('Order list error:', err);
-      return Response.json({ ok: false, error: '获取失败' }, { status: 500, headers: corsHeaders });
+      return Response.json({ ok: false, error: '获取失败' }, { status: 500, headers: getCorsHeaders(env) });
     }
   }
 
   // 无 key 参数：公开查询单个订单状态（前端轮询用）
   const orderId = url.searchParams.get('id');
   if (!orderId) {
-    return Response.json({ ok: false, error: '缺少订单 ID' }, { status: 400, headers: corsHeaders });
+    return Response.json({ ok: false, error: '缺少订单 ID' }, { status: 400, headers: getCorsHeaders(env) });
   }
 
   try {
@@ -79,17 +79,17 @@ export async function onRequestGet(context) {
     ).bind(orderId).first();
 
     if (!order) {
-      return Response.json({ ok: false, error: '订单不存在' }, { status: 404, headers: corsHeaders });
+      return Response.json({ ok: false, error: '订单不存在' }, { status: 404, headers: getCorsHeaders(env) });
     }
 
     return Response.json({
       ok: true,
       status: order.status,
       invite_code: order.invite_code || '',
-    }, { headers: corsHeaders });
+    }, { headers: getCorsHeaders(env) });
   } catch (err) {
     console.error('Order status error:', err);
-    return Response.json({ ok: false, error: '查询失败' }, { status: 500, headers: corsHeaders });
+    return Response.json({ ok: false, error: '查询失败' }, { status: 500, headers: getCorsHeaders(env) });
   }
 }
 
@@ -102,7 +102,7 @@ export async function onRequestPost(context) {
     const { contact, contact_type, amount, note } = body;
 
     if (!contact || typeof contact !== 'string' || contact.trim().length === 0) {
-      return Response.json({ ok: false, error: '请填写联系方式' }, { status: 400, headers: corsHeaders });
+      return Response.json({ ok: false, error: '请填写联系方式' }, { status: 400, headers: getCorsHeaders(env) });
     }
 
     const validTypes = ['wechat', 'alipay', 'other'];
@@ -174,11 +174,11 @@ export async function onRequestPost(context) {
       ok: true,
       message: '订单已提交！管理员确认付款后会通过您留的联系方式发送邀请码。',
       order_id: result.meta.last_row_id,
-    }, { headers: corsHeaders });
+    }, { headers: getCorsHeaders(env) });
 
   } catch (err) {
     console.error('Order create error:', err);
-    return Response.json({ ok: false, error: '提交失败，请稍后重试' }, { status: 500, headers: corsHeaders });
+    return Response.json({ ok: false, error: '提交失败，请稍后重试' }, { status: 500, headers: getCorsHeaders(env) });
   }
 }
 
@@ -195,12 +195,12 @@ export async function onRequestPut(context) {
     const { id, status, invite_code } = body;
 
     if (!id) {
-      return Response.json({ ok: false, error: '缺少订单 ID' }, { status: 400, headers: corsHeaders });
+      return Response.json({ ok: false, error: '缺少订单 ID' }, { status: 400, headers: getCorsHeaders(env) });
     }
 
     const order = await env.DB.prepare('SELECT * FROM purchase_orders WHERE id = ?').bind(id).first();
     if (!order) {
-      return Response.json({ ok: false, error: '订单不存在' }, { status: 404, headers: corsHeaders });
+      return Response.json({ ok: false, error: '订单不存在' }, { status: 404, headers: getCorsHeaders(env) });
     }
 
     if (status === 'confirmed') {
@@ -220,7 +220,7 @@ export async function onRequestPut(context) {
         // 检查管理员指定的码是否已存在
         const exists = await env.DB.prepare('SELECT id, used_by FROM invite_codes WHERE code = ?').bind(code).first();
         if (exists && exists.used_by) {
-          return Response.json({ ok: false, error: '该邀请码已被使用' }, { status: 400, headers: corsHeaders });
+          return Response.json({ ok: false, error: '该邀请码已被使用' }, { status: 400, headers: getCorsHeaders(env) });
         }
         if (!exists) {
           // 如果不存在就创建
@@ -261,22 +261,22 @@ export async function onRequestPut(context) {
         ok: true,
         message: `订单已确认，邀请码：${code}`,
         invite_code: code,
-      }, { headers: corsHeaders });
+      }, { headers: getCorsHeaders(env) });
 
     } else if (status === 'rejected') {
       await env.DB.prepare(
         "UPDATE purchase_orders SET status = 'rejected', updated_at = datetime('now') WHERE id = ?"
       ).bind(id).run();
 
-      return Response.json({ ok: true, message: '订单已拒绝' }, { headers: corsHeaders });
+      return Response.json({ ok: true, message: '订单已拒绝' }, { headers: getCorsHeaders(env) });
 
     } else {
-      return Response.json({ ok: false, error: '无效的状态' }, { status: 400, headers: corsHeaders });
+      return Response.json({ ok: false, error: '无效的状态' }, { status: 400, headers: getCorsHeaders(env) });
     }
 
   } catch (err) {
     console.error('Order update error:', err);
-    return Response.json({ ok: false, error: '操作失败' }, { status: 500, headers: corsHeaders });
+    return Response.json({ ok: false, error: '操作失败' }, { status: 500, headers: getCorsHeaders(env) });
   }
 }
 
@@ -289,12 +289,12 @@ export async function onRequestDelete(context) {
   try {
     const url = new URL(request.url);
     const id = url.searchParams.get('id');
-    if (!id) return Response.json({ ok: false, error: '缺少 ID' }, { status: 400, headers: corsHeaders });
+    if (!id) return Response.json({ ok: false, error: '缺少 ID' }, { status: 400, headers: getCorsHeaders(env) });
 
     await env.DB.prepare('DELETE FROM purchase_orders WHERE id = ?').bind(id).run();
-    return Response.json({ ok: true, message: '删除成功' }, { headers: corsHeaders });
+    return Response.json({ ok: true, message: '删除成功' }, { headers: getCorsHeaders(env) });
   } catch (err) {
     console.error('Order delete error:', err);
-    return Response.json({ ok: false, error: '删除失败' }, { status: 500, headers: corsHeaders });
+    return Response.json({ ok: false, error: '删除失败' }, { status: 500, headers: getCorsHeaders(env) });
   }
 }

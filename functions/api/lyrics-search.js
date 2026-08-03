@@ -1,8 +1,8 @@
 // 歌词搜索API - 通过网易云音乐获取歌词
-import { requireAuth, corsHeaders } from './_auth.js';
+import {requireAuth, getCorsHeaders} from './_auth.js';
 
-export async function onRequestOptions() {
-  return new Response(null, { headers: corsHeaders });
+export async function onRequestOptions(context) {
+  return new Response(null, { headers: getCorsHeaders(env) });
 }
 
 export async function onRequestGet(context) {
@@ -19,7 +19,7 @@ export async function onRequestGet(context) {
     let results = [];
     const searchTerm = trackName ? (trackName + (artistName ? ' ' + artistName : '')) : query;
     if (!searchTerm) {
-      return Response.json({ ok: true, results: [] }, { headers: corsHeaders });
+      return Response.json({ ok: true, results: [] }, { headers: getCorsHeaders(env) });
     }
 
     // Step 1: Search for songs on Netease Music
@@ -34,14 +34,14 @@ export async function onRequestGet(context) {
     });
 
     if (!searchRes.ok) {
-      return Response.json({ ok: true, results: [], error: '搜索失败' }, { headers: corsHeaders });
+      return Response.json({ ok: true, results: [], error: '搜索失败' }, { headers: getCorsHeaders(env) });
     }
 
     const searchData = await searchRes.json();
     const songs = searchData?.result?.songs || [];
 
     if (songs.length === 0) {
-      return Response.json({ ok: true, results: [] }, { headers: corsHeaders });
+      return Response.json({ ok: true, results: [] }, { headers: getCorsHeaders(env) });
     }
 
     // Step 2: Get lyrics for each song
@@ -87,9 +87,9 @@ export async function onRequestGet(context) {
       }
     }
 
-    return Response.json({ ok: true, results }, { headers: corsHeaders });
+    return Response.json({ ok: true, results }, { headers: getCorsHeaders(env) });
   } catch (err) {
     console.error('Lyrics search error:', err);
-    return Response.json({ ok: false, error: '搜索失败', results: [] }, { headers: corsHeaders });
+    return Response.json({ ok: false, error: '搜索失败', results: [] }, { headers: getCorsHeaders(env) });
   }
 }

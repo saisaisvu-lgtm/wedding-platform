@@ -1,7 +1,7 @@
-import { hashPassword, createToken, setCookie, corsHeaders } from './_auth.js';
+import {hashPassword, createToken, setCookie, getCorsHeaders} from './_auth.js';
 
-export async function onRequestOptions() {
-  return new Response(null, { headers: corsHeaders });
+export async function onRequestOptions(context) {
+  return new Response(null, { headers: getCorsHeaders(env) });
 }
 
 export async function onRequestPost(context) {
@@ -13,19 +13,19 @@ export async function onRequestPost(context) {
 
     // 校验
     if (!username || !password) {
-      return Response.json({ ok: false, error: '请填写用户名和密码' }, { status: 400, headers: corsHeaders });
+      return Response.json({ ok: false, error: '请填写用户名和密码' }, { status: 400, headers: getCorsHeaders(env) });
     }
     if (!invite_code || typeof invite_code !== 'string' || invite_code.trim().length === 0) {
-      return Response.json({ ok: false, error: '请填写邀请码' }, { status: 400, headers: corsHeaders });
+      return Response.json({ ok: false, error: '请填写邀请码' }, { status: 400, headers: getCorsHeaders(env) });
     }
     if (username.length < 3 || username.length > 30) {
-      return Response.json({ ok: false, error: '用户名长度 3-30 个字符' }, { status: 400, headers: corsHeaders });
+      return Response.json({ ok: false, error: '用户名长度 3-30 个字符' }, { status: 400, headers: getCorsHeaders(env) });
     }
     if (password.length < 6) {
-      return Response.json({ ok: false, error: '密码至少 6 个字符' }, { status: 400, headers: corsHeaders });
+      return Response.json({ ok: false, error: '密码至少 6 个字符' }, { status: 400, headers: getCorsHeaders(env) });
     }
     if (!partner1 || !partner2) {
-      return Response.json({ ok: false, error: '请填写双方姓名' }, { status: 400, headers: corsHeaders });
+      return Response.json({ ok: false, error: '请填写双方姓名' }, { status: 400, headers: getCorsHeaders(env) });
     }
 
     // 生成 slug（用 username 做 URL 友好标识）
@@ -34,23 +34,23 @@ export async function onRequestPost(context) {
     // 检查用户名是否已存在
     const existing = await env.DB.prepare('SELECT id FROM users WHERE username = ?').bind(username).first();
     if (existing) {
-      return Response.json({ ok: false, error: '用户名已存在' }, { status: 409, headers: corsHeaders });
+      return Response.json({ ok: false, error: '用户名已存在' }, { status: 409, headers: getCorsHeaders(env) });
     }
 
     // 检查 slug 是否冲突
     const slugExists = await env.DB.prepare('SELECT id FROM users WHERE slug = ?').bind(slug).first();
     if (slugExists) {
-      return Response.json({ ok: false, error: '用户名已被占用，请换一个' }, { status: 409, headers: corsHeaders });
+      return Response.json({ ok: false, error: '用户名已被占用，请换一个' }, { status: 409, headers: getCorsHeaders(env) });
     }
 
     // 验证邀请码
     const code = invite_code.trim().toUpperCase();
     const inviteRow = await env.DB.prepare('SELECT id, used_by FROM invite_codes WHERE code = ?').bind(code).first();
     if (!inviteRow) {
-      return Response.json({ ok: false, error: '邀请码无效' }, { status: 400, headers: corsHeaders });
+      return Response.json({ ok: false, error: '邀请码无效' }, { status: 400, headers: getCorsHeaders(env) });
     }
     if (inviteRow.used_by) {
-      return Response.json({ ok: false, error: '邀请码已被使用' }, { status: 400, headers: corsHeaders });
+      return Response.json({ ok: false, error: '邀请码已被使用' }, { status: 400, headers: getCorsHeaders(env) });
     }
 
     const passwordHash = await hashPassword(password);
@@ -77,11 +77,11 @@ export async function onRequestPost(context) {
 
     return Response.json(
       { ok: true, message: '注册成功！', slug },
-      { status: 201, headers: { ...corsHeaders, 'Set-Cookie': setCookie('session', token) } }
+      { status: 201, headers: { ...getCorsHeaders(env), 'Set-Cookie': setCookie('session', token) } }
     );
 
   } catch (err) {
     console.error('Register error:', err);
-    return Response.json({ ok: false, error: '注册失败，请稍后重试' }, { status: 500, headers: corsHeaders });
+    return Response.json({ ok: false, error: '注册失败，请稍后重试' }, { status: 500, headers: getCorsHeaders(env) });
   }
 }

@@ -1,7 +1,7 @@
 // POST /api/rsvp — 宾客提交回执（无需登录，通过 slug 关联婚礼）
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Origin': 'https://mylove.sairx.cn',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type',
 };

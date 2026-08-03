@@ -2,7 +2,7 @@
 // GET /api/bark-action?id=X&key=***&act=confirm
 // GET /api/bark-action?id=X&key=***&act=reject
 
-import { corsHeaders } from './_auth.js';
+import { getCorsHeaders } from './_auth.js';
 
 export async function onRequest(context) {
   const { env } = context;

@@ -2,10 +2,10 @@
 // GET  /api/invitation-settings  → 读取当前用户的请帖设置
 // PUT  /api/invitation-settings  → 保存请帖设置
 
-import { requireAuth, corsHeaders } from './_auth.js';
+import {requireAuth, getCorsHeaders} from './_auth.js';
 
-export async function onRequestOptions() {
-  return new Response(null, { headers: corsHeaders });
+export async function onRequestOptions(context) {
+  return new Response(null, { headers: getCorsHeaders(env) });
 }
 
 // 读取请帖设置
@@ -22,7 +22,7 @@ export async function onRequestGet(context) {
     ).bind(userId).first();
 
     if (!user) {
-      return Response.json({ ok: false, error: '用户不存在' }, { status: 404, headers: corsHeaders });
+      return Response.json({ ok: false, error: '用户不存在' }, { status: 404, headers: getCorsHeaders(env) });
     }
 
     // 从 images 表读取头像
@@ -80,11 +80,11 @@ export async function onRequestGet(context) {
         credits_data: credits ? `data:${credits.mime_type};base64,${credits.data}` : '',
         site_url: env.SITE_URL || ''
       }
-    }, { headers: corsHeaders });
+    }, { headers: getCorsHeaders(env) });
 
   } catch (err) {
     console.error('读取请帖设置失败:', err);
-    return Response.json({ ok: false, error: '服务器错误' }, { status: 500, headers: corsHeaders });
+    return Response.json({ ok: false, error: '服务器错误' }, { status: 500, headers: getCorsHeaders(env) });
   }
 }
 
@@ -178,10 +178,10 @@ export async function onRequestPut(context) {
       body.theme_color || '#d4af37'
     ).run();
 
-    return Response.json({ ok: true, message: '保存成功' }, { headers: corsHeaders });
+    return Response.json({ ok: true, message: '保存成功' }, { headers: getCorsHeaders(env) });
 
   } catch (err) {
     console.error('保存请帖设置失败:', err);
-    return Response.json({ ok: false, error: '保存失败' }, { status: 500, headers: corsHeaders });
+    return Response.json({ ok: false, error: '保存失败' }, { status: 500, headers: getCorsHeaders(env) });
   }
 }

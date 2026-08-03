@@ -2,20 +2,20 @@
 // GET /api/cleanup?key=***         — 预览将被删除的用户
 // POST /api/cleanup?key=***&dry=0 — 执行删除
 
-import { corsHeaders } from './_auth.js';
+import { getCorsHeaders } from './_auth.js';
 
 export async function onRequest(context) {
   const { request, env } = context;
   const url = new URL(request.url);
-  const key = url.searchParams.get('key');
+  const key = request.headers.get('X-Admin-Key') || url.searchParams.get('key');
 
   // 支持 ADMIN_KEY 或专用 CLEANUP_KEY
   if (!key || (key !== env.ADMIN_KEY && key !== env.CLEANUP_KEY)) {
-    return Response.json({ ok: false, error: 'Unauthorized' }, { status: 401, headers: corsHeaders });
+    return Response.json({ ok: false, error: 'Unauthorized' }, { status: 401, headers: getCorsHeaders(env) });
   }
 
   if (request.method !== 'GET' && request.method !== 'POST') {
-    return Response.json({ ok: false, error: 'Method not allowed' }, { status: 405, headers: corsHeaders });
+    return Response.json({ ok: false, error: 'Method not allowed' }, { status: 405, headers: getCorsHeaders(env) });
   }
 
   try {
@@ -33,7 +33,7 @@ export async function onRequest(context) {
         ok: true,
         message: `找到 ${expiredUsers.length} 个过期用户`,
         users: expiredUsers,
-      }, { headers: corsHeaders });
+      }, { headers: getCorsHeaders(env) });
     }
 
     // POST — 执行删除
@@ -43,7 +43,7 @@ export async function onRequest(context) {
         ok: true,
         message: `预览模式，将删除 ${expiredUsers.length} 个用户`,
         users: expiredUsers,
-      }, { headers: corsHeaders });
+      }, { headers: getCorsHeaders(env) });
     }
 
     let deleted = 0;
@@ -57,18 +57,20 @@ export async function onRequest(context) {
     }
 
     // Bark 推送
-    const barkKey = env.BARK_KEY || '8oBEyypdnqi98w99dWgBHo';
-    const barkUrl = `https://api.day.app/${barkKey}/婚礼平台过期清理/${encodeURIComponent('已清理 ' + deleted + ' 个用户：' + (deletedList.join('、') || '无'))}/?sound=minuet&group=wedding-cleanup`;
-    try { await fetch(barkUrl); } catch (e) { console.error('Bark push failed:', e); }
+    const barkKey = env.BARK_KEY || '';
+    if (barkKey) {
+      const barkUrl = `https://api.day.app/${barkKey}/婚礼平台过期清理/${encodeURIComponent('已清理 ' + deleted + ' 个用户：' + (deletedList.join('、') || '无'))}/?sound=minuet&group=wedding-cleanup`;
+      try { await fetch(barkUrl); } catch (e) { console.error('Bark push failed:', e); }
+    }
 
     return Response.json({
       ok: true,
       message: `已删除 ${deleted} 个过期用户及其所有数据`,
       deleted: expiredUsers.map(u => ({ username: u.username, couple: u.couple_name, date: u.wedding_date })),
-    }, { headers: corsHeaders });
+    }, { headers: getCorsHeaders(env) });
 
   } catch (err) {
     console.error('Cleanup error:', err);
-    return Response.json({ ok: false, error: '清理失败' }, { status: 500, headers: corsHeaders });
+    return Response.json({ ok: false, error: '清理失败' }, { status: 500, headers: getCorsHeaders(env) });
   }
 }
