@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>邀请卡片预览</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Dancing+Script:wght@400;700&family=Noto+Serif+SC:wght@400;600;700&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    min-height: 100vh;
+    background: #f0e6d6;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    font-family: 'Noto Serif SC', serif;
+  }
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background:
+      radial-gradient(circle at 20% 20%, rgba(232,148,60,0.08) 0%, transparent 50%),
+      radial-gradient(circle at 80% 80%, rgba(232,148,60,0.06) 0%, transparent 50%);
+    pointer-events: none;
+  }
+
+  .page-title { color: #6b4c3b; font-size: 18px; margin-bottom: 30px; letter-spacing: 0.1em; position: relative; z-index: 1; }
+
+  /* ===== 卡片 ===== */
+  .invite-card {
+    width: 380px;
+    background: linear-gradient(170deg, #fdf5ec 0%, #f8ecdd 40%, #f2e4d2 100%);
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow:
+      0 20px 60px rgba(107,76,59,0.15),
+      0 4px 12px rgba(107,76,59,0.08),
+      inset 0 1px 0 rgba(255,255,255,0.6);
+    position: relative;
+    z-index: 1;
+  }
+
+  /* 纸张纹理 */
+  .invite-card::before {
+    content: '';
+    position: absolute; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg width='200' height='200' viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none; z-index: 0;
+  }
+  .invite-card > * { position: relative; z-index: 1; }
+
+  /* 顶部装饰边 */
+  .card-top-deco {
+    height: 4px;
+    background: linear-gradient(90deg, transparent, #c9a96e, #d4af37, #c9a96e, transparent);
+  }
+
+  /* 头部区域 */
+  .card-header {
+    text-align: center;
+    padding: 28px 28px 20px;
+  }
+
+  /* 囍字 */
+  .card-xi {
+    font-size: 42px;
+    color: #c9a96e;
+    text-shadow: 0 2px 12px rgba(201,169,110,0.2);
+    margin-bottom: 4px;
+    line-height: 1;
+  }
+
+  /* 英文标语 */
+  .card-en-tag {
+    font-family: 'Dancing Script', cursive;
+    font-size: 13px;
+    color: rgba(201,169,110,0.5);
+    letter-spacing: 3px;
+    margin-bottom: 18px;
+  }
+
+  /* 头像区域 */
+  .avatar-section {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    margin-bottom: 16px;
+  }
+  .avatar-ring {
+    width: 80px; height: 80px;
+    border-radius: 50%;
+    padding: 3px;
+    background: linear-gradient(135deg, #c9a96e, #e8d5a8, #c9a96e);
+    flex-shrink: 0;
+  }
+  .avatar-ring img {
+    width: 100%; height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #fdf5ec;
+    display: block;
+  }
+  .avatar-heart {
+    font-size: 24px;
+    margin: 0 -8px;
+    z-index: 2;
+    filter: drop-shadow(0 2px 4px rgba(201,169,110,0.3));
+    animation: heartBeat 1.5s ease-in-out infinite;
+  }
+  @keyframes heartBeat {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.15); }
+  }
+
+  /* 姓名 */
+  .couple-names {
+    font-family: 'Ma Shan Zheng', cursive;
+    font-size: 28px;
+    color: #6b4c3b;
+    letter-spacing: 4px;
+    margin-bottom: 4px;
+    line-height: 1.3;
+  }
+  .couple-names-en {
+    font-family: 'Dancing Script', cursive;
+    font-size: 14px;
+    color: #c9a96e;
+    letter-spacing: 2px;
+    margin-bottom: 16px;
+    opacity: 0.7;
+  }
+
+  /* 分隔线 */
+  .divider {
+    width: 60px; height: 1px;
+    background: linear-gradient(90deg, transparent, #c9a96e, transparent);
+    margin: 0 auto 16px;
+  }
+
+  /* 邀请话术 */
+  .invite-quote {
+    font-family: 'Ma Shan Zheng', cursive;
+    font-size: 15px;
+    color: #6b4c3b;
+    line-height: 1.8;
+    text-align: center;
+    margin-bottom: 6px;
+    letter-spacing: 1px;
+  }
+
+  /* 日期地点 */
+  .event-info {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  .event-date {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 16px;
+    font-weight: 600;
+    color: #6b4c3b;
+    letter-spacing: 2px;
+    margin-bottom: 4px;
+  }
+  .event-venue {
+    font-size: 12px;
+    color: #a08060;
+    letter-spacing: 1px;
+  }
+
+  /* 二维码区域 */
+  .qr-section {
+    background: rgba(255,255,255,0.5);
+    border-top: 1px solid rgba(201,169,110,0.15);
+    padding: 20px 28px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .qr-box {
+    flex-shrink: 0;
+    width: 90px; height: 90px;
+    background: #fff;
+    border-radius: 10px;
+    padding: 6px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  }
+  .qr-box canvas {
+    width: 100% !important;
+    height: 100% !important;
+    display: block;
+    border-radius: 4px;
+  }
+
+  .qr-text {
+    flex: 1;
+  }
+  .qr-text .qr-title {
+    font-family: 'Ma Shan Zheng', cursive;
+    font-size: 16px;
+    color: #6b4c3b;
+    margin-bottom: 6px;
+    letter-spacing: 1px;
+  }
+  .qr-text .qr-desc {
+    font-size: 11px;
+    color: #a08060;
+    line-height: 1.6;
+    letter-spacing: 0.5px;
+  }
+  .qr-text .qr-hint {
+    margin-top: 8px;
+    font-size: 10px;
+    color: #c9a96e;
+    letter-spacing: 1px;
+    font-weight: 600;
+  }
+
+  /* 底部 */
+  .card-footer {
+    text-align: center;
+    padding: 12px 28px 18px;
+    font-size: 10px;
+    color: rgba(201,169,110,0.4);
+    letter-spacing: 2px;
+  }
+
+  /* 角落装饰 */
+  .corner-deco {
+    position: absolute;
+    width: 40px; height: 40px;
+    opacity: 0.15;
+    pointer-events: none;
+  }
+  .corner-deco.tl { top: 12px; left: 12px; }
+  .corner-deco.tr { top: 12px; right: 12px; transform: scaleX(-1); }
+  .corner-deco.bl { bottom: 12px; left: 12px; transform: scaleY(-1); }
+  .corner-deco.br { bottom: 12px; right: 12px; transform: scale(-1); }
+  .corner-deco svg { width: 100%; height: 100%; }
+
+  /* 说明文字 */
+  .notes {
+    margin-top: 30px;
+    max-width: 380px;
+    position: relative; z-index: 1;
+  }
+  .notes h3 { color: #6b4c3b; font-size: 14px; margin-bottom: 10px; }
+  .notes ul { list-style: none; }
+  .notes li {
+    font-size: 13px;
+    color: #7a6555;
+    line-height: 2;
+    padding-left: 20px;
+    position: relative;
+  }
+  .notes li::before {
+    content: '·';
+    position: absolute;
+    left: 6px;
+    color: #c9a96e;
+    font-weight: 700;
+  }
+
+  @media print {
+    body { background: #fff; padding: 0; }
+    .page-title, .notes, body::before { display: none; }
+    .invite-card { box-shadow: none; border: 1px solid #e0d8cc; }
+  }
+</style>
+</head>
+<body>
+
+<div class="page-title">📨 邀请卡片预览</div>
+
+<div class="invite-card" id="inviteCard">
+  <!-- 顶部装饰边 -->
+  <div class="card-top-deco"></div>
+
+  <!-- 角落装饰 -->
+  <div class="corner-deco tl"><svg viewBox="0 0 40 40"><path d="M0 0 C0 20, 20 20, 20 40" stroke="#c9a96e" stroke-width="1.5" fill="none"/><circle cx="6" cy="6" r="2" fill="#c9a96e"/></svg></div>
+  <div class="corner-deco tr"><svg viewBox="0 0 40 40"><path d="M0 0 C0 20, 20 20, 20 40" stroke="#c9a96e" stroke-width="1.5" fill="none"/><circle cx="6" cy="6" r="2" fill="#c9a96e"/></svg></div>
+  <div class="corner-deco bl"><svg viewBox="0 0 40 40"><path d="M0 0 C0 20, 20 20, 20 40" stroke="#c9a96e" stroke-width="1.5" fill="none"/><circle cx="6" cy="6" r="2" fill="#c9a96e"/></svg></div>
+  <div class="corner-deco br"><svg viewBox="0 0 40 40"><path d="M0 0 C0 20, 20 20, 20 40" stroke="#c9a96e" stroke-width="1.5" fill="none"/><circle cx="6" cy="6" r="2" fill="#c9a96e"/></svg></div>
+
+  <!-- 头部 -->
+  <div class="card-header">
+    <div class="card-xi">囍</div>
+    <div class="card-en-tag">Wedding Invitation</div>
+
+    <!-- 头像 -->
+    <div class="avatar-section">
+      <div class="avatar-ring">
+        <img id="avatar1" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 80'%3E%3Crect fill='%23f5e6d0' width='80' height='80'/%3E%3Ctext x='40' y='45' text-anchor='middle' font-size='28' fill='%23c9a96e'%3E🤵%3C/text%3E%3C/svg%3E" alt="新郎">
+      </div>
+      <span class="avatar-heart">❤️</span>
+      <div class="avatar-ring">
+        <img id="avatar2" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 80'%3E%3Crect fill='%23f5e6d0' width='80' height='80'/%3E%3Ctext x='40' y='45' text-anchor='middle' font-size='28' fill='%23c9a96e'%3E👰%3C/text%3E%3C/svg%3E" alt="新娘">
+      </div>
+    </div>
+
+    <!-- 姓名 -->
+    <div class="couple-names">张三 & 李四</div>
+    <div class="couple-names-en">ZHANG SAN & LI SI</div>
+
+    <div class="divider"></div>
+
+    <!-- 邀请话术 -->
+    <div class="invite-quote">
+      诚挚邀请您出席我们的婚礼<br>
+      见证我们人生中最重要的时刻
+    </div>
+
+    <!-- 日期地点 -->
+    <div class="event-info">
+      <div class="event-date">2026年10月2日 星期五</div>
+      <div class="event-venue">📍 某某酒店 · 某某路123号</div>
+    </div>
+  </div>
+
+  <!-- 二维码区域 -->
+  <div class="qr-section">
+    <div class="qr-box">
+      <canvas id="qrCanvas"></canvas>
+    </div>
+    <div class="qr-text">
+      <div class="qr-title">💌 扫码查看电子请帖</div>
+      <div class="qr-desc">
+        长按识别二维码<br>
+        查看完整婚礼信息 · 在线回执
+      </div>
+      <div class="qr-hint">✦ 光影婚礼墙 ✦</div>
+    </div>
+  </div>
+
+  <!-- 底部 -->
+  <div class="card-footer">WITH LOVE & JOY</div>
+</div>
+
+<div class="notes">
+  <h3>📋 卡片说明：</h3>
+  <ul>
+    <li>卡片尺寸 380px 宽，适合手机截图分享</li>
+    <li>头像自动从用户上传的头像照片读取</li>
+    <li>姓名、日期、地点自动填充用户设置</li>
+    <li>邀请话术可在管理后台自定义编辑</li>
+    <li>二维码指向该用户的请帖预览链接</li>
+    <li>支持「保存为图片」下载 PNG 后分享</li>
+  </ul>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<script>
+  // 生成示例二维码
+  function generateQR() {
+    try {
+      const qr = qrcode(0, 'M');
+      qr.addData('https://mylove.sairx.cn/invite.html?slug=demo');
+      qr.make();
+      const canvas = document.getElementById('qrCanvas');
+      const ctx = canvas.getContext('2d');
+      const size = 160;
+      canvas.width = size;
+      canvas.height = size;
+      const cells = qr.getModuleCount();
+      const cellSize = size / cells;
+      ctx.fillStyle = '#6b4c3b';
+      for (let r = 0; r < cells; r++) {
+        for (let c = 0; c < cells; c++) {
+          if (qr.isDark(r, c)) {
+            ctx.fillRect(c * cellSize, r * cellSize, cellSize + 0.5, cellSize + 0.5);
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('QR failed:', e);
+    }
+  }
+  generateQR();
+</script>
+
+</body>
+</html>
