@@ -885,8 +885,8 @@
       const wrap = document.getElementById('inviteCardWrap');
       const p1 = currentUser.partner1 || '新郎';
       const p2 = currentUser.partner2 || '新娘';
-      const p1en = (currentUser.partner1_en || p1).toUpperCase();
-      const p2en = (currentUser.partner2_en || p2).toUpperCase();
+      const p1en = currentUser.partner1_en ? currentUser.partner1_en.toUpperCase() : '';
+      const p2en = currentUser.partner2_en ? currentUser.partner2_en.toUpperCase() : '';
 
       // 姓名位置（独立于头像）
       const leftName = cardNamesSwapped ? p2 : p1;
@@ -938,7 +938,7 @@
               <div class="avatar-ring">${av2Html}</div>
             </div>
             <div class="card-couple-names">${esc(leftName)} & ${esc(rightName)}</div>
-            <div class="card-couple-names-en">${esc(leftNameEn)} & ${esc(rightNameEn)}</div>
+            <div class="card-couple-names-en">${esc(leftNameEn || 'GROOM')} & ${esc(rightNameEn || 'BRIDE')}</div>
             <div class="card-divider"></div>
             <div class="card-invite-quote">${inviteText}</div>
             ${dateStr || venue ? `<div class="card-event-info">
