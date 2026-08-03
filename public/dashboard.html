@@ -288,7 +288,8 @@
           </div>
           <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;">
             <button class="btn btn-sm btn-outline" onclick="refreshCard()">🔄 刷新预览</button>
-            <button class="btn btn-sm btn-outline" onclick="swapCardSides()">🔄 交换左右位置</button>
+            <button class="btn btn-sm btn-outline" onclick="swapCardAvatars()">🔄 交换头像位置</button>
+            <button class="btn btn-sm btn-outline" onclick="swapCardNames()">🔄 交换姓名位置</button>
           </div>
         </div>
 
@@ -867,26 +868,31 @@
     };
 
     // ===== 邀请卡片 =====
-    let cardSwapped = false;
+    let cardAvatarsSwapped = false;
+    let cardNamesSwapped = false;
 
-    function swapCardSides() {
-      cardSwapped = !cardSwapped;
+    function swapCardAvatars() {
+      cardAvatarsSwapped = !cardAvatarsSwapped;
+      refreshCard();
+    }
+    function swapCardNames() {
+      cardNamesSwapped = !cardNamesSwapped;
       refreshCard();
     }
 
     function refreshCard() {
       if (!currentUser) return;
       const wrap = document.getElementById('inviteCardWrap');
-      let p1 = currentUser.partner1 || '新郎';
-      let p2 = currentUser.partner2 || '新娘';
-      let p1en = (currentUser.partner1_en || p1).toUpperCase();
-      let p2en = (currentUser.partner2_en || p2).toUpperCase();
+      const p1 = currentUser.partner1 || '新郎';
+      const p2 = currentUser.partner2 || '新娘';
+      const p1en = (currentUser.partner1_en || p1).toUpperCase();
+      const p2en = (currentUser.partner2_en || p2).toUpperCase();
 
-      // 交换位置
-      if (cardSwapped) {
-        [p1, p2] = [p2, p1];
-        [p1en, p2en] = [p2en, p1en];
-      }
+      // 姓名位置（独立于头像）
+      const leftName = cardNamesSwapped ? p2 : p1;
+      const rightName = cardNamesSwapped ? p1 : p2;
+      const leftNameEn = cardNamesSwapped ? p2en : p1en;
+      const rightNameEn = cardNamesSwapped ? p1en : p2en;
 
       // 日期格式化
       let dateStr = '';
@@ -901,11 +907,11 @@
       const venue = currentUser.wedding_venue || '';
       const inviteText = document.getElementById('cardInviteText').value.replace(/\n/g, '<br>');
 
-      // 头像
+      // 头像位置（独立于姓名）
       const avatarImgs = (currentImages || []).filter(i => i.category === 'avatar');
       let av1Src = avatarImgs.length > 0 ? avatarImgs[0].url : '';
       let av2Src = avatarImgs.length > 1 ? avatarImgs[1].url : av1Src;
-      if (cardSwapped) { [av1Src, av2Src] = [av2Src, av1Src]; }
+      if (cardAvatarsSwapped) { [av1Src, av2Src] = [av2Src, av1Src]; }
       const av1Html = av1Src
         ? '<img src="' + av1Src + '" alt="">'
         : '<svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg"><rect fill="#f5e6d0" width="80" height="80"/><text x="40" y="50" text-anchor="middle" font-size="30">🤵</text></svg>';
@@ -931,8 +937,8 @@
               <span class="avatar-heart">❤️</span>
               <div class="avatar-ring">${av2Html}</div>
             </div>
-            <div class="card-couple-names">${esc(p1)} & ${esc(p2)}</div>
-            <div class="card-couple-names-en">${esc(p1en)} & ${esc(p2en)}</div>
+            <div class="card-couple-names">${esc(leftName)} & ${esc(rightName)}</div>
+            <div class="card-couple-names-en">${esc(leftNameEn)} & ${esc(rightNameEn)}</div>
             <div class="card-divider"></div>
             <div class="card-invite-quote">${inviteText}</div>
             ${dateStr || venue ? `<div class="card-event-info">
