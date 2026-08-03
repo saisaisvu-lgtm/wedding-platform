@@ -890,10 +890,10 @@
       const av1Src = avatarImgs.length > 0 ? avatarImgs[0].url : '';
       const av2Src = avatarImgs.length > 1 ? avatarImgs[1].url : av1Src;
       const av1Html = av1Src
-        ? '<img src="' + av1Src + '" alt="" crossorigin="anonymous">'
+        ? '<img src="' + av1Src + '" alt="">'
         : '<svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg"><rect fill="#f5e6d0" width="80" height="80"/><text x="40" y="50" text-anchor="middle" font-size="30">🤵</text></svg>';
       const av2Html = av2Src
-        ? '<img src="' + av2Src + '" alt="" crossorigin="anonymous">'
+        ? '<img src="' + av2Src + '" alt="">'
         : '<svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg"><rect fill="#f5e6d0" width="80" height="80"/><text x="40" y="50" text-anchor="middle" font-size="30">👰</text></svg>';
 
       // 角落装饰 SVG
@@ -926,8 +926,8 @@
           <div class="card-qr-section">
             <div class="card-qr-box"><canvas id="cardQrCanvas"></canvas></div>
             <div class="card-qr-text">
-              <div class="card-qr-title">💌 扫码查看电子请帖</div>
-              <div class="card-qr-desc">长按识别二维码<br>查看完整婚礼信息 · 在线回执</div>
+              <div class="card-qr-title">💒 扫码进入婚礼现场</div>
+              <div class="card-qr-desc">长按识别二维码<br>查看照片墙 · 在线回执</div>
               <div class="card-qr-hint">✦ 光影婚礼墙 ✦</div>
             </div>
           </div>
@@ -939,8 +939,7 @@
       try {
         if (typeof qrcode === 'function' && currentUser.slug) {
           const qr = qrcode(0, 'M');
-          const base = window.location.origin;
-          qr.addData(base + '/invite.html?slug=' + currentUser.slug);
+          qr.addData('https://mylove.sairx.cn/w/' + currentUser.slug);
           qr.make();
           const canvas = document.getElementById('cardQrCanvas');
           const ctx = canvas.getContext('2d');
@@ -964,19 +963,7 @@
       const btn = document.getElementById('saveCardBtn');
       btn.disabled = true; btn.textContent = '⏳ 生成中...';
       try {
-        // 替换跨域图片为占位符以避免 tainted canvas
-        const crossImgs = card.querySelectorAll('img[crossorigin]');
-        const placeholders = [];
-        crossImgs.forEach(function(img) {
-          const ph = document.createElement('div');
-          ph.style.cssText = 'width:' + img.offsetWidth + 'px;height:' + img.offsetHeight + 'px;background:linear-gradient(135deg,#fce4ec,#f3e5f5);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.8rem;opacity:0.6;';
-          ph.textContent = img.alt === '' ? '👤' : '👤';
-          img.parentNode.replaceChild(ph, img);
-          placeholders.push({ ph: ph, img: img });
-        });
-        const canvas = await html2canvas(card, { backgroundColor: '#fdf5ec', scale: 3, useCORS: false, allowTaint: false, logging: false });
-        // 恢复原图
-        placeholders.forEach(function(p) { p.ph.parentNode.replaceChild(p.img, p.ph); });
+        const canvas = await html2canvas(card, { backgroundColor: '#fdf5ec', scale: 3, useCORS: true, allowTaint: true, logging: false });
         let dataUrl;
         try { dataUrl = canvas.toDataURL('image/png'); } catch(e) {
           try { dataUrl = canvas.toDataURL('image/jpeg', 0.92); } catch(e2) { alert('保存失败'); return; }
@@ -1011,7 +998,7 @@
 
     function copyCardInviteLink() {
       if (!currentUser || !currentUser.slug) { alert('数据加载中，请稍后'); return; }
-      const url = window.location.origin + '/invite.html?slug=' + currentUser.slug;
+      const url = 'https://mylove.sairx.cn/w/' + currentUser.slug;
       navigator.clipboard.writeText(url).then(() => {
         const alertEl = document.getElementById('cardAlert');
         showAlert(alertEl, '✅ 请帖链接已复制', 'success');
