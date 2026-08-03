@@ -965,16 +965,16 @@
         </div>
       `;
 
-      // 生成二维码
+      // 生成二维码（直接转为 img，方便 html2canvas 截图）
       try {
         if (typeof qrcode === 'function' && currentUser.slug) {
           const qr = qrcode(0, 'M');
           qr.addData('https://mylove.sairx.cn/w/' + currentUser.slug);
           qr.make();
-          const canvas = document.getElementById('cardQrCanvas');
-          const ctx = canvas.getContext('2d');
+          const cv = document.createElement('canvas');
+          const ctx = cv.getContext('2d');
           const size = 160;
-          canvas.width = size; canvas.height = size;
+          cv.width = size; cv.height = size;
           const cells = qr.getModuleCount();
           const cellSize = size / cells;
           ctx.fillStyle = '#6b4c3b';
@@ -982,6 +982,10 @@
             for (let c = 0; c < cells; c++) {
               if (qr.isDark(r, c)) ctx.fillRect(c * cellSize, r * cellSize, cellSize + 0.5, cellSize + 0.5);
             }
+          }
+          const qrBox = document.querySelector('.card-qr-box');
+          if (qrBox) {
+            qrBox.innerHTML = '<img src="' + cv.toDataURL('image/png') + '" style="width:100%;height:100%;display:block;border-radius:4px;">';
           }
         }
       } catch (e) { console.warn('QR gen failed:', e); }
@@ -993,7 +997,30 @@
       const btn = document.getElementById('saveCardBtn');
       btn.disabled = true; btn.textContent = '⏳ 生成中...';
       try {
-        const canvas = await html2canvas(card, { backgroundColor: '#fdf5ec', scale: 3, useCORS: true, allowTaint: true, logging: false });
+        // 临时固定卡片宽高，避免 html2canvas 计算错误
+        const origW = card.style.width;
+        const origH = card.style.height;
+        const origOverflow = card.style.overflow;
+        card.style.width = card.offsetWidth + 'px';
+        card.style.overflow = 'hidden';
+
+        const canvas = await html2canvas(card, {
+          backgroundColor: '#f2e4d2',
+          scale: 2,
+          useCORS: true,
+          allowTaint: true,
+          logging: false,
+          removeContainer: true,
+          imageTimeout: 5000,
+          width: card.scrollWidth,
+          height: card.scrollHeight,
+        });
+
+        // 恢复原始样式
+        card.style.width = origW;
+        card.style.height = origH;
+        card.style.overflow = origOverflow;
+
         let dataUrl;
         try { dataUrl = canvas.toDataURL('image/png'); } catch(e) {
           try { dataUrl = canvas.toDataURL('image/jpeg', 0.92); } catch(e2) { alert('保存失败'); return; }
