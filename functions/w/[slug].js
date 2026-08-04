@@ -13,6 +13,7 @@ export async function onRequest(context) {
   <meta name="apple-mobile-web-app-capable" content="yes">
   <title>囍 · 婚礼</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Ma+Shan+Zheng&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
   <noscript><link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Ma+Shan+Zheng&display=swap" rel="stylesheet"></noscript>
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js" defer></script>
@@ -118,7 +119,6 @@ export async function onRequest(context) {
     #gridwall .grid-row:nth-child(odd){animation:gridScrollR var(--row-duration,40s) linear infinite}
     #gridwall .grid-row:nth-child(even),#gridwall .grid-row:nth-child(odd){will-change:transform}
     #gridwall .grid-item{flex:none;height:100%;aspect-ratio:3/2;border-radius:6px;overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center;background:#e8e4dd}
-    #gridwall .grid-item .blur-fill{position:absolute;inset:-8px;background-size:cover;background-position:center;filter:blur(12px) brightness(0.9);z-index:0;will-change:filter}
     #gridwall .grid-item img{position:relative;z-index:2;max-width:92%;max-height:92%;object-fit:contain;border-radius:3px;-webkit-user-drag:none}
     @keyframes gridScrollL{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
     @keyframes gridScrollR{0%{transform:translateX(-50%)}100%{transform:translateX(0)}}
