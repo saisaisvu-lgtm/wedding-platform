@@ -121,13 +121,17 @@ CREATE TABLE IF NOT EXISTS danmaku (
 CREATE INDEX IF NOT EXISTS idx_danmaku_wedding ON danmaku(wedding_user_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_danmaku_status ON danmaku(status);
 
--- 弹幕封禁表（按 IP hash 封禁）
+-- 弹幕封禁表（按 IP hash 封禁，支持过期）
 CREATE TABLE IF NOT EXISTS danmaku_bans (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   ip_hash TEXT NOT NULL,
   wedding_user_id INTEGER NOT NULL,
   reason TEXT NOT NULL DEFAULT '',
+  expires_at TEXT DEFAULT NULL,
   created_at TEXT DEFAULT (datetime('now'))
 );
 
 CREATE INDEX IF NOT EXISTS idx_danmaku_bans_ip ON danmaku_bans(ip_hash, wedding_user_id);
+
+-- 用户表新增弹幕开关字段
+-- ALTER TABLE users ADD COLUMN danmaku_enabled INTEGER NOT NULL DEFAULT 1;

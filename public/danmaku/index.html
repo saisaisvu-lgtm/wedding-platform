@@ -101,7 +101,7 @@
   <div class="header">
     <div class="xi">囍</div>
     <h1>送祝福</h1>
-    <p>发送祝福语，实时显示在婚礼现场大屏</p>
+    <p>发送祝福语，实时显示在婚礼现场大屏（可多选）</p>
     <div class="couple-names" id="coupleNames">--</div>
   </div>
 
@@ -178,7 +178,7 @@
   ];
 
   let selectedEmoji = '';
-  let selectedBlessing = '';
+  let selectedBlessings = []; // 多选
 
   // 加载新人信息
   async function loadWedding() {
@@ -220,13 +220,15 @@
     updatePreview();
   };
 
-  // 选择祝福语
+  // 选择祝福语（多选）
   window.selectBlessing = function(text, btn) {
-    document.querySelectorAll('.blessing-btn').forEach(b => b.classList.remove('selected'));
-    if (selectedBlessing === text) {
-      selectedBlessing = '';
+    var idx = selectedBlessings.indexOf(text);
+    if (idx >= 0) {
+      selectedBlessings.splice(idx, 1);
+      btn.classList.remove('selected');
     } else {
-      selectedBlessing = text;
+      if (selectedBlessings.length >= 5) { showToast('最多选5条祝福语', true); return; }
+      selectedBlessings.push(text);
       btn.classList.add('selected');
       document.getElementById('customInput').value = '';
     }
@@ -237,7 +239,7 @@
   document.getElementById('customInput').addEventListener('input', function() {
     document.getElementById('charCount').textContent = this.value.length;
     if (this.value) {
-      selectedBlessing = '';
+      selectedBlessings = [];
       document.querySelectorAll('.blessing-btn').forEach(b => b.classList.remove('selected'));
     }
     updatePreview();
@@ -246,15 +248,23 @@
   // 更新预览
   function updatePreview() {
     const preview = document.getElementById('previewArea');
-    const content = selectedBlessing || document.getElementById('customInput').value;
-    if (!content && !selectedEmoji) {
-      preview.innerHTML = '<span class="preview-text" style="color:#a08060;">选择下方祝福语或输入内容</span>';
+    const customText = document.getElementById('customInput').value;
+    const hasContent = selectedBlessings.length > 0 || customText;
+    if (!hasContent && !selectedEmoji) {
+      preview.innerHTML = '<span class="preview-text" style="color:#a08060;">选择下方祝福语或输入内容（可多选）</span>';
       return;
     }
     let html = '';
-    if (selectedEmoji) html += '<span class="preview-emoji">' + selectedEmoji + '</span>';
-    if (content) html += '<span class="preview-text">' + escHtml(content) + '</span>';
-    if (selectedEmoji) html += '<span class="preview-emoji">' + selectedEmoji + '</span>';
+    if (selectedBlessings.length > 0) {
+      html += selectedBlessings.map(function(b) {
+        return '<span style="display:inline-block;padding:4px 10px;margin:3px;background:rgba(201,169,110,0.1);border:1px solid rgba(201,169,110,0.2);border-radius:12px;font-size:14px;color:#6b4c3b;">' + (selectedEmoji ? selectedEmoji + ' ' : '') + escHtml(b) + (selectedEmoji ? ' ' + selectedEmoji : '') + '</span>';
+      }).join('');
+      html += '<div style="font-size:11px;color:#a08060;margin-top:6px;">将发送 ' + selectedBlessings.length + ' 条弹幕</div>';
+    } else if (customText) {
+      if (selectedEmoji) html += '<span class="preview-emoji">' + selectedEmoji + '</span>';
+      html += '<span class="preview-text">' + escHtml(customText) + '</span>';
+      if (selectedEmoji) html += '<span class="preview-emoji">' + selectedEmoji + '</span>';
+    }
     preview.innerHTML = html;
   }
 
@@ -264,38 +274,57 @@
     return d.innerHTML;
   }
 
-  // 发送
+  // 发送（支持多选批量发送）
   window.sendDanmaku = async function() {
     if (!slug) { showToast('请通过婚礼链接访问', true); return; }
 
-    const content = selectedBlessing || document.getElementById('customInput').value.trim();
+    const customText = document.getElementById('customInput').value.trim();
     const emoji = selectedEmoji;
-    if (!content && !emoji) { showToast('请输入祝福语或选择表情', true); return; }
-
     const nickname = document.getElementById('nicknameInput').value.trim() || '匿名';
+
+    // 构建待发送列表
+    var toSend = [];
+    if (selectedBlessings.length > 0) {
+      selectedBlessings.forEach(function(b) { toSend.push({ content: b, emoji: emoji }); });
+    } else if (customText) {
+      toSend.push({ content: customText, emoji: emoji });
+    }
+
+    if (toSend.length === 0) { showToast('请输入祝福语或选择表情', true); return; }
+
     const btn = document.getElementById('sendBtn');
     btn.disabled = true;
     btn.innerHTML = '<span class="spinner"></span> 发送中...';
 
+    var success = 0, fail = 0;
     try {
-      const res = await fetch('/api/danmaku', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ slug, nickname, content, emoji })
-      });
-      const data = await res.json();
-      if (data.ok) {
-        showToast('🎉 祝福已发送！');
-        // 清空
+      for (var i = 0; i < toSend.length; i++) {
+        var item = toSend[i];
+        try {
+          var res = await fetch('/api/danmaku', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ slug: slug, nickname: nickname, content: item.content, emoji: item.emoji })
+          });
+          var data = await res.json();
+          if (data.ok) success++;
+          else fail++;
+          // 间隔 500ms 避免限流
+          if (i < toSend.length - 1) await new Promise(function(r) { setTimeout(r, 500); });
+        } catch (e) { fail++; }
+      }
+
+      if (success > 0) {
+        showToast('🎉 已发送 ' + success + ' 条祝福' + (fail > 0 ? '，' + fail + ' 条失败' : ''));
         selectedEmoji = '';
-        selectedBlessing = '';
+        selectedBlessings = [];
         document.getElementById('customInput').value = '';
         document.getElementById('charCount').textContent = '0';
         document.querySelectorAll('.emoji-btn').forEach(b => b.classList.remove('selected'));
         document.querySelectorAll('.blessing-btn').forEach(b => b.classList.remove('selected'));
         updatePreview();
       } else {
-        showToast(data.error || '发送失败', true);
+        showToast('发送失败', true);
       }
     } catch (e) {
       showToast('网络错误', true);

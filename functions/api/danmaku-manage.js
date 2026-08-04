@@ -24,7 +24,7 @@ export async function onRequestGet(context) {
 
     if (action === 'bans') {
       const { results } = await env.DB.prepare(
-        'SELECT id, ip_hash, reason, created_at FROM danmaku_bans WHERE wedding_user_id = ? ORDER BY created_at DESC LIMIT 100'
+        "SELECT id, ip_hash, reason, expires_at, created_at FROM danmaku_bans WHERE wedding_user_id = ? AND (expires_at IS NULL OR expires_at > datetime('now')) ORDER BY created_at DESC LIMIT 100"
       ).bind(userId).all();
       return Response.json({ ok: true, bans: results }, { headers: corsHeaders });
     }

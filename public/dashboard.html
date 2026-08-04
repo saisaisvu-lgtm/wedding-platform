@@ -275,6 +275,21 @@
       <div class="card">
         <div id="danmakuAlert" class="alert"></div>
         <div class="section">
+          <div class="section-title"><span class="icon">⚙️</span> 弹幕设置</div>
+          <div style="display:flex;align-items:center;gap:16px;padding:16px;background:var(--bg-subtle);border-radius:var(--radius);border:1px solid var(--border);margin-bottom:16px;">
+            <div style="flex:1;">
+              <div style="font-size:15px;font-weight:600;color:var(--text);margin-bottom:4px;">弹幕功能</div>
+              <div style="font-size:13px;color:var(--text-muted);">开启后，杂志模式页面底部显示扫码送祝福二维码，宾客发送的祝福语将以弹幕形式飘过大屏。</div>
+            </div>
+            <label style="position:relative;display:inline-block;width:52px;height:28px;flex-shrink:0;cursor:pointer;">
+              <input type="checkbox" id="danmakuToggle" checked onchange="toggleDanmakuSetting()" style="opacity:0;width:0;height:0;">
+              <span id="danmakuSlider" style="position:absolute;inset:0;background:#16a34a;border-radius:28px;transition:0.3s;">
+                <span id="danmakuKnob" style="position:absolute;left:26px;top:2px;width:24px;height:24px;background:#fff;border-radius:50%;transition:0.3s;box-shadow:0 1px 3px rgba(0,0,0,0.2);"></span>
+              </span>
+            </label>
+          </div>
+        </div>
+        <div class="section">
           <div class="section-title"><span class="icon">💬</span> 弹幕审核</div>
           <p style="font-size:14px;color:var(--text-secondary);margin-bottom:18px;line-height:1.8;">管理宾客发送的祝福弹幕。敏感词会被自动拦截进入待审核，您可以在这里通过或拒绝。</p>
         </div>
@@ -420,7 +435,7 @@
         tab.classList.add('active');
         document.getElementById(`tab-${tab.dataset.tab}`).classList.add('active');
         if (tab.dataset.tab === 'card') refreshCard();
-        if (tab.dataset.tab === 'danmaku') loadDanmaku();
+        if (tab.dataset.tab === 'danmaku') { loadDanmakuSetting(); loadDanmaku(); }
       });
     });
 
@@ -896,6 +911,29 @@
     function chineseToPinyin(str) {
       if (!str) return '';
       return str.split('').map(function(ch) { return PINYIN_MAP[ch] || ch; }).join('');
+    }
+
+    // ===== 弹幕设置 ======
+    function loadDanmakuSetting() {
+      if (!currentUser) return;
+      const enabled = localStorage.getItem('danmaku_enabled_' + currentUser.slug);
+      const isOn = enabled !== '0'; // 默认开
+      document.getElementById('danmakuToggle').checked = isOn;
+      updateToggleUI(isOn);
+    }
+
+    window.toggleDanmakuSetting = function() {
+      if (!currentUser) return;
+      const isOn = document.getElementById('danmakuToggle').checked;
+      localStorage.setItem('danmaku_enabled_' + currentUser.slug, isOn ? '1' : '0');
+      updateToggleUI(isOn);
+    };
+
+    function updateToggleUI(isOn) {
+      const slider = document.getElementById('danmakuSlider');
+      const knob = document.getElementById('danmakuKnob');
+      slider.style.background = isOn ? '#16a34a' : '#d1d5db';
+      knob.style.left = isOn ? '26px' : '2px';
     }
 
     // ===== 弹幕审核 ======

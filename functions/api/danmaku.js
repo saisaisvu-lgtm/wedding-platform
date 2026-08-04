@@ -1,33 +1,14 @@
 // 弹幕消息 API
-// POST /api/danmaku          — 发送弹幕（无需登录，通过 slug 关联）
-// GET  /api/danmaku?slug=xxx — 获取已审核弹幕（轮询）
+// POST /api/danmaku          — 发送弹幕
+// GET  /api/danmaku?slug=xxx — 获取已审核弹幕
+
+import { checkContent, hashIP } from './_filter.js';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': 'https://mylove.sairx.cn',
   'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type',
 };
-
-// 敏感词库（命中自动设为 pending 待审核）
-const BAD_WORDS = [
-  '傻逼','操你','妈的','去死','垃圾','废物','狗屎','混蛋','王八蛋',
-  '贱人','婊子','畜生','白痴','脑残','弱智','智障','煞笔','草泥马',
-  '尼玛','卧槽','我靠','fuck','shit','bitch','asshole','dick',
-  '色情','约炮','裸聊','赌博','代开发票','加微信','加QQ',
-];
-
-function containsBadWord(text) {
-  if (!text) return false;
-  const lower = text.toLowerCase();
-  return BAD_WORDS.some(w => lower.includes(w));
-}
-
-async function hashIP(ip) {
-  const encoder = new TextEncoder();
-  const data = encoder.encode(ip + 'danmaku-salt-2026');
-  const hash = await crypto.subtle.digest('SHA-256', data);
-  return btoa(String.fromCharCode(...new Uint8Array(hash))).slice(0, 16);
-}
 
 export async function onRequestOptions() {
   return new Response(null, { headers: corsHeaders });
@@ -54,13 +35,13 @@ export async function onRequestPost(context) {
       return Response.json({ ok: false, error: '婚礼页面不存在' }, { status: 404, headers: corsHeaders });
     }
 
-    // 获取 IP 并 hash
+    // 获取 IP
     const ip = request.headers.get('CF-Connecting-IP') || request.headers.get('X-Real-IP') || '0.0.0.0';
     const ipHash = await hashIP(ip);
 
     // 检查是否被封禁
     const banned = await env.DB.prepare(
-      'SELECT id FROM danmaku_bans WHERE ip_hash = ? AND wedding_user_id = ?'
+      "SELECT id, expires_at FROM danmaku_bans WHERE ip_hash = ? AND wedding_user_id = ? AND (expires_at IS NULL OR expires_at > datetime('now'))"
     ).bind(ipHash, user.id).first();
     if (banned) {
       return Response.json({ ok: false, error: '您已被限制发送消息' }, { status: 403, headers: corsHeaders });
@@ -74,27 +55,52 @@ export async function onRequestPost(context) {
       return Response.json({ ok: false, error: '发送太快了，请稍后再试' }, { status: 429, headers: corsHeaders });
     }
 
+    // 限流：同一 IP 每分钟最多 5 条
+    const minuteCount = await env.DB.prepare(
+      "SELECT COUNT(*) as c FROM danmaku WHERE wedding_user_id = ? AND ip_hash = ? AND created_at > datetime('now', '-1 minute')"
+    ).bind(user.id, ipHash).first();
+    if (minuteCount && minuteCount.c >= 20) {
+      return Response.json({ ok: false, error: '发送太频繁，请稍后再试' }, { status: 429, headers: corsHeaders });
+    }
+
     const safeContent = (content || '').trim().slice(0, 50);
     const safeNickname = (nickname || '匿名').trim().slice(0, 12);
     const safeEmoji = (emoji || '').trim().slice(0, 10);
     const safeColor = (color || '').trim().slice(0, 20);
 
-    // 敏感词检测：命中 → pending 待审核，不命中 → 直接 approved
-    const hasBadWord = containsBadWord(safeContent) || containsBadWord(safeNickname);
-    const status = hasBadWord ? 'pending' : 'approved';
+    // 内容审核
+    const result = checkContent(safeContent, safeNickname);
 
-    // 如果命中敏感词，同时记录到 ban 表（自动封禁）
-    if (hasBadWord) {
+    let status = 'approved';
+    let banDuration = null;
+
+    if (result.action === 'reject_ban') {
+      // level 3: 直接拒绝 + 永久封禁
+      status = 'rejected';
+      banDuration = null; // 永久
       await env.DB.prepare(
-        "INSERT OR IGNORE INTO danmaku_bans (ip_hash, wedding_user_id, reason) VALUES (?, ?, ?)"
-      ).bind(ipHash, user.id, '敏感词: ' + safeContent.slice(0, 30)).run();
+        "INSERT INTO danmaku_bans (ip_hash, wedding_user_id, reason, expires_at) VALUES (?, ?, ?, NULL)"
+      ).bind(ipHash, user.id, '严重违规: ' + result.words.join(',')).run();
+    } else if (result.action === 'pending_ban') {
+      // level 2: 待审核 + 封禁 1 小时
+      status = 'pending';
+      banDuration = '1 hour';
+      await env.DB.prepare(
+        "INSERT INTO danmaku_bans (ip_hash, wedding_user_id, reason, expires_at) VALUES (?, ?, ?, datetime('now', '+1 hour'))"
+      ).bind(ipHash, user.id, '敏感词: ' + result.words.join(',')).run();
+    } else if (result.action === 'pending') {
+      // level 1: 待审核，不封禁
+      status = 'pending';
     }
 
     await env.DB.prepare(
       'INSERT INTO danmaku (wedding_user_id, nickname, content, emoji, color, status, ip_hash) VALUES (?, ?, ?, ?, ?, ?, ?)'
     ).bind(user.id, safeNickname, safeContent, safeEmoji, safeColor, status, ipHash).run();
 
-    if (hasBadWord) {
+    if (status === 'rejected') {
+      return Response.json({ ok: false, error: '内容违规，无法发送' }, { status: 400, headers: corsHeaders });
+    }
+    if (status === 'pending') {
       return Response.json({ ok: true, message: '已提交，等待审核', pending: true }, { headers: corsHeaders });
     }
 
@@ -106,7 +112,7 @@ export async function onRequestPost(context) {
   }
 }
 
-// 获取已审核弹幕（轮询）
+// 获取已审核弹幕
 export async function onRequestGet(context) {
   const { request, env } = context;
 
@@ -136,10 +142,7 @@ export async function onRequestGet(context) {
 
     const { results } = await env.DB.prepare(query).bind(...params).all();
 
-    return Response.json({
-      ok: true,
-      messages: results.reverse(),
-    }, { headers: corsHeaders });
+    return Response.json({ ok: true, messages: results.reverse() }, { headers: corsHeaders });
 
   } catch (err) {
     console.error('Danmaku GET error:', err);

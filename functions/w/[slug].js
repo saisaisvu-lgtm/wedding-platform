@@ -144,7 +144,7 @@ export async function onRequest(context) {
       @keyframes flipInRight{0%{transform:rotateY(90deg);opacity:0.3}100%{transform:rotateY(0deg);opacity:1}}
     }
     .mag-img-page img{position:relative;z-index:2;max-width:90%;max-height:90%;object-fit:contain;border-radius:4px;box-shadow:0 8px 40px rgba(0,0,0,0.15)}
-    .mag-text-area{width:35%;min-width:200px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;background:linear-gradient(160deg,#fdf6e3 0%,#f5ede0 40%,#ede1d0 100%);position:relative;z-index:2;transition:opacity 0.4s ease}
+    .mag-text-area{width:35%;min-width:200px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:32px 32px 20px;background:linear-gradient(160deg,#fdf6e3 0%,#f5ede0 40%,#ede1d0 100%);position:relative;z-index:2;transition:opacity 0.4s ease;overflow-y:auto}
     .mag-text-area .mag-xi{font-size:clamp(40px,8vw,72px);color:#b8860b;text-shadow:0 0 20px rgba(184,134,11,0.15);margin-bottom:16px;animation:xiPulse 3s ease-in-out infinite}
     .mag-text-area .mag-quote{font-size:clamp(13px,2vw,16px);color:#5a4a3a;line-height:1.8;text-align:center;margin-bottom:16px;letter-spacing:0.05em;font-style:italic;transition:opacity 0.3s}
     .mag-text-area .avatar-container{display:flex;gap:12px;margin-bottom:12px}
@@ -192,17 +192,23 @@ export async function onRequest(context) {
     #danmaku-overlay.active{display:block}
     .danmaku-item{position:absolute;white-space:nowrap;font-size:clamp(16px,3vw,24px);font-weight:600;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,0.4),0 0 8px rgba(0,0,0,0.2);pointer-events:none;will-change:transform;animation:danmakuFly linear forwards}
     @keyframes danmakuFly{from{transform:translateX(100vw)}to{transform:translateX(-100%)}}
-    #danmaku-panel{position:fixed;bottom:0;left:0;right:0;z-index:85;background:linear-gradient(0deg,rgba(253,246,227,0.95) 0%,rgba(253,246,227,0.8) 60%,transparent 100%);padding:20px 20px 28px;display:none;flex-direction:column;align-items:center;gap:12px}
-    #danmaku-panel.active{display:flex}
-    .danmaku-qr-row{display:flex;align-items:center;gap:16px;max-width:400px;width:100%}
-    .danmaku-qr-box{width:80px;height:80px;background:#fff;border-radius:10px;padding:5px;box-shadow:0 2px 8px rgba(0,0,0,0.08);flex-shrink:0}
-    .danmaku-qr-box img{width:100%;height:100%;display:block;border-radius:5px}
-    .danmaku-qr-text{flex:1}
-    .danmaku-qr-text .qr-title{font-family:'Ma Shan Zheng',cursive;font-size:16px;color:#6b4c3b;margin-bottom:4px}
-    .danmaku-qr-text .qr-desc{font-size:11px;color:#a08060;line-height:1.5}
-    .danmaku-toggle{display:flex;gap:8px;margin-top:4px}
-    .danmaku-toggle button{padding:6px 16px;border-radius:16px;font-size:12px;border:1px solid rgba(184,134,11,0.3);background:rgba(184,134,11,0.08);color:#8b6914;cursor:pointer;font-family:inherit;transition:all 0.2s}
-    .danmaku-toggle button.active{background:rgba(184,134,11,0.2);border-color:#b8860b;color:#6b4c3b;font-weight:600}
+
+    /* 弹幕设置面板 */
+    #danmaku-settings{position:fixed;top:50%;right:16px;transform:translateY(-50%);z-index:81;background:rgba(30,25,20,0.88);backdrop-filter:blur(12px);border:1px solid rgba(201,169,110,0.2);border-radius:14px;padding:16px;width:180px;display:none;pointer-events:auto}
+    #danmaku-settings.active{display:block}
+    #danmaku-settings .ds-title{font-size:12px;color:rgba(201,169,110,0.8);letter-spacing:0.1em;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between}
+    #danmaku-settings .ds-title .ds-close{cursor:pointer;font-size:14px;opacity:0.5;transition:opacity 0.2s}
+    #danmaku-settings .ds-title .ds-close:hover{opacity:1}
+    #danmaku-settings .ds-group{margin-bottom:12px}
+    #danmaku-settings .ds-label{font-size:10px;color:rgba(255,255,255,0.4);letter-spacing:0.08em;margin-bottom:6px}
+    #danmaku-settings .ds-row{display:flex;gap:4px}
+    #danmaku-settings .ds-btn{flex:1;padding:5px 0;border-radius:6px;border:1px solid rgba(255,255,255,0.1);background:transparent;color:rgba(255,255,255,0.6);font-size:11px;cursor:pointer;text-align:center;transition:all 0.2s;font-family:inherit}
+    #danmaku-settings .ds-btn:hover{border-color:rgba(201,169,110,0.4);color:#fff}
+    #danmaku-settings .ds-btn.active{background:rgba(201,169,110,0.2);border-color:rgba(201,169,110,0.5);color:#c9a96e;font-weight:600}
+    #danmaku-settings-toggle{position:fixed;top:50%;right:16px;transform:translateY(-50%);z-index:82;width:36px;height:36px;border-radius:50%;background:rgba(30,25,20,0.7);border:1px solid rgba(201,169,110,0.2);color:#c9a96e;font-size:16px;cursor:pointer;display:none;align-items:center;justify-content:center;transition:all 0.2s;pointer-events:auto}
+    #danmaku-settings-toggle:hover{background:rgba(30,25,20,0.9);border-color:rgba(201,169,110,0.4)}
+    #danmaku-settings-toggle.active{display:flex}
+
 
     /* ====== 热区提示 ====== */
     .hotzone{position:fixed;top:0;left:50%;transform:translateX(-50%);width:60px;height:3px;background:rgba(184,134,11,0.3);border-radius:0 0 3px 3px;z-index:101;opacity:0;transition:opacity 0.3s;pointer-events:none}
@@ -349,20 +355,46 @@ export async function onRequest(context) {
   <!-- 弹幕蒙版 -->
   <div id="danmaku-overlay"></div>
 
-  <!-- 弹幕控制面板 + QR -->
-  <div id="danmaku-panel">
-    <div class="danmaku-qr-row">
-      <div class="danmaku-qr-box" id="danmaku-qr"></div>
-      <div class="danmaku-qr-text">
-        <div class="qr-title">📱 扫码送祝福</div>
-        <div class="qr-desc">扫码发送祝福语和表情<br>实时显示在大屏上 ✨</div>
+  <!-- 弹幕设置按钮 -->
+  <button id="danmaku-settings-toggle" onclick="toggleDanmakuSettings()">⚙</button>
+
+  <!-- 弹幕设置面板 -->
+  <div id="danmaku-settings">
+    <div class="ds-title">弹幕设置 <span class="ds-close" onclick="toggleDanmakuSettings()">✕</span></div>
+    <div class="ds-group">
+      <div class="ds-label">显示区域</div>
+      <div class="ds-row">
+        <button class="ds-btn active" data-area="full" onclick="setDanmakuArea('full',this)">全屏</button>
+        <button class="ds-btn" data-area="top" onclick="setDanmakuArea('top',this)">上半</button>
+        <button class="ds-btn" data-area="bottom" onclick="setDanmakuArea('bottom',this)">下半</button>
       </div>
     </div>
-    <div class="danmaku-toggle">
-      <button id="btn-danmaku-on" class="active" onclick="toggleDanmaku(true)">弹幕开</button>
-      <button id="btn-danmaku-off" onclick="toggleDanmaku(false)">弹幕关</button>
+    <div class="ds-group">
+      <div class="ds-label">滚动速度</div>
+      <div class="ds-row">
+        <button class="ds-btn" data-speed="slow" onclick="setDanmakuSpeed('slow',this)">慢</button>
+        <button class="ds-btn active" data-speed="normal" onclick="setDanmakuSpeed('normal',this)">正常</button>
+        <button class="ds-btn" data-speed="fast" onclick="setDanmakuSpeed('fast',this)">快</button>
+      </div>
+    </div>
+    <div class="ds-group">
+      <div class="ds-label">字体大小</div>
+      <div class="ds-row">
+        <button class="ds-btn" data-size="small" onclick="setDanmakuSize('small',this)">小</button>
+        <button class="ds-btn active" data-size="medium" onclick="setDanmakuSize('medium',this)">中</button>
+        <button class="ds-btn" data-size="large" onclick="setDanmakuSize('large',this)">大</button>
+      </div>
+    </div>
+    <div class="ds-group" style="margin-bottom:0;">
+      <div class="ds-label">弹幕开关</div>
+      <div class="ds-row">
+        <button class="ds-btn active" id="ds-on" onclick="toggleDanmaku(true)">开</button>
+        <button class="ds-btn" id="ds-off" onclick="toggleDanmaku(false)">关</button>
+      </div>
     </div>
   </div>
+
+
 
   <audio id="bgm" loop></audio>
 
@@ -748,7 +780,14 @@ export async function onRequest(context) {
         + '<div class="mag-quote" id="mag-quote">'+shuffledQuotes[0]+'</div>'
         + avatarHtml
         + '<div class="names-label">'+WEDDING.couple_name+'</div>'
-        + '<div class="mag-thanks" id="mag-thanks">感谢每一位亲朋好友<br>在这个特别的日子里<br>见证我们的婚礼</div>';
+        + '<div class="mag-thanks" id="mag-thanks">感谢每一位亲朋好友<br>在这个特别的日子里<br>见证我们的婚礼</div>'
+        + '<div style="flex:1"></div>'
+        + '<div id="mag-qr-section" style="text-align:center;margin-top:16px;">'
+        + '<div id="mag-qr-box" style="width:80px;height:80px;background:#fff;border-radius:10px;padding:5px;box-shadow:0 2px 8px rgba(0,0,0,0.08);margin:0 auto 8px;"></div>'
+        + '<div style="font-family:\'Ma Shan Zheng\',cursive;font-size:14px;color:#6b4c3b;margin-bottom:2px;">📱 扫码送祝福</div>'
+        + '<div style="font-size:10px;color:#a08060;">发送祝福实时显示在大屏</div>'
+        + '</div>'
+        + '<div class="mag-thanks" style="font-size:10px;color:#c0b0a0;margin-top:10px;opacity:0.5;">光影婚礼墙</div>';
       container.appendChild(textArea);
 
       el.appendChild(container);
@@ -1061,10 +1100,19 @@ export async function onRequest(context) {
     let danmakuEnabled = true;
     let danmakuLastId = 0;
     let danmakuTimer = null;
+    let danmakuHistory = []; // 一小时内弹幕缓存
+    let danmakuHistoryIdx = 0;
+    let danmakuLoopTimer = null;
+    let danmakuSettingsOpen = false;
+    let danmakuArea = 'full'; // full / top / bottom
+    let danmakuSpeed = 'normal'; // slow / normal / fast
+    let danmakuFontSize = 'medium'; // small / medium / large
     const DANMAKU_COLORS = ['#ffffff','#ff6b6b','#ffd93d','#6bcb77','#4d96ff','#ff922b','#cc5de8','#20c997'];
+    const SPEED_MAP = { slow: 12, normal: 8, fast: 5 };
+    const SIZE_MAP = { small: 'clamp(12px,2vw,18px)', medium: 'clamp(16px,3vw,24px)', large: 'clamp(22px,4vw,32px)' };
 
     function initDanmaku() {
-      // 生成 QR 码
+      // 生成 QR 码到右侧杂志面板
       try {
         if (typeof qrcode === 'function') {
           const qr = qrcode(0, 'M');
@@ -1083,18 +1131,49 @@ export async function onRequest(context) {
               if (qr.isDark(r, c)) ctx.fillRect(c * cellSize, r * cellSize, cellSize + 0.5, cellSize + 0.5);
             }
           }
-          const qrBox = document.getElementById('danmaku-qr');
-          qrBox.innerHTML = '<img src="' + cv.toDataURL('image/png') + '">';
+          const qrBox = document.getElementById('mag-qr-box');
+          if (qrBox) qrBox.innerHTML = '<img src="' + cv.toDataURL('image/png') + '" style="width:100%;height:100%;display:block;border-radius:5px;">';
         }
       } catch (e) { console.warn('Danmaku QR gen failed:', e); }
 
-      // 显示面板
-      document.getElementById('danmaku-panel').classList.add('active');
+      // 显示弹幕蒙版和设置按钮
       document.getElementById('danmaku-overlay').classList.add('active');
+      document.getElementById('danmaku-settings-toggle').classList.add('active');
 
-      // 开始轮询
+      // 加载一小时内历史弹幕
+      loadDanmakuHistory();
+
+      // 轮询新弹幕
       pollDanmaku();
       danmakuTimer = setInterval(pollDanmaku, 2000);
+    }
+
+    async function loadDanmakuHistory() {
+      try {
+        const res = await fetch('/api/danmaku?slug=' + slug);
+        const data = await res.json();
+        if (data.ok && data.messages) {
+          danmakuHistory = data.messages;
+          if (data.messages.length > 0) {
+            danmakuLastId = data.messages[data.messages.length - 1].id;
+          }
+          // 启动循环播放
+          startDanmakuLoop();
+        }
+      } catch (e) {}
+    }
+
+    function startDanmakuLoop() {
+      if (danmakuLoopTimer) clearInterval(danmakuLoopTimer);
+      if (danmakuHistory.length === 0) return;
+      danmakuHistoryIdx = 0;
+      // 每 1.5 秒播一条历史弹幕
+      danmakuLoopTimer = setInterval(function() {
+        if (!danmakuEnabled || danmakuHistory.length === 0) return;
+        var msg = danmakuHistory[danmakuHistoryIdx % danmakuHistory.length];
+        spawnDanmaku(msg);
+        danmakuHistoryIdx++;
+      }, 1500);
     }
 
     async function pollDanmaku() {
@@ -1105,6 +1184,13 @@ export async function onRequest(context) {
         if (data.ok && data.messages && data.messages.length > 0) {
           data.messages.forEach(function(msg, i) {
             if (msg.id > danmakuLastId) danmakuLastId = msg.id;
+            // 加入历史缓存
+            danmakuHistory.push(msg);
+            // 只保留一小时内的
+            var oneHourAgo = Date.now() - 3600000;
+            danmakuHistory = danmakuHistory.filter(function(m) {
+              return new Date(m.created_at + 'Z').getTime() > oneHourAgo;
+            });
             setTimeout(function() { spawnDanmaku(msg); }, i * 300);
           });
         }
@@ -1117,47 +1203,88 @@ export async function onRequest(context) {
       const el = document.createElement('div');
       el.className = 'danmaku-item';
 
-      // 随机垂直位置（上方 15%-75% 区域）
-      const top = 15 + Math.random() * 60;
-      el.style.top = top + '%';
+      // 区域控制
+      var topMin, topMax;
+      if (danmakuArea === 'top') { topMin = 5; topMax = 45; }
+      else if (danmakuArea === 'bottom') { topMin = 55; topMax = 90; }
+      else { topMin = 5; topMax = 85; }
+      el.style.top = (topMin + Math.random() * (topMax - topMin)) + '%';
 
-      // 随机颜色
-      const color = msg.color || DANMAKU_COLORS[Math.floor(Math.random() * DANMAKU_COLORS.length)];
+      // 颜色
+      var color = msg.color || DANMAKU_COLORS[Math.floor(Math.random() * DANMAKU_COLORS.length)];
       el.style.color = color;
 
-      // 随机动画时长 6-12 秒
-      const duration = 6 + Math.random() * 6;
+      // 字体大小
+      el.style.fontSize = SIZE_MAP[danmakuFontSize] || SIZE_MAP.medium;
+
+      // 速度
+      var baseDuration = SPEED_MAP[danmakuSpeed] || SPEED_MAP.normal;
+      var duration = baseDuration + Math.random() * 4;
       el.style.animationDuration = duration + 's';
 
       // 内容
-      let text = '';
+      var text = '';
       if (msg.emoji) text += msg.emoji + ' ';
       if (msg.content) text += msg.content;
       if (msg.emoji) text += ' ' + msg.emoji;
       el.textContent = text;
 
       overlay.appendChild(el);
-
-      // 动画结束后移除
       setTimeout(function() { el.remove(); }, duration * 1000 + 500);
     }
 
-    window.toggleDanmaku = function(on) {
-      danmakuEnabled = on;
-      document.getElementById('btn-danmaku-on').classList.toggle('active', on);
-      document.getElementById('btn-danmaku-off').classList.toggle('active', !on);
-      document.getElementById('danmaku-overlay').classList.toggle('active', on);
+    // 弹幕设置
+    window.toggleDanmakuSettings = function() {
+      danmakuSettingsOpen = !danmakuSettingsOpen;
+      document.getElementById('danmaku-settings').classList.toggle('active', danmakuSettingsOpen);
     };
 
-    // 杂志模式下显示弹幕面板
+    window.setDanmakuArea = function(area, btn) {
+      danmakuArea = area;
+      document.querySelectorAll('#danmaku-settings [data-area]').forEach(function(b) { b.classList.remove('active'); });
+      btn.classList.add('active');
+    };
+
+    window.setDanmakuSpeed = function(speed, btn) {
+      danmakuSpeed = speed;
+      document.querySelectorAll('#danmaku-settings [data-speed]').forEach(function(b) { b.classList.remove('active'); });
+      btn.classList.add('active');
+    };
+
+    window.setDanmakuSize = function(size, btn) {
+      danmakuFontSize = size;
+      document.querySelectorAll('#danmaku-settings [data-size]').forEach(function(b) { b.classList.remove('active'); });
+      btn.classList.add('active');
+    };
+
+    window.toggleDanmaku = function(on) {
+      danmakuEnabled = on;
+      document.getElementById('danmaku-overlay').classList.toggle('active', on);
+      document.getElementById('ds-on').classList.toggle('active', on);
+      document.getElementById('ds-off').classList.toggle('active', !on);
+      if (on && danmakuHistory.length > 0) startDanmakuLoop();
+      if (!on && danmakuLoopTimer) { clearInterval(danmakuLoopTimer); danmakuLoopTimer = null; }
+    };
+
+    // 杂志模式下启动弹幕
     const origSwitchMode = switchMode;
     switchMode = function(mode) {
       origSwitchMode(mode);
       if (mode === 'magazine') {
-        initDanmaku();
+        var danmakuSetting = localStorage.getItem('danmaku_enabled_' + slug);
+        if (danmakuSetting !== '0') {
+          initDanmaku();
+          var qrSection = document.getElementById('mag-qr-section');
+          if (qrSection) qrSection.style.display = 'block';
+        } else {
+          var qrSection2 = document.getElementById('mag-qr-section');
+          if (qrSection2) qrSection2.style.display = 'none';
+        }
       } else {
-        document.getElementById('danmaku-panel').classList.remove('active');
         if (danmakuTimer) { clearInterval(danmakuTimer); danmakuTimer = null; }
+        if (danmakuLoopTimer) { clearInterval(danmakuLoopTimer); danmakuLoopTimer = null; }
+        document.getElementById('danmaku-settings-toggle').classList.remove('active');
+        document.getElementById('danmaku-settings').classList.remove('active');
       }
     };
 
