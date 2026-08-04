@@ -14,8 +14,8 @@ export async function onRequest(context) {
   <title>囍 · 婚礼</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Ma+Shan+Zheng&display=swap" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js" defer></script>
   <style>
     *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
     html,body{width:100%;height:100%;overflow:hidden;font-family:'Noto Serif SC','PingFang SC',serif;background:#faf9f7;color:#3a2a1a;-webkit-tap-highlight-color:transparent;-webkit-font-smoothing:antialiased;user-select:none;position:fixed;top:0;left:0}
@@ -535,15 +535,20 @@ export async function onRequest(context) {
     }
 
     async function preloadImages() {
-      const allSrcs = [...PHOTOS.map(p=>p.src), ...AVATARS];
+      // 只预加载头像 + 前 3 张照片，其余后台加载
+      const criticalSrcs = [...AVATARS, ...PHOTOS.slice(0, 3).map(p=>p.src)];
+      const restSrcs = PHOTOS.slice(3).map(p=>p.src);
       let loaded = 0;
-      await Promise.all(allSrcs.map(src => new Promise(resolve => {
+      const total = criticalSrcs.length;
+      await Promise.all(criticalSrcs.map(src => new Promise(resolve => {
         const img = new Image();
-        img.onload = img.onerror = () => { loaded++; updateProgress(60 + (loaded/allSrcs.length)*30); resolve(); };
+        img.onload = img.onerror = () => { loaded++; updateProgress(60 + (loaded/total)*30); resolve(); };
         img.src = src;
-        // 单张图片 8 秒超时
-        setTimeout(() => { loaded++; updateProgress(60 + (loaded/allSrcs.length)*30); resolve(); }, 8000);
+        setTimeout(() => { loaded++; updateProgress(60 + (loaded/total)*30); resolve(); }, 3000);
       })));
+      // 后台加载剩余图片，不阻塞 UI
+      restSrcs.forEach(src => { const img = new Image(); img.src = src; });
+    }
     }
 
     // ====== 进入 ======
@@ -801,7 +806,7 @@ export async function onRequest(context) {
         + '<div class="names-label">'+WEDDING.couple_name+'</div>'
         + '<div class="mag-thanks" id="mag-thanks">感谢每一位亲朋好友<br>在这个特别的日子里<br>见证我们的婚礼</div>'
         + '<div style="flex:1"></div>'
-        + '<div id="mag-qr-section" style="text-align:center;margin-top:12px;">'
+        + '<div id="mag-qr-section" style="text-align:center;margin-top:12px;display:flex;flex-direction:column;align-items:center;">'
         + '<div id="mag-qr-box" style="width:68px;height:68px;background:#fff;border-radius:8px;padding:4px;box-shadow:0 2px 8px rgba(0,0,0,0.08);margin:0 auto 6px;"></div>'
         + '<div style="font-family:Ma Shan Zheng,cursive;font-size:13px;color:#6b4c3b;margin-bottom:1px;">📱 扫码送祝福</div>'
         + '<div style="font-size:9px;color:#a08060;">发送祝福实时显示在大屏</div>'
