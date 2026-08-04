@@ -144,13 +144,18 @@ export async function onRequest(context) {
       @keyframes flipInRight{0%{transform:rotateY(90deg);opacity:0.3}100%{transform:rotateY(0deg);opacity:1}}
     }
     .mag-img-page img{position:relative;z-index:2;max-width:90%;max-height:90%;object-fit:contain;border-radius:4px;box-shadow:0 8px 40px rgba(0,0,0,0.15)}
-    .mag-text-area{width:35%;min-width:200px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:32px 32px 20px;background:linear-gradient(160deg,#fdf6e3 0%,#f5ede0 40%,#ede1d0 100%);position:relative;z-index:2;transition:opacity 0.4s ease;overflow-y:auto}
-    .mag-text-area .mag-xi{font-size:clamp(40px,8vw,72px);color:#b8860b;text-shadow:0 0 20px rgba(184,134,11,0.15);margin-bottom:16px;animation:xiPulse 3s ease-in-out infinite}
-    .mag-text-area .mag-quote{font-size:clamp(13px,2vw,16px);color:#5a4a3a;line-height:1.8;text-align:center;margin-bottom:16px;letter-spacing:0.05em;font-style:italic;transition:opacity 0.3s}
-    .mag-text-area .avatar-container{display:flex;gap:12px;margin-bottom:12px}
-    .mag-text-area .avatar{width:56px;height:56px;border-radius:50%;border:2px solid rgba(184,134,11,0.4);object-fit:cover;box-shadow:0 2px 8px rgba(0,0,0,0.1)}
-    .mag-text-area .names-label{font-size:14px;color:#8b6914;letter-spacing:0.1em;background:rgba(184,134,11,0.06);padding:4px 16px;border-radius:16px;border:1px solid rgba(184,134,11,0.15)}
-    .mag-text-area .mag-thanks{font-size:12px;color:#a08060;letter-spacing:0.1em;font-style:italic;margin-top:8px;opacity:0.8;transition:opacity 0.3s}
+    .mag-text-area{width:28%;min-width:170px;max-width:260px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:28px 20px 16px;background:linear-gradient(160deg,#fdf6e3 0%,#f5ede0 40%,#ede1d0 100%);position:relative;z-index:2;transition:opacity 0.4s ease;overflow-y:auto}
+    .mag-text-area .mag-xi{font-size:clamp(36px,6vw,60px);color:#b8860b;text-shadow:0 0 20px rgba(184,134,11,0.15);margin-bottom:6px;animation:xiPulse 3s ease-in-out infinite;line-height:1}
+    .mag-text-area .mag-xi-line{width:40px;height:1px;background:linear-gradient(90deg,transparent,#b8860b,transparent);margin-bottom:14px;opacity:0.5}
+    .mag-text-area .mag-quote{font-size:clamp(11px,1.6vw,14px);color:#5a4a3a;line-height:1.9;text-align:center;margin-bottom:14px;letter-spacing:0.04em;font-style:italic;transition:opacity 0.3s;position:relative;padding:0 6px}
+    .mag-text-area .mag-quote::before,.mag-text-area .mag-quote::after{font-size:clamp(16px,2.5vw,22px);color:rgba(184,134,11,0.2);line-height:1;position:absolute;font-style:normal}
+    .mag-text-area .mag-quote::before{content:'\201C';top:-6px;left:-4px}
+    .mag-text-area .mag-quote::after{content:'\201D';bottom:-10px;right:-4px}
+    .mag-text-area .avatar-container{display:flex;gap:8px;margin-bottom:8px;align-items:center}
+    .mag-text-area .avatar{width:44px;height:44px;border-radius:50%;border:2px solid rgba(184,134,11,0.4);object-fit:cover;box-shadow:0 2px 8px rgba(0,0,0,0.1)}
+    .mag-text-area .avatar-heart{font-size:14px;color:#b8860b;opacity:0.6;margin:0 -2px}
+    .mag-text-area .names-label{font-size:clamp(12px,1.5vw,14px);color:#8b6914;letter-spacing:0.12em;background:rgba(184,134,11,0.06);padding:4px 14px;border-radius:14px;border:1px solid rgba(184,134,11,0.15);font-weight:500}
+    .mag-text-area .mag-thanks{font-size:clamp(10px,1.3vw,12px);color:#a08060;letter-spacing:0.08em;line-height:1.8;text-align:center;margin-top:6px;opacity:0.75;transition:opacity 0.3s}
     /* ====== Lyrics Player ====== */
     .lyrics-player{position:fixed;bottom:0;left:0;right:0;z-index:90;background:linear-gradient(0deg,rgba(253,246,227,0.95) 0%,rgba(253,246,227,0.7) 70%,transparent 100%);padding:12px 20px 16px;display:none;flex-direction:column;align-items:center;gap:8px}
     .lyrics-player.active{display:flex}
@@ -168,9 +173,14 @@ export async function onRequest(context) {
     .lyrics-song-info{font-size:11px;color:#a08060;letter-spacing:0.05em}
     @media(max-width:768px){
       .mag-container{flex-direction:column}
-      .mag-text-area{width:100%;min-width:0;padding:20px;order:2}
+      .mag-text-area{width:100%;min-width:0;max-width:none;padding:16px 20px 14px;order:2}
       .mag-img-area{order:1;min-height:50vh}
-      .mag-text-area .avatar{width:44px;height:44px}
+      .mag-text-area .mag-xi{font-size:clamp(32px,8vw,48px);margin-bottom:4px}
+      .mag-text-area .mag-xi-line{margin-bottom:10px}
+      .mag-text-area .mag-quote{margin-bottom:10px}
+      .mag-text-area .avatar{width:38px;height:38px}
+      .mag-text-area .avatar-container{gap:6px;margin-bottom:6px}
+      .mag-text-area .mag-thanks{margin-top:4px}
     }
 
     /* ====== 粒子 ====== */
@@ -782,20 +792,21 @@ export async function onRequest(context) {
       textArea.className = 'mag-text-area';
       textArea.id = 'mag-text-area';
       const avatarHtml = AVATARS.length >= 2
-        ? '<div class="avatar-container"><img class="avatar" src="'+AVATARS[0]+'" alt=""><img class="avatar" src="'+AVATARS[1]+'" alt=""></div>'
+        ? '<div class="avatar-container"><img class="avatar" src="'+AVATARS[0]+'" alt=""><span class="avatar-heart">♥</span><img class="avatar" src="'+AVATARS[1]+'" alt=""></div>'
         : (AVATARS.length === 1 ? '<div class="avatar-container"><img class="avatar" src="'+AVATARS[0]+'" alt=""></div>' : '');
       textArea.innerHTML = '<div class="mag-xi">囍</div>'
+        + '<div class="mag-xi-line"></div>'
         + '<div class="mag-quote" id="mag-quote">'+shuffledQuotes[0]+'</div>'
         + avatarHtml
         + '<div class="names-label">'+WEDDING.couple_name+'</div>'
         + '<div class="mag-thanks" id="mag-thanks">感谢每一位亲朋好友<br>在这个特别的日子里<br>见证我们的婚礼</div>'
         + '<div style="flex:1"></div>'
-        + '<div id="mag-qr-section" style="text-align:center;margin-top:16px;">'
-        + '<div id="mag-qr-box" style="width:80px;height:80px;background:#fff;border-radius:10px;padding:5px;box-shadow:0 2px 8px rgba(0,0,0,0.08);margin:0 auto 8px;"></div>'
-        + '<div style="font-family:Ma Shan Zheng,cursive;font-size:14px;color:#6b4c3b;margin-bottom:2px;">📱 扫码送祝福</div>'
-        + '<div style="font-size:10px;color:#a08060;">发送祝福实时显示在大屏</div>'
+        + '<div id="mag-qr-section" style="text-align:center;margin-top:12px;">'
+        + '<div id="mag-qr-box" style="width:68px;height:68px;background:#fff;border-radius:8px;padding:4px;box-shadow:0 2px 8px rgba(0,0,0,0.08);margin:0 auto 6px;"></div>'
+        + '<div style="font-family:Ma Shan Zheng,cursive;font-size:13px;color:#6b4c3b;margin-bottom:1px;">📱 扫码送祝福</div>'
+        + '<div style="font-size:9px;color:#a08060;">发送祝福实时显示在大屏</div>'
         + '</div>'
-        + '<div class="mag-thanks" style="font-size:10px;color:#c0b0a0;margin-top:10px;opacity:0.5;">光影婚礼墙</div>';
+        + '<div class="mag-thanks" style="font-size:9px;color:#c0b0a0;margin-top:8px;opacity:0.4;">光影婚礼墙</div>';
       container.appendChild(textArea);
 
       el.appendChild(container);
@@ -1129,7 +1140,7 @@ export async function onRequest(context) {
           qr.make();
           const cv = document.createElement('canvas');
           const ctx = cv.getContext('2d');
-          const size = 160;
+          const size = 130;
           cv.width = size; cv.height = size;
           const cells = qr.getModuleCount();
           const cellSize = size / cells;
