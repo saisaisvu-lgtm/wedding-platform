@@ -97,7 +97,7 @@ for (let i = 0x21; i < 0x7F; i++) {
 FULLWIDTH_MAP['，'] = ','; FULLWIDTH_MAP['。'] = '.'; FULLWIDTH_MAP['！'] = '!';
 FULLWIDTH_MAP['？'] = '?'; FULLWIDTH_MAP['：'] = ':'; FULLWIDTH_MAP['；'] = ';';
 FULLWIDTH_MAP['（'] = '('; FULLWIDTH_MAP['）'] = ')'; FULLWIDTH_MAP['"'] = '"';
-FULLWIDTH_MAP['"'] = '"'; FULLWIDTH_MAP['''] = "'"; FULLWIDTH_MAP['''] = "'";
+FULLWIDTH_MAP['\u201c'] = '"'; FULLWIDTH_MAP['\u201d'] = '"'; FULLWIDTH_MAP['\u2018'] = "'"; FULLWIDTH_MAP['\u2019'] = "'";
 
 // ====== 文本归一化 ======
 function normalize(text) {
