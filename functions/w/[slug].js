@@ -418,7 +418,10 @@ export async function onRequest(context) {
       if (isDirect) {
         // Direct mode: load data and go straight to gallery
         try {
-          const res = await fetch('/api/wedding/' + slug);
+          const controller = new AbortController();
+          const timeout = setTimeout(() => controller.abort(), 10000);
+          const res = await fetch('/api/wedding/' + slug, { signal: controller.signal });
+          clearTimeout(timeout);
           const data = await res.json();
           if (!data.ok) return;
           WEDDING = data.wedding;
@@ -435,7 +438,10 @@ export async function onRequest(context) {
       }
       updateProgress(10);
       try {
-        const res = await fetch('/api/wedding/' + slug);
+        const controller2 = new AbortController();
+        const timeout2 = setTimeout(() => controller2.abort(), 10000);
+        const res = await fetch('/api/wedding/' + slug, { signal: controller2.signal });
+        clearTimeout(timeout2);
         const data = await res.json();
         if (!data.ok) { showError(data.error); return; }
         WEDDING = data.wedding;
@@ -525,6 +531,8 @@ export async function onRequest(context) {
         const img = new Image();
         img.onload = img.onerror = () => { loaded++; updateProgress(60 + (loaded/allSrcs.length)*30); resolve(); };
         img.src = src;
+        // 单张图片 8 秒超时
+        setTimeout(() => { loaded++; updateProgress(60 + (loaded/allSrcs.length)*30); resolve(); }, 8000);
       })));
     }
 
@@ -1273,7 +1281,7 @@ export async function onRequest(context) {
       if (mode === 'magazine') {
         var danmakuSetting = localStorage.getItem('danmaku_enabled_' + slug);
         if (danmakuSetting !== '0') {
-          initDanmaku();
+          setTimeout(function() { initDanmaku(); }, 100);
           var qrSection = document.getElementById('mag-qr-section');
           if (qrSection) qrSection.style.display = 'block';
         } else {
