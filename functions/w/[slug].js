@@ -145,6 +145,10 @@ export async function onRequest(context) {
       @keyframes flipInRight{0%{transform:rotateY(90deg);opacity:0.3}100%{transform:rotateY(0deg);opacity:1}}
     }
     .mag-img-page img{position:relative;z-index:2;max-width:90%;max-height:90%;object-fit:contain;border-radius:4px;box-shadow:0 8px 40px rgba(0,0,0,0.15)}
+    @media(min-width:769px){
+      .mag-img-page.next img,.mag-img-page.prev img{filter:blur(6px) brightness(0.85);transform:scale(0.92);opacity:0.7}
+      .mag-img-page.active img{filter:none;transform:none;opacity:1}
+    }
     .mag-text-area{width:28%;min-width:170px;max-width:260px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:28px 20px 16px;background:linear-gradient(160deg,#fdf6e3 0%,#f5ede0 40%,#ede1d0 100%);position:relative;z-index:2;transition:opacity 0.4s ease;overflow-y:auto}
     .mag-text-area .mag-xi{font-size:clamp(36px,6vw,60px);color:#b8860b;text-shadow:0 0 20px rgba(184,134,11,0.15);margin-bottom:6px;animation:xiPulse 3s ease-in-out infinite;line-height:1}
     .mag-text-area .mag-xi-line{width:40px;height:1px;background:linear-gradient(90deg,transparent,#b8860b,transparent);margin-bottom:14px;opacity:0.5}
@@ -735,7 +739,7 @@ export async function onRequest(context) {
             const item = document.createElement('div');
             item.className = 'grid-item';
             const img = document.createElement('img');
-            img.src = photo.src; img.alt = photo.label; 
+            img.src = photo.src; img.alt = photo.label; img.decoding = 'async'; if (r === 0 && rep === 0) img.fetchPriority = 'high';
             item.appendChild(img);
             row.appendChild(item);
           }
@@ -772,7 +776,7 @@ export async function onRequest(context) {
         const img = document.createElement('img');
         const idx = ((i % PHOTOS.length) + PHOTOS.length) % PHOTOS.length;
         img.src = PHOTOS[idx] ? PHOTOS[idx].src : '';
-        img.alt = ''; 
+        img.alt = ''; img.decoding = 'async';
         page.appendChild(img);
         imgArea.appendChild(page);
       }
@@ -835,7 +839,7 @@ export async function onRequest(context) {
         const offset = parseInt(page.dataset.offset);
         const idx = ((magIndex + offset) % PHOTOS.length + PHOTOS.length) % PHOTOS.length;
         const img = page.querySelector('img');
-        if (img && PHOTOS[idx]) img.src = PHOTOS[idx].src;
+        if (img && PHOTOS[idx]) { img.src = PHOTOS[idx].src; img.decoding = 'async'; }
         page.className = 'mag-img-page' + (offset === 0 ? ' active' : (offset < 0 ? ' prev' : ' next'));
       });
       updateMagText();
@@ -881,7 +885,7 @@ export async function onRequest(context) {
           const offset = parseInt(page.dataset.offset);
           const idx = ((offset) % PHOTOS.length + PHOTOS.length) % PHOTOS.length;
           const img = page.querySelector('img');
-          if (img && PHOTOS[idx]) img.src = PHOTOS[idx].src;
+          if (img && PHOTOS[idx]) { img.src = PHOTOS[idx].src; img.decoding = 'async'; }
           page.className = 'mag-img-page' + (offset === 0 ? ' active' : (offset < 0 ? ' prev' : ' next'));
         });
         if (!isPaused) startMagAuto();
