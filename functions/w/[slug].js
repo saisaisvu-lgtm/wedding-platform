@@ -149,8 +149,8 @@ export async function onRequest(context) {
     .mag-text-area .mag-xi-line{width:40px;height:1px;background:linear-gradient(90deg,transparent,#b8860b,transparent);margin-bottom:14px;opacity:0.5}
     .mag-text-area .mag-quote{font-size:clamp(11px,1.6vw,14px);color:#5a4a3a;line-height:1.9;text-align:center;margin-bottom:14px;letter-spacing:0.04em;font-style:italic;transition:opacity 0.3s;position:relative;padding:0 6px}
     .mag-text-area .mag-quote::before,.mag-text-area .mag-quote::after{font-size:clamp(16px,2.5vw,22px);color:rgba(184,134,11,0.2);line-height:1;position:absolute;font-style:normal}
-    .mag-text-area .mag-quote::before{content:'\201C';top:-6px;left:-4px}
-    .mag-text-area .mag-quote::after{content:'\201D';bottom:-10px;right:-4px}
+    .mag-text-area .mag-quote::before{content:'“';top:-6px;left:-4px}
+    .mag-text-area .mag-quote::after{content:'”';bottom:-10px;right:-4px}
     .mag-text-area .avatar-container{display:flex;gap:8px;margin-bottom:8px;align-items:center}
     .mag-text-area .avatar{width:44px;height:44px;border-radius:50%;border:2px solid rgba(184,134,11,0.4);object-fit:cover;box-shadow:0 2px 8px rgba(0,0,0,0.1)}
     .mag-text-area .avatar-heart{font-size:14px;color:#b8860b;opacity:0.6;margin:0 -2px}
