@@ -81,6 +81,7 @@
       <button class="tab" data-tab="images">🖼️ 图片管理</button>
       <button class="tab" data-tab="songs">🎵 歌曲管理</button>
       <button class="tab" data-tab="rsvp">💌 回执管理</button>
+      <button class="tab" data-tab="danmaku">💬 弹幕审核</button>
       <button class="tab" data-tab="card">📨 邀请卡片</button>
     </div>
 
@@ -269,6 +270,28 @@
       </div>
     </div>
 
+    <!-- 弹幕审核 Tab -->
+    <div id="tab-danmaku" class="tab-content">
+      <div class="card">
+        <div id="danmakuAlert" class="alert"></div>
+        <div class="section">
+          <div class="section-title"><span class="icon">💬</span> 弹幕审核</div>
+          <p style="font-size:14px;color:var(--text-secondary);margin-bottom:18px;line-height:1.8;">管理宾客发送的祝福弹幕。敏感词会被自动拦截进入待审核，您可以在这里通过或拒绝。</p>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;margin-bottom:16px;flex-wrap:wrap;">
+          <select id="danmakuFilter" onchange="loadDanmaku()" style="padding:6px 10px;background:var(--bg-subtle);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px;">
+            <option value="pending">待审核</option>
+            <option value="approved">已通过</option>
+            <option value="rejected">已拒绝</option>
+          </select>
+          <button class="btn btn-sm btn-outline" onclick="loadDanmaku()">🔄 刷新</button>
+          <button class="btn btn-sm btn-outline" onclick="loadDanmakuBans()">🚫 封禁列表</button>
+        </div>
+        <div id="danmakuStats" style="margin-bottom:12px;font-size:13px;color:var(--text-muted);"></div>
+        <div id="danmakuTable"><div style="text-align:center;color:var(--text-muted);padding:20px;font-size:13px;">切换到「待审核」查看需要审核的弹幕</div></div>
+      </div>
+    </div>
+
     <!-- Card Tab -->
     <div id="tab-card" class="tab-content">
       <div class="card">
@@ -396,8 +419,8 @@
         document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
         tab.classList.add('active');
         document.getElementById(`tab-${tab.dataset.tab}`).classList.add('active');
-        // 切换到邀请卡片 Tab 时自动刷新预览
         if (tab.dataset.tab === 'card') refreshCard();
+        if (tab.dataset.tab === 'danmaku') loadDanmaku();
       });
     });
 
@@ -873,6 +896,105 @@
     function chineseToPinyin(str) {
       if (!str) return '';
       return str.split('').map(function(ch) { return PINYIN_MAP[ch] || ch; }).join('');
+    }
+
+    // ===== 弹幕审核 ======
+    async function loadDanmaku() {
+      const container = document.getElementById('danmakuTable');
+      const statsEl = document.getElementById('danmakuStats');
+      const alertEl = document.getElementById('danmakuAlert');
+      hideAlert(alertEl);
+      container.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:20px;"><span class="spinner"></span></div>';
+
+      try {
+        const status = document.getElementById('danmakuFilter').value;
+        const res = await apiGet('/api/danmaku-manage?status=' + status);
+        if (!res.ok) { container.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:20px;font-size:13px;">加载失败</div>'; return; }
+
+        const s = res.stats;
+        statsEl.innerHTML = '待审核 <strong style="color:var(--primary)">' + s.pending + '</strong> · 已通过 <strong style="color:#16a34a">' + s.approved + '</strong> · 已拒绝 <strong style="color:var(--accent)">' + s.rejected + '</strong>';
+
+        if (res.messages.length === 0) {
+          container.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:30px;font-size:13px;">暂无' + (status === 'pending' ? '待审核' : status === 'approved' ? '已通过' : '已拒绝') + '弹幕</div>';
+          return;
+        }
+
+        container.innerHTML = '<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;"><thead><tr>' +
+          '<th style="padding:12px 14px;text-align:left;border-bottom:2px solid var(--border);font-size:13px;">昵称</th>' +
+          '<th style="padding:12px 14px;text-align:left;border-bottom:2px solid var(--border);font-size:13px;">内容</th>' +
+          '<th style="padding:12px 14px;text-align:left;border-bottom:2px solid var(--border);font-size:13px;">表情</th>' +
+          '<th style="padding:12px 14px;text-align:left;border-bottom:2px solid var(--border);font-size:13px;">状态</th>' +
+          '<th style="padding:12px 14px;text-align:left;border-bottom:2px solid var(--border);font-size:13px;">时间</th>' +
+          '<th style="padding:12px 14px;text-align:right;border-bottom:2px solid var(--border);font-size:13px;">操作</th>' +
+          '</tr></thead><tbody>' + res.messages.map(function(m) {
+            var statusMap = { pending: '<span style="color:var(--primary)">⏳ 待审</span>', approved: '<span style="color:#16a34a">✅ 通过</span>', rejected: '<span style="color:var(--accent)">❌ 拒绝</span>' };
+            return '<tr style="border-bottom:1px solid var(--border-light);">' +
+              '<td style="padding:10px 14px;font-size:14px;">' + esc(m.nickname) + '</td>' +
+              '<td style="padding:10px 14px;font-size:14px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + esc(m.content || '-') + '</td>' +
+              '<td style="padding:10px 14px;font-size:20px;">' + (m.emoji || '-') + '</td>' +
+              '<td style="padding:10px 14px;font-size:13px;">' + (statusMap[m.status] || m.status) + '</td>' +
+              '<td style="padding:10px 14px;font-size:12px;color:var(--text-muted);">' + (m.created_at ? m.created_at.slice(0, 16) : '') + '</td>' +
+              '<td style="padding:10px 14px;text-align:right;white-space:nowrap;">' +
+                (m.status === 'pending' ? '<button class="btn btn-sm btn-outline" onclick="reviewDanmaku(' + m.id + ',\'approve\')" style="padding:4px 12px;font-size:12px;color:#16a34a;border-color:rgba(22,163,74,0.4);">通过</button> <button class="btn btn-sm btn-danger" onclick="reviewDanmaku(' + m.id + ',\'reject\')" style="padding:4px 12px;font-size:12px;">拒绝</button> ' : '') +
+                '<button class="btn btn-sm btn-danger" onclick="deleteDanmaku(' + m.id + ')" style="padding:4px 12px;font-size:12px;">删除</button>' +
+              '</td></tr>';
+          }).join('') + '</tbody></table></div>';
+      } catch (e) { container.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:20px;font-size:13px;">网络错误</div>'; }
+    }
+
+    async function reviewDanmaku(id, action) {
+      try {
+        const res = await apiPut('/api/danmaku-manage', { id: id, action: action });
+        if (res.ok) loadDanmaku();
+        else alert(res.error || '操作失败');
+      } catch { alert('网络错误'); }
+    }
+
+    async function deleteDanmaku(id) {
+      if (!confirm('确定删除这条弹幕？')) return;
+      try {
+        const res = await apiDelete('/api/danmaku-manage?id=' + id);
+        if (res.ok) loadDanmaku();
+        else alert(res.error || '删除失败');
+      } catch { alert('网络错误'); }
+    }
+
+    async function loadDanmakuBans() {
+      const container = document.getElementById('danmakuTable');
+      container.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:20px;"><span class="spinner"></span></div>';
+
+      try {
+        const res = await apiGet('/api/danmaku-manage?action=bans');
+        if (!res.ok) { container.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:20px;font-size:13px;">加载失败</div>'; return; }
+
+        if (res.bans.length === 0) {
+          container.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:30px;font-size:13px;">暂无封禁记录</div>';
+          return;
+        }
+
+        container.innerHTML = '<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;"><thead><tr>' +
+          '<th style="padding:12px 14px;text-align:left;border-bottom:2px solid var(--border);font-size:13px;">IP Hash</th>' +
+          '<th style="padding:12px 14px;text-align:left;border-bottom:2px solid var(--border);font-size:13px;">原因</th>' +
+          '<th style="padding:12px 14px;text-align:left;border-bottom:2px solid var(--border);font-size:13px;">时间</th>' +
+          '<th style="padding:12px 14px;text-align:right;border-bottom:2px solid var(--border);font-size:13px;">操作</th>' +
+          '</tr></thead><tbody>' + res.bans.map(function(b) {
+            return '<tr style="border-bottom:1px solid var(--border-light);">' +
+              '<td style="padding:10px 14px;font-size:11px;font-family:monospace;">' + esc(b.ip_hash) + '</td>' +
+              '<td style="padding:10px 14px;font-size:13px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + esc(b.reason || '-') + '</td>' +
+              '<td style="padding:10px 14px;font-size:12px;color:var(--text-muted);">' + (b.created_at ? b.created_at.slice(0, 16) : '') + '</td>' +
+              '<td style="padding:10px 14px;text-align:right;"><button class="btn btn-sm btn-outline" onclick="unbanDanmaku(' + b.id + ')" style="padding:4px 12px;font-size:12px;">解封</button></td>' +
+            '</tr>';
+          }).join('') + '</tbody></table></div>';
+      } catch (e) { container.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:20px;font-size:13px;">网络错误</div>'; }
+    }
+
+    async function unbanDanmaku(id) {
+      if (!confirm('确定解封此 IP？')) return;
+      try {
+        const res = await apiPut('/api/danmaku-manage', { unban_id: id });
+        if (res.ok) { showAlert(document.getElementById('danmakuAlert'), '✅ 已解封', 'success'); loadDanmakuBans(); }
+        else alert(res.error || '操作失败');
+      } catch { alert('网络错误'); }
     }
 
     // ===== 邀请卡片 =====
