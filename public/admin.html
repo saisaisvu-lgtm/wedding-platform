@@ -75,6 +75,7 @@
       <button class="tab" data-tab="payment" onclick="switchAdminTab('payment')">💰 付款设置</button>
       <button class="tab" data-tab="orders" onclick="switchAdminTab('orders')">📋 订单管理</button>
       <button class="tab" data-tab="cleanup" onclick="switchAdminTab('cleanup')">🧹 过期清理</button>
+      <button class="tab" data-tab="danmaku" onclick="switchAdminTab('danmaku')">💬 弹幕审核</button>
     </div>
 
     <!-- 用户管理 -->
@@ -204,6 +205,27 @@
       </div>
     </div>
   </div>
+
+    <!-- 弹幕审核 -->
+    <div id="tab-danmaku" class="tab-content">
+      <div class="card">
+        <div id="danmakuAlert" class="alert"></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
+          <div class="section-title" style="margin-bottom:0;"><span class="icon">💬</span> 弹幕审核</div>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <select id="danmakuFilter" onchange="loadDanmaku()" style="padding:6px 10px;background:var(--bg-subtle);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px;">
+              <option value="pending">待审核</option>
+              <option value="approved">已通过</option>
+              <option value="rejected">已拒绝</option>
+            </select>
+            <button class="btn btn-sm btn-outline" onclick="loadDanmaku()">🔄 刷新</button>
+            <button class="btn btn-sm btn-outline" onclick="loadDanmakuBans()">🚫 封禁列表</button>
+          </div>
+        </div>
+        <div id="danmakuStats" style="margin-bottom:12px;font-size:13px;color:var(--text-muted);"></div>
+        <div id="danmakuTable"><div class="empty-msg">点击刷新加载弹幕</div></div>
+      </div>
+    </div>
 
   <!-- 删除确认 -->
   <div class="confirm-overlay" id="confirmOverlay">
@@ -705,6 +727,122 @@
         }
       } catch { showAlert(alertEl, '网络错误'); }
     }
+
+    // ====== 弹幕审核 ======
+    async function loadDanmaku() {
+      const container = document.getElementById('danmakuTable');
+      const statsEl = document.getElementById('danmakuStats');
+      const alertEl = document.getElementById('danmakuAlert');
+      hideAlert(alertEl);
+      container.innerHTML = '<div class="empty-msg"><span class="spinner"></span></div>';
+
+      try {
+        const status = document.getElementById('danmakuFilter').value;
+        const res = await adminFetch('/api/danmaku-admin?status=' + status);
+        const data = await res.json();
+        if (!data.ok) { container.innerHTML = '<div class="empty-msg">加载失败</div>'; return; }
+
+        const s = data.stats;
+        statsEl.innerHTML = '待审核 <strong style="color:var(--primary)">' + s.pending + '</strong> · 已通过 <strong style="color:#16a34a">' + s.approved + '</strong> · 已拒绝 <strong style="color:var(--accent)">' + s.rejected + '</strong>';
+
+        if (data.messages.length === 0) {
+          container.innerHTML = '<div class="empty-msg">暂无' + (status === 'pending' ? '待审核' : status === 'approved' ? '已通过' : '已拒绝') + '弹幕</div>';
+          return;
+        }
+
+        container.innerHTML = '<table class="user-table"><thead><tr>' +
+          '<th>ID</th><th>昵称</th><th>内容</th><th>表情</th><th>婚礼</th><th>状态</th><th>IP</th><th>时间</th><th>操作</th>' +
+          '</tr></thead><tbody>' + data.messages.map(function(m) {
+            var statusMap = { pending: '<span style="color:var(--primary)">⏳ 待审</span>', approved: '<span style="color:#16a34a">✅ 通过</span>', rejected: '<span style="color:var(--accent)">❌ 拒绝</span>' };
+            return '<tr>' +
+              '<td>' + m.id + '</td>' +
+              '<td>' + esc(m.nickname) + '</td>' +
+              '<td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + esc(m.content || '-') + '</td>' +
+              '<td style="font-size:20px;">' + (m.emoji || '-') + '</td>' +
+              '<td>' + esc(m.couple_name || m.username || '-') + '</td>' +
+              '<td>' + (statusMap[m.status] || m.status) + '</td>' +
+              '<td style="font-family:monospace;font-size:11px;color:var(--text-muted);">' + esc(m.ip_hash || '') + '</td>' +
+              '<td style="font-size:12px;color:var(--text-muted);">' + (m.created_at ? m.created_at.slice(0, 16) : '') + '</td>' +
+              '<td style="white-space:nowrap;">' +
+                (m.status === 'pending' ? '<button class="btn btn-sm btn-outline" onclick="reviewDanmaku(' + m.id + ',\'approve\')" style="padding:3px 8px;font-size:11px;color:#16a34a;border-color:rgba(22,163,74,0.4);">通过</button> <button class="btn btn-sm btn-danger" onclick="reviewDanmaku(' + m.id + ',\'reject\')" style="padding:3px 8px;font-size:11px;">拒绝</button> ' : '') +
+                '<button class="btn btn-sm btn-danger" onclick="deleteDanmaku(' + m.id + ')" style="padding:3px 8px;font-size:11px;">删除</button>' +
+              '</td></tr>';
+          }).join('') + '</tbody></table>';
+      } catch (e) { container.innerHTML = '<div class="empty-msg">网络错误</div>'; }
+    }
+
+    async function reviewDanmaku(id, action) {
+      try {
+        const res = await adminFetch('/api/danmaku-admin', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: id, action: action })
+        });
+        const data = await res.json();
+        if (data.ok) loadDanmaku();
+        else alert(data.error || '操作失败');
+      } catch { alert('网络错误'); }
+    }
+
+    async function deleteDanmaku(id) {
+      if (!confirm('确定删除这条弹幕？')) return;
+      try {
+        const res = await adminFetch('/api/danmaku-admin?id=' + id, { method: 'DELETE' });
+        const data = await res.json();
+        if (data.ok) loadDanmaku();
+        else alert(data.error || '删除失败');
+      } catch { alert('网络错误'); }
+    }
+
+    async function loadDanmakuBans() {
+      const container = document.getElementById('danmakuTable');
+      container.innerHTML = '<div class="empty-msg"><span class="spinner"></span></div>';
+
+      try {
+        const res = await adminFetch('/api/danmaku-admin?action=bans');
+        const data = await res.json();
+        if (!data.ok) { container.innerHTML = '<div class="empty-msg">加载失败</div>'; return; }
+
+        if (data.bans.length === 0) {
+          container.innerHTML = '<div class="empty-msg">暂无封禁记录</div>';
+          return;
+        }
+
+        container.innerHTML = '<table class="user-table"><thead><tr>' +
+          '<th>ID</th><th>IP Hash</th><th>原因</th><th>婚礼</th><th>时间</th><th>操作</th>' +
+          '</tr></thead><tbody>' + data.bans.map(function(b) {
+            return '<tr>' +
+              '<td>' + b.id + '</td>' +
+              '<td style="font-family:monospace;font-size:11px;">' + esc(b.ip_hash) + '</td>' +
+              '<td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + esc(b.reason || '-') + '</td>' +
+              '<td>' + esc(b.couple_name || b.username || '-') + '</td>' +
+              '<td style="font-size:12px;color:var(--text-muted);">' + (b.created_at ? b.created_at.slice(0, 16) : '') + '</td>' +
+              '<td><button class="btn btn-sm btn-outline" onclick="unbanDanmaku(' + b.id + ')" style="padding:3px 8px;font-size:11px;">解封</button></td>' +
+            '</tr>';
+          }).join('') + '</tbody></table>';
+      } catch (e) { container.innerHTML = '<div class="empty-msg">网络错误</div>'; }
+    }
+
+    async function unbanDanmaku(id) {
+      if (!confirm('确定解封此 IP？')) return;
+      try {
+        const res = await adminFetch('/api/danmaku-admin', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ unban_id: id })
+        });
+        const data = await res.json();
+        if (data.ok) { showAlert(document.getElementById('danmakuAlert'), '✅ 已解封', 'success'); loadDanmakuBans(); }
+        else alert(data.error || '操作失败');
+      } catch { alert('网络错误'); }
+    }
+
+    // switchAdminTab 加载弹幕
+    const origSwitchTab = switchAdminTab;
+    switchAdminTab = function(tab) {
+      origSwitchTab(tab);
+      if (tab === 'danmaku') loadDanmaku();
+    };
   </script>
 </body>
 </html>

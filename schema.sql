@@ -103,3 +103,31 @@ CREATE INDEX IF NOT EXISTS idx_images_user ON images(user_id, category);
 CREATE INDEX IF NOT EXISTS idx_rsvp_wedding ON rsvp(wedding_user_id);
 CREATE INDEX IF NOT EXISTS idx_songs_user ON songs(user_id);
 CREATE INDEX IF NOT EXISTS idx_users_participation_code ON users(participation_code);
+
+-- 弹幕消息表
+CREATE TABLE IF NOT EXISTS danmaku (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  wedding_user_id INTEGER NOT NULL,
+  nickname TEXT NOT NULL DEFAULT '匿名',
+  content TEXT NOT NULL DEFAULT '',
+  emoji TEXT NOT NULL DEFAULT '',
+  color TEXT NOT NULL DEFAULT '',
+  status TEXT NOT NULL DEFAULT 'approved',
+  ip_hash TEXT NOT NULL DEFAULT '',
+  created_at TEXT DEFAULT (datetime('now')),
+  FOREIGN KEY (wedding_user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_danmaku_wedding ON danmaku(wedding_user_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_danmaku_status ON danmaku(status);
+
+-- 弹幕封禁表（按 IP hash 封禁）
+CREATE TABLE IF NOT EXISTS danmaku_bans (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  ip_hash TEXT NOT NULL,
+  wedding_user_id INTEGER NOT NULL,
+  reason TEXT NOT NULL DEFAULT '',
+  created_at TEXT DEFAULT (datetime('now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_danmaku_bans_ip ON danmaku_bans(ip_hash, wedding_user_id);

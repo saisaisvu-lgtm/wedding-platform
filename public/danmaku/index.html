@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>送祝福 💕</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600&display=swap');
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      background: linear-gradient(160deg, #fdf5ec 0%, #f8ecdd 40%, #f2e4d2 100%);
+      min-height: 100vh; padding: 20px; color: #3d2b1f;
+    }
+    .page { max-width: 400px; margin: 0 auto; }
+    .header { text-align: center; margin-bottom: 24px; }
+    .header .xi { font-size: 36px; color: #c9a96e; text-shadow: 0 2px 8px rgba(201,169,110,0.2); }
+    .header h1 { font-family: 'Noto Serif SC', serif; font-size: 20px; color: #6b4c3b; margin: 8px 0 4px; letter-spacing: 0.1em; }
+    .header p { font-size: 13px; color: #a08060; }
+    .couple-names { font-family: 'Noto Serif SC', serif; font-size: 16px; color: #8b6914; letter-spacing: 0.1em; margin-top: 8px; }
+
+    .section { margin-bottom: 20px; }
+    .section-label { font-size: 13px; font-weight: 600; color: #6b4c3b; margin-bottom: 10px; letter-spacing: 0.05em; }
+
+    /* 昵称输入 */
+    .nickname-input {
+      width: 100%; padding: 12px 16px; border: 1.5px solid #e0d8cc; border-radius: 10px;
+      font-size: 15px; color: #3d2b1f; background: #fff; outline: none;
+      transition: border-color 0.2s;
+    }
+    .nickname-input:focus { border-color: #c9a96e; box-shadow: 0 0 0 3px rgba(201,169,110,0.1); }
+    .nickname-input::placeholder { color: #c0b0a0; }
+
+    /* 快捷表情 */
+    .emoji-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+    .emoji-btn {
+      width: 48px; height: 48px; border-radius: 12px; border: 1.5px solid #e0d8cc;
+      background: #fff; font-size: 24px; cursor: pointer; transition: all 0.2s;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .emoji-btn:active { transform: scale(0.9); }
+    .emoji-btn.selected { border-color: #c9a96e; background: rgba(201,169,110,0.1); box-shadow: 0 2px 8px rgba(201,169,110,0.2); }
+
+    /* 快捷祝福语 */
+    .blessing-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+    .blessing-btn {
+      padding: 8px 16px; border-radius: 20px; border: 1.5px solid #e0d8cc;
+      background: #fff; font-size: 14px; color: #6b4c3b; cursor: pointer;
+      transition: all 0.2s; font-family: inherit;
+    }
+    .blessing-btn:active { transform: scale(0.95); }
+    .blessing-btn.selected { border-color: #c9a96e; background: rgba(201,169,110,0.1); color: #8b6914; font-weight: 600; }
+
+    /* 自定义输入 */
+    .custom-input-wrap { position: relative; }
+    .custom-input {
+      width: 100%; padding: 12px 80px 12px 16px; border: 1.5px solid #e0d8cc; border-radius: 10px;
+      font-size: 15px; color: #3d2b1f; background: #fff; outline: none;
+      transition: border-color 0.2s;
+    }
+    .custom-input:focus { border-color: #c9a96e; box-shadow: 0 0 0 3px rgba(201,169,110,0.1); }
+    .custom-input::placeholder { color: #c0b0a0; }
+    .char-count { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); font-size: 12px; color: #c0b0a0; }
+
+    /* 发送按钮 */
+    .send-btn {
+      width: 100%; padding: 14px; border: none; border-radius: 12px;
+      background: linear-gradient(135deg, #c9a96e, #b8953a); color: #fff;
+      font-size: 16px; font-weight: 600; cursor: pointer; font-family: inherit;
+      letter-spacing: 0.1em; transition: all 0.3s; margin-top: 8px;
+    }
+    .send-btn:active { transform: scale(0.97); }
+    .send-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .send-btn .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 0.6s linear infinite; margin-right: 6px; vertical-align: middle; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* 提示 */
+    .toast {
+      position: fixed; top: 80px; left: 50%; transform: translateX(-50%) translateY(-20px);
+      padding: 12px 24px; border-radius: 10px; font-size: 14px; z-index: 999;
+      opacity: 0; transition: all 0.3s; pointer-events: none;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    .toast.ok { background: #3a5a40; color: #fff; }
+    .toast.err { background: #c0392b; color: #fff; }
+
+    .footer { text-align: center; margin-top: 24px; font-size: 11px; color: #c0b0a0; letter-spacing: 0.1em; }
+
+    /* 预览 */
+    .preview-area {
+      min-height: 48px; padding: 12px; background: rgba(255,255,255,0.6); border-radius: 10px;
+      border: 1px dashed #e0d8cc; text-align: center; margin-bottom: 16px;
+    }
+    .preview-area .preview-text { font-size: 18px; color: #6b4c3b; line-height: 1.6; }
+    .preview-area .preview-emoji { font-size: 32px; margin: 0 4px; }
+  </style>
+</head>
+<body>
+
+<div class="page">
+  <div class="header">
+    <div class="xi">囍</div>
+    <h1>送祝福</h1>
+    <p>发送祝福语，实时显示在婚礼现场大屏</p>
+    <div class="couple-names" id="coupleNames">--</div>
+  </div>
+
+  <!-- 预览 -->
+  <div class="section">
+    <div class="section-label">👀 预览效果</div>
+    <div class="preview-area" id="previewArea">
+      <span class="preview-text" id="previewText" style="color:#a08060;">选择下方祝福语或输入内容</span>
+    </div>
+  </div>
+
+  <!-- 昵称 -->
+  <div class="section">
+    <div class="section-label">✏️ 你的昵称</div>
+    <input type="text" class="nickname-input" id="nicknameInput" placeholder="留空则显示「匿名」" maxlength="12">
+  </div>
+
+  <!-- 快捷表情 -->
+  <div class="section">
+    <div class="section-label">😊 选个表情</div>
+    <div class="emoji-grid" id="emojiGrid"></div>
+  </div>
+
+  <!-- 快捷祝福语 -->
+  <div class="section">
+    <div class="section-label">💕 快捷祝福</div>
+    <div class="blessing-grid" id="blessingGrid"></div>
+  </div>
+
+  <!-- 自定义输入 -->
+  <div class="section">
+    <div class="section-label">✍️ 或者自己写</div>
+    <div class="custom-input-wrap">
+      <input type="text" class="custom-input" id="customInput" placeholder="写下你的祝福..." maxlength="50">
+      <span class="char-count"><span id="charCount">0</span>/50</span>
+    </div>
+  </div>
+
+  <!-- 发送 -->
+  <button class="send-btn" id="sendBtn" onclick="sendDanmaku()">🎉 发送祝福</button>
+
+  <div class="footer">✦ 光影婚礼墙 · 实时互动 ✦</div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function() {
+  const params = new URLSearchParams(window.location.search);
+  const slug = params.get('slug') || '';
+
+  const EMOJIS = [
+    '❤️','💕','💗','💖','💘','💝','💞','💓',
+    '🎉','🎊','🥳','🎈','🎀','🎁','🪅','🎆',
+    '🥂','🍾','🍻','🍹','🎂','🍰','🧁','🍭',
+    '💒','💍','👑','👗','🤵','👰','💐','🌹',
+    '🌸','🌺','🌷','🌻','🌼','🍀','🦋','🌈',
+    '✨','💫','⭐','🌟','💥','🔥','🫶','👏',
+    '💏','👫','💑','🏠','🏡','🕊️','🕊','🎶',
+    '😍','🥰','😘','😊','😁','🤩','😎','🤗',
+  ];
+  const BLESSINGS = [
+    '新婚快乐 🎉','百年好合 💕','永结同心 ❤️','早生贵子 👶',
+    '幸福美满 🥰','郎才女貌 💑','天作之合 💍','白头偕老 👴👵',
+    '甜甜蜜蜜 🍯','举案齐眉 📖','相敬如宾 🏡','花好月圆 🌸',
+    '永浴爱河 💑','佳偶天成 ✨','琴瑟和鸣 🎵','比翼双飞 🦋',
+    '情投意合 💗','如胶似漆 💘','心心相印 💞','鸾凤和鸣 🎶',
+    '天生一对 💫','地造一双 🌟','龙凤呈祥 🐉','珠联璧合 💎',
+    '宜室宜家 🏡','瓜瓞绵绵 🍈','凤凰于飞 🕊️','笙磬同音 🎵',
+    '白首成约 📜','赤绳系定 🧶','同德同心 💞','相濡以沫 🌊',
+    '真爱永恒 💖','携手一生 👫','幸福长久 🎊','爱情甜蜜 🍬',
+    '太甜了吧 🍯','好般配呀 😍','绝绝子 🔥','yyds 💯',
+    '一定要幸福 💕','永远快乐 😊','羡慕了 🥺','冲鸭 🦆',
+  ];
+
+  let selectedEmoji = '';
+  let selectedBlessing = '';
+
+  // 加载新人信息
+  async function loadWedding() {
+    if (!slug) return;
+    try {
+      const res = await fetch('/api/wedding/' + slug);
+      const data = await res.json();
+      if (data.ok && data.wedding) {
+        document.getElementById('coupleNames').textContent = data.wedding.couple_name || '';
+      }
+    } catch (e) {}
+  }
+
+  // 渲染表情
+  function renderEmojis() {
+    const grid = document.getElementById('emojiGrid');
+    grid.innerHTML = EMOJIS.map(e =>
+      '<button class="emoji-btn" onclick="selectEmoji(\'' + e + '\',this)">' + e + '</button>'
+    ).join('');
+  }
+
+  // 渲染祝福语
+  function renderBlessings() {
+    const grid = document.getElementById('blessingGrid');
+    grid.innerHTML = BLESSINGS.map(b =>
+      '<button class="blessing-btn" onclick="selectBlessing(\'' + b + '\',this)">' + b + '</button>'
+    ).join('');
+  }
+
+  // 选择表情
+  window.selectEmoji = function(emoji, btn) {
+    document.querySelectorAll('.emoji-btn').forEach(b => b.classList.remove('selected'));
+    if (selectedEmoji === emoji) {
+      selectedEmoji = '';
+    } else {
+      selectedEmoji = emoji;
+      btn.classList.add('selected');
+    }
+    updatePreview();
+  };
+
+  // 选择祝福语
+  window.selectBlessing = function(text, btn) {
+    document.querySelectorAll('.blessing-btn').forEach(b => b.classList.remove('selected'));
+    if (selectedBlessing === text) {
+      selectedBlessing = '';
+    } else {
+      selectedBlessing = text;
+      btn.classList.add('selected');
+      document.getElementById('customInput').value = '';
+    }
+    updatePreview();
+  };
+
+  // 自定义输入
+  document.getElementById('customInput').addEventListener('input', function() {
+    document.getElementById('charCount').textContent = this.value.length;
+    if (this.value) {
+      selectedBlessing = '';
+      document.querySelectorAll('.blessing-btn').forEach(b => b.classList.remove('selected'));
+    }
+    updatePreview();
+  });
+
+  // 更新预览
+  function updatePreview() {
+    const preview = document.getElementById('previewArea');
+    const content = selectedBlessing || document.getElementById('customInput').value;
+    if (!content && !selectedEmoji) {
+      preview.innerHTML = '<span class="preview-text" style="color:#a08060;">选择下方祝福语或输入内容</span>';
+      return;
+    }
+    let html = '';
+    if (selectedEmoji) html += '<span class="preview-emoji">' + selectedEmoji + '</span>';
+    if (content) html += '<span class="preview-text">' + escHtml(content) + '</span>';
+    if (selectedEmoji) html += '<span class="preview-emoji">' + selectedEmoji + '</span>';
+    preview.innerHTML = html;
+  }
+
+  function escHtml(s) {
+    const d = document.createElement('div');
+    d.textContent = s;
+    return d.innerHTML;
+  }
+
+  // 发送
+  window.sendDanmaku = async function() {
+    if (!slug) { showToast('请通过婚礼链接访问', true); return; }
+
+    const content = selectedBlessing || document.getElementById('customInput').value.trim();
+    const emoji = selectedEmoji;
+    if (!content && !emoji) { showToast('请输入祝福语或选择表情', true); return; }
+
+    const nickname = document.getElementById('nicknameInput').value.trim() || '匿名';
+    const btn = document.getElementById('sendBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> 发送中...';
+
+    try {
+      const res = await fetch('/api/danmaku', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ slug, nickname, content, emoji })
+      });
+      const data = await res.json();
+      if (data.ok) {
+        showToast('🎉 祝福已发送！');
+        // 清空
+        selectedEmoji = '';
+        selectedBlessing = '';
+        document.getElementById('customInput').value = '';
+        document.getElementById('charCount').textContent = '0';
+        document.querySelectorAll('.emoji-btn').forEach(b => b.classList.remove('selected'));
+        document.querySelectorAll('.blessing-btn').forEach(b => b.classList.remove('selected'));
+        updatePreview();
+      } else {
+        showToast(data.error || '发送失败', true);
+      }
+    } catch (e) {
+      showToast('网络错误', true);
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = '🎉 发送祝福';
+    }
+  };
+
+  function showToast(msg, isErr) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'toast show ' + (isErr ? 'err' : 'ok');
+    setTimeout(() => t.className = 'toast', 2500);
+  }
+
+  renderEmojis();
+  renderBlessings();
+  loadWedding();
+})();
+</script>
+
+</body>
+</html>

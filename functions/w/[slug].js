@@ -187,6 +187,23 @@ export async function onRequest(context) {
     #credits-overlay .credits-close{margin-top:32px;background:rgba(184,134,11,0.1);border:1px solid rgba(184,134,11,0.4);color:#8b6914;padding:10px 28px;border-radius:24px;font-size:14px;cursor:pointer;font-family:inherit}
     #credits-overlay .credits-close:active{background:rgba(184,134,11,0.2)}
 
+    /* ====== 弹幕蒙版 ====== */
+    #danmaku-overlay{position:fixed;inset:0;z-index:80;pointer-events:none;overflow:hidden;display:none}
+    #danmaku-overlay.active{display:block}
+    .danmaku-item{position:absolute;white-space:nowrap;font-size:clamp(16px,3vw,24px);font-weight:600;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,0.4),0 0 8px rgba(0,0,0,0.2);pointer-events:none;will-change:transform;animation:danmakuFly linear forwards}
+    @keyframes danmakuFly{from{transform:translateX(100vw)}to{transform:translateX(-100%)}}
+    #danmaku-panel{position:fixed;bottom:0;left:0;right:0;z-index:85;background:linear-gradient(0deg,rgba(253,246,227,0.95) 0%,rgba(253,246,227,0.8) 60%,transparent 100%);padding:20px 20px 28px;display:none;flex-direction:column;align-items:center;gap:12px}
+    #danmaku-panel.active{display:flex}
+    .danmaku-qr-row{display:flex;align-items:center;gap:16px;max-width:400px;width:100%}
+    .danmaku-qr-box{width:80px;height:80px;background:#fff;border-radius:10px;padding:5px;box-shadow:0 2px 8px rgba(0,0,0,0.08);flex-shrink:0}
+    .danmaku-qr-box img{width:100%;height:100%;display:block;border-radius:5px}
+    .danmaku-qr-text{flex:1}
+    .danmaku-qr-text .qr-title{font-family:'Ma Shan Zheng',cursive;font-size:16px;color:#6b4c3b;margin-bottom:4px}
+    .danmaku-qr-text .qr-desc{font-size:11px;color:#a08060;line-height:1.5}
+    .danmaku-toggle{display:flex;gap:8px;margin-top:4px}
+    .danmaku-toggle button{padding:6px 16px;border-radius:16px;font-size:12px;border:1px solid rgba(184,134,11,0.3);background:rgba(184,134,11,0.08);color:#8b6914;cursor:pointer;font-family:inherit;transition:all 0.2s}
+    .danmaku-toggle button.active{background:rgba(184,134,11,0.2);border-color:#b8860b;color:#6b4c3b;font-weight:600}
+
     /* ====== 热区提示 ====== */
     .hotzone{position:fixed;top:0;left:50%;transform:translateX(-50%);width:60px;height:3px;background:rgba(184,134,11,0.3);border-radius:0 0 3px 3px;z-index:101;opacity:0;transition:opacity 0.3s;pointer-events:none}
     .hotzone.visible{opacity:1}
@@ -327,6 +344,24 @@ export async function onRequest(context) {
     <div class="credits-text">感谢每一位亲朋好友<br>在这个特别的日子里<br>见证我们的婚礼</div>
     <div class="credits-names" id="credits-names"></div>
     <button class="credits-close" onclick="hideCredits()">返回</button>
+  </div>
+
+  <!-- 弹幕蒙版 -->
+  <div id="danmaku-overlay"></div>
+
+  <!-- 弹幕控制面板 + QR -->
+  <div id="danmaku-panel">
+    <div class="danmaku-qr-row">
+      <div class="danmaku-qr-box" id="danmaku-qr"></div>
+      <div class="danmaku-qr-text">
+        <div class="qr-title">📱 扫码送祝福</div>
+        <div class="qr-desc">扫码发送祝福语和表情<br>实时显示在大屏上 ✨</div>
+      </div>
+    </div>
+    <div class="danmaku-toggle">
+      <button id="btn-danmaku-on" class="active" onclick="toggleDanmaku(true)">弹幕开</button>
+      <button id="btn-danmaku-off" onclick="toggleDanmaku(false)">弹幕关</button>
+    </div>
   </div>
 
   <audio id="bgm" loop></audio>
@@ -1020,6 +1055,110 @@ export async function onRequest(context) {
     showGallery = function() {
       origShowGallery();
       setTimeout(showFullscreenHint, 1500);
+    };
+
+    // ====== 弹幕系统 ======
+    let danmakuEnabled = true;
+    let danmakuLastId = 0;
+    let danmakuTimer = null;
+    const DANMAKU_COLORS = ['#ffffff','#ff6b6b','#ffd93d','#6bcb77','#4d96ff','#ff922b','#cc5de8','#20c997'];
+
+    function initDanmaku() {
+      // 生成 QR 码
+      try {
+        if (typeof qrcode === 'function') {
+          const qr = qrcode(0, 'M');
+          const danmakuUrl = window.location.origin + '/danmaku/?slug=' + slug;
+          qr.addData(danmakuUrl);
+          qr.make();
+          const cv = document.createElement('canvas');
+          const ctx = cv.getContext('2d');
+          const size = 160;
+          cv.width = size; cv.height = size;
+          const cells = qr.getModuleCount();
+          const cellSize = size / cells;
+          ctx.fillStyle = '#6b4c3b';
+          for (let r = 0; r < cells; r++) {
+            for (let c = 0; c < cells; c++) {
+              if (qr.isDark(r, c)) ctx.fillRect(c * cellSize, r * cellSize, cellSize + 0.5, cellSize + 0.5);
+            }
+          }
+          const qrBox = document.getElementById('danmaku-qr');
+          qrBox.innerHTML = '<img src="' + cv.toDataURL('image/png') + '">';
+        }
+      } catch (e) { console.warn('Danmaku QR gen failed:', e); }
+
+      // 显示面板
+      document.getElementById('danmaku-panel').classList.add('active');
+      document.getElementById('danmaku-overlay').classList.add('active');
+
+      // 开始轮询
+      pollDanmaku();
+      danmakuTimer = setInterval(pollDanmaku, 2000);
+    }
+
+    async function pollDanmaku() {
+      if (!danmakuEnabled) return;
+      try {
+        const res = await fetch('/api/danmaku?slug=' + slug + '&after=' + danmakuLastId);
+        const data = await res.json();
+        if (data.ok && data.messages && data.messages.length > 0) {
+          data.messages.forEach(function(msg, i) {
+            if (msg.id > danmakuLastId) danmakuLastId = msg.id;
+            setTimeout(function() { spawnDanmaku(msg); }, i * 300);
+          });
+        }
+      } catch (e) {}
+    }
+
+    function spawnDanmaku(msg) {
+      if (!danmakuEnabled) return;
+      const overlay = document.getElementById('danmaku-overlay');
+      const el = document.createElement('div');
+      el.className = 'danmaku-item';
+
+      // 随机垂直位置（上方 15%-75% 区域）
+      const top = 15 + Math.random() * 60;
+      el.style.top = top + '%';
+
+      // 随机颜色
+      const color = msg.color || DANMAKU_COLORS[Math.floor(Math.random() * DANMAKU_COLORS.length)];
+      el.style.color = color;
+
+      // 随机动画时长 6-12 秒
+      const duration = 6 + Math.random() * 6;
+      el.style.animationDuration = duration + 's';
+
+      // 内容
+      let text = '';
+      if (msg.emoji) text += msg.emoji + ' ';
+      if (msg.content) text += msg.content;
+      if (msg.emoji) text += ' ' + msg.emoji;
+      el.textContent = text;
+
+      overlay.appendChild(el);
+
+      // 动画结束后移除
+      setTimeout(function() { el.remove(); }, duration * 1000 + 500);
+    }
+
+    window.toggleDanmaku = function(on) {
+      danmakuEnabled = on;
+      document.getElementById('btn-danmaku-on').classList.toggle('active', on);
+      document.getElementById('btn-danmaku-off').classList.toggle('active', !on);
+      document.getElementById('danmaku-overlay').classList.toggle('active', on);
+    };
+
+    // 杂志模式下显示弹幕面板
+    const origSwitchMode = switchMode;
+    switchMode = function(mode) {
+      origSwitchMode(mode);
+      if (mode === 'magazine') {
+        initDanmaku();
+      } else {
+        document.getElementById('danmaku-panel').classList.remove('active');
+        if (danmakuTimer) { clearInterval(danmakuTimer); danmakuTimer = null; }
+      }
     };
 
     init();
