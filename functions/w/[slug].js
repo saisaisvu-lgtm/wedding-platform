@@ -13,7 +13,8 @@ export async function onRequest(context) {
   <meta name="apple-mobile-web-app-capable" content="yes">
   <title>囍 · 婚礼</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Ma+Shan+Zheng&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Ma+Shan+Zheng&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+  <noscript><link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Ma+Shan+Zheng&display=swap" rel="stylesheet"></noscript>
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js" defer></script>
   <style>
@@ -117,7 +118,7 @@ export async function onRequest(context) {
     #gridwall .grid-row:nth-child(odd){animation:gridScrollR var(--row-duration,40s) linear infinite}
     #gridwall .grid-row:nth-child(even),#gridwall .grid-row:nth-child(odd){will-change:transform}
     #gridwall .grid-item{flex:none;height:100%;aspect-ratio:3/2;border-radius:6px;overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center;background:#e8e4dd}
-    #gridwall .grid-item .blur-fill{position:absolute;inset:-15px;background-size:cover;background-position:center;filter:blur(20px) brightness(0.9);z-index:0}
+    #gridwall .grid-item .blur-fill{position:absolute;inset:-8px;background-size:cover;background-position:center;filter:blur(12px) brightness(0.9);z-index:0;will-change:filter}
     #gridwall .grid-item img{position:relative;z-index:2;max-width:92%;max-height:92%;object-fit:contain;border-radius:3px;-webkit-user-drag:none}
     @keyframes gridScrollL{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
     @keyframes gridScrollR{0%{transform:translateX(-50%)}100%{transform:translateX(0)}}
@@ -127,7 +128,7 @@ export async function onRequest(context) {
     #magazine{position:fixed;inset:0;z-index:10;display:none;overflow:hidden;background:#f5f3ef;touch-action:pan-x}
     .mag-container{position:absolute;inset:0;display:flex}
     .mag-img-area{flex:1;position:relative;overflow:hidden}
-    .mag-img-area .blur-bg{position:absolute;inset:-20px;background-size:cover;background-position:center;filter:blur(50px) brightness(0.8) saturate(0.8);z-index:0}
+    .mag-img-area .blur-bg{position:absolute;inset:-20px;background-size:cover;background-position:center;filter:blur(30px) brightness(0.8) saturate(0.8);z-index:0;will-change:filter}
     .mag-img-page{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;opacity:0;transform:translateX(30px);transition:all 0.5s cubic-bezier(0.4,0,0.2,1)}
     .mag-img-page.active{opacity:1;transform:translateX(0);z-index:2}
     .mag-img-page.prev{opacity:0;transform:translateX(-30px);z-index:1}
@@ -549,7 +550,6 @@ export async function onRequest(context) {
       // 后台加载剩余图片，不阻塞 UI
       restSrcs.forEach(src => { const img = new Image(); img.src = src; });
     }
-    }
 
     // ====== 进入 ======
     function enterGallery() {
@@ -732,27 +732,22 @@ export async function onRequest(context) {
       el.innerHTML = '';
       const track = document.createElement('div');
       track.className = 'grid-track';
-      const perRow = window.innerWidth < 768 ? 4 : 6;
+      const perRow = window.innerWidth < 768 ? 3 : 5;
       const rowsNeeded = Math.ceil(PHOTOS.length / perRow);
+      // 只生成 2 行重复用于无缝滚动
       for (let rep = 0; rep < 2; rep++) {
         for (let r = 0; r < rowsNeeded; r++) {
           const row = document.createElement('div');
           row.className = 'grid-row';
           const startIdx = (r * perRow) % PHOTOS.length;
-          for (let dup = 0; dup < 2; dup++) {
-            for (let j = 0; j < perRow; j++) {
-              const photo = PHOTOS[(startIdx + j) % PHOTOS.length];
-              const item = document.createElement('div');
-              item.className = 'grid-item';
-              const blur = document.createElement('div');
-              blur.className = 'blur-fill';
-              blur.style.backgroundImage = 'url('+photo.src+')';
-              item.appendChild(blur);
-              const img = document.createElement('img');
-              img.src = photo.src; img.alt = photo.label; img.loading = 'lazy';
-              item.appendChild(img);
-              row.appendChild(item);
-            }
+          for (let j = 0; j < perRow; j++) {
+            const photo = PHOTOS[(startIdx + j) % PHOTOS.length];
+            const item = document.createElement('div');
+            item.className = 'grid-item';
+            const img = document.createElement('img');
+            img.src = photo.src; img.alt = photo.label; img.loading = 'lazy';
+            item.appendChild(img);
+            row.appendChild(item);
           }
           track.appendChild(row);
         }
@@ -769,11 +764,10 @@ export async function onRequest(context) {
       el.innerHTML = '';
       const shuffledQuotes = [...ALL_QUOTES].sort(() => Math.random() - 0.5);
 
-      // Container with image area + text area
       const container = document.createElement('div');
       container.className = 'mag-container';
 
-      // Image area (contains flipping pages)
+      // 虚拟图片区域：只保留 3 页 (prev/curr/next)
       const imgArea = document.createElement('div');
       imgArea.className = 'mag-img-area';
       const blurBg = document.createElement('div');
@@ -781,18 +775,20 @@ export async function onRequest(context) {
       blurBg.id = 'mag-blur-bg';
       if (PHOTOS[0]) blurBg.style.backgroundImage = 'url('+PHOTOS[0].src+')';
       imgArea.appendChild(blurBg);
-      PHOTOS.forEach((p, i) => {
+      for (let i = -1; i <= 1; i++) {
         const page = document.createElement('div');
-        page.className = 'mag-img-page' + (i === 0 ? ' active' : '');
-        page.dataset.index = i;
+        page.className = 'mag-img-page' + (i === 0 ? ' active' : (i < 0 ? ' prev' : ' next'));
+        page.dataset.offset = i;
         const img = document.createElement('img');
-        img.src = p.src; img.alt = p.label; img.loading = 'lazy';
+        const idx = ((i % PHOTOS.length) + PHOTOS.length) % PHOTOS.length;
+        img.src = PHOTOS[idx] ? PHOTOS[idx].src : '';
+        img.alt = ''; img.loading = 'lazy';
         page.appendChild(img);
         imgArea.appendChild(page);
-      });
+      }
       container.appendChild(imgArea);
 
-      // Text area (fixed, content updates on flip)
+      // 侧边栏
       const textArea = document.createElement('div');
       textArea.className = 'mag-text-area';
       textArea.id = 'mag-text-area';
@@ -813,9 +809,7 @@ export async function onRequest(context) {
         + '</div>'
         + '<div class="mag-thanks" style="font-size:9px;color:#c0b0a0;margin-top:8px;opacity:0.4;">光影婚礼墙</div>';
       container.appendChild(textArea);
-
       el.appendChild(container);
-      // Store quotes for random switching
       el._quotes = shuffledQuotes;
       el._thanks = ALL_THANKS;
     }
@@ -841,20 +835,19 @@ export async function onRequest(context) {
     }
 
     function magazineNav(dir) {
-      const pages = document.querySelectorAll('.mag-img-page');
-      if (pages.length === 0) return;
-      const old = magIndex;
+      if (PHOTOS.length === 0) return;
       magIndex += dir;
-      if (magIndex < 0) magIndex = pages.length - 1;
-      if (magIndex >= pages.length) magIndex = 0;
-      if (window.innerWidth >= 768) {
-        pages[old].className = 'mag-img-page ' + (dir > 0 ? 'flip-out-left' : 'flip-in-left');
-        pages[magIndex].className = 'mag-img-page active';
-        setTimeout(() => { pages[old].className = 'mag-img-page'; }, 800);
-      } else {
-        pages[old].className = 'mag-img-page ' + (dir > 0 ? 'prev' : 'next');
-        pages[magIndex].className = 'mag-img-page active';
-      }
+      if (magIndex < 0) magIndex = PHOTOS.length - 1;
+      if (magIndex >= PHOTOS.length) magIndex = 0;
+      // 虚拟翻页：只更新 3 个 DOM 节点的图片
+      const pages = document.querySelectorAll('.mag-img-page');
+      pages.forEach(page => {
+        const offset = parseInt(page.dataset.offset);
+        const idx = ((magIndex + offset) % PHOTOS.length + PHOTOS.length) % PHOTOS.length;
+        const img = page.querySelector('img');
+        if (img && PHOTOS[idx]) img.src = PHOTOS[idx].src;
+        page.className = 'mag-img-page' + (offset === 0 ? ' active' : (offset < 0 ? ' prev' : ' next'));
+      });
       updateMagText();
     }
 
@@ -892,7 +885,15 @@ export async function onRequest(context) {
       stopMagAuto();
       if (mode === 'magazine') {
         magIndex = 0;
-        document.querySelectorAll('.mag-img-page').forEach((p,i) => p.className = 'mag-img-page'+(i===0?' active':''));
+        // 重置虚拟页面
+        const pages = document.querySelectorAll('.mag-img-page');
+        pages.forEach(page => {
+          const offset = parseInt(page.dataset.offset);
+          const idx = ((offset) % PHOTOS.length + PHOTOS.length) % PHOTOS.length;
+          const img = page.querySelector('img');
+          if (img && PHOTOS[idx]) img.src = PHOTOS[idx].src;
+          page.className = 'mag-img-page' + (offset === 0 ? ' active' : (offset < 0 ? ' prev' : ' next'));
+        });
         if (!isPaused) startMagAuto();
       }
     }
