@@ -792,7 +792,7 @@ export async function onRequest(context) {
         + '<div style="flex:1"></div>'
         + '<div id="mag-qr-section" style="text-align:center;margin-top:16px;">'
         + '<div id="mag-qr-box" style="width:80px;height:80px;background:#fff;border-radius:10px;padding:5px;box-shadow:0 2px 8px rgba(0,0,0,0.08);margin:0 auto 8px;"></div>'
-        + '<div style="font-family:\'Ma Shan Zheng\',cursive;font-size:14px;color:#6b4c3b;margin-bottom:2px;">📱 扫码送祝福</div>'
+        + '<div style="font-family:Ma Shan Zheng,cursive;font-size:14px;color:#6b4c3b;margin-bottom:2px;">📱 扫码送祝福</div>'
         + '<div style="font-size:10px;color:#a08060;">发送祝福实时显示在大屏</div>'
         + '</div>'
         + '<div class="mag-thanks" style="font-size:10px;color:#c0b0a0;margin-top:10px;opacity:0.5;">光影婚礼墙</div>';
