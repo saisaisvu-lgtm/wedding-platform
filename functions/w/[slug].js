@@ -511,17 +511,15 @@ export async function onRequest(context) {
           }
         }
         updateProgress(60);
-        await preloadImages();
-        updateProgress(90);
         buildGridwall();
         buildMagazine();
         initParticles();
         setSpeed(1);
         updateProgress(100);
-        setTimeout(() => {
-          document.getElementById('loading-title').textContent = WEDDING.couple_name;
-          document.getElementById('enter-btns').classList.add('show');
-        }, 500);
+        document.getElementById('loading-title').textContent = WEDDING.couple_name;
+        document.getElementById('enter-btns').classList.add('show');
+        // 后台预加载图片，不阻塞 UI
+        preloadImages();
       } catch (err) { showError('加载失败'); }
     }
 
@@ -535,20 +533,12 @@ export async function onRequest(context) {
       document.getElementById('progress-text').textContent = Math.round(pct) + '%';
     }
 
-    async function preloadImages() {
-      // 只预加载头像 + 前 3 张照片，其余后台加载
-      const criticalSrcs = [...AVATARS, ...PHOTOS.slice(0, 3).map(p=>p.src)];
-      const restSrcs = PHOTOS.slice(3).map(p=>p.src);
-      let loaded = 0;
-      const total = criticalSrcs.length;
-      await Promise.all(criticalSrcs.map(src => new Promise(resolve => {
+    function preloadImages() {
+      // 后台预加载所有图片，不阻塞 UI
+      [...AVATARS, ...PHOTOS.map(p => p.src)].forEach(src => {
         const img = new Image();
-        img.onload = img.onerror = () => { loaded++; updateProgress(60 + (loaded/total)*30); resolve(); };
         img.src = src;
-        setTimeout(() => { loaded++; updateProgress(60 + (loaded/total)*30); resolve(); }, 3000);
-      })));
-      // 后台加载剩余图片，不阻塞 UI
-      restSrcs.forEach(src => { const img = new Image(); img.src = src; });
+      });
     }
 
     // ====== 进入 ======
@@ -745,7 +735,7 @@ export async function onRequest(context) {
             const item = document.createElement('div');
             item.className = 'grid-item';
             const img = document.createElement('img');
-            img.src = photo.src; img.alt = photo.label; img.loading = 'lazy';
+            img.src = photo.src; img.alt = photo.label; 
             item.appendChild(img);
             row.appendChild(item);
           }
@@ -782,7 +772,7 @@ export async function onRequest(context) {
         const img = document.createElement('img');
         const idx = ((i % PHOTOS.length) + PHOTOS.length) % PHOTOS.length;
         img.src = PHOTOS[idx] ? PHOTOS[idx].src : '';
-        img.alt = ''; img.loading = 'lazy';
+        img.alt = ''; 
         page.appendChild(img);
         imgArea.appendChild(page);
       }
