@@ -426,6 +426,7 @@ export async function onRequest(context) {
     let musicPlaying = false;
     let magTimer = null;
     let magInterval = 4000;
+    const IMG_CACHE = new Map(); // 图片缓存
 
     // ====== 加载 ======
     const isDirect = new URLSearchParams(location.search).has('direct');
@@ -538,11 +539,21 @@ export async function onRequest(context) {
     }
 
     function preloadImages() {
-      // 后台预加载所有图片，不阻塞 UI
-      [...AVATARS, ...PHOTOS.map(p => p.src)].forEach(src => {
-        const img = new Image();
-        img.src = src;
-      });
+      // 优先加载头像（侧边栏需要）
+      AVATARS.forEach(src => { cacheImage(src); });
+      // 后台加载所有照片到缓存
+      PHOTOS.forEach(p => { cacheImage(p.src); });
+    }
+    function cacheImage(src) {
+      if (!src || IMG_CACHE.has(src)) return IMG_CACHE.get(src);
+      const img = new Image();
+      img.src = src;
+      IMG_CACHE.set(src, img);
+      return img;
+    }
+    function getCacheSrc(src) {
+      // 返回缓存中已加载的图片 src，或原始 src
+      return src;
     }
 
     // ====== 进入 ======
@@ -739,7 +750,7 @@ export async function onRequest(context) {
             const item = document.createElement('div');
             item.className = 'grid-item';
             const img = document.createElement('img');
-            img.src = photo.src; img.alt = photo.label; img.decoding = 'async'; if (r === 0 && rep === 0) img.fetchPriority = 'high';
+            cacheImage(photo.src); img.src = photo.src; img.alt = photo.label; img.decoding = 'async'; if (r === 0 && rep === 0) img.fetchPriority = 'high';
             item.appendChild(img);
             row.appendChild(item);
           }
@@ -806,6 +817,10 @@ export async function onRequest(context) {
       el.appendChild(container);
       el._quotes = shuffledQuotes;
       el._thanks = ALL_THANKS;
+      // 预加载前几张图片到缓存
+      for (let d = 0; d < Math.min(5, PHOTOS.length); d++) {
+        cacheImage(PHOTOS[d].src);
+      }
     }
 
     function updateMagText() {
@@ -833,6 +848,11 @@ export async function onRequest(context) {
       magIndex += dir;
       if (magIndex < 0) magIndex = PHOTOS.length - 1;
       if (magIndex >= PHOTOS.length) magIndex = 0;
+      // 预加载相邻图片到缓存
+      for (let d = -2; d <= 2; d++) {
+        const pi = ((magIndex + d) % PHOTOS.length + PHOTOS.length) % PHOTOS.length;
+        cacheImage(PHOTOS[pi].src);
+      }
       // 虚拟翻页：只更新 3 个 DOM 节点的图片
       const pages = document.querySelectorAll('.mag-img-page');
       pages.forEach(page => {
@@ -885,7 +905,7 @@ export async function onRequest(context) {
           const offset = parseInt(page.dataset.offset);
           const idx = ((offset) % PHOTOS.length + PHOTOS.length) % PHOTOS.length;
           const img = page.querySelector('img');
-          if (img && PHOTOS[idx]) { img.src = PHOTOS[idx].src; img.decoding = 'async'; }
+          if (img && PHOTOS[idx]) { cacheImage(PHOTOS[idx].src); img.src = PHOTOS[idx].src; img.decoding = 'async'; }
           page.className = 'mag-img-page' + (offset === 0 ? ' active' : (offset < 0 ? ' prev' : ' next'));
         });
         if (!isPaused) startMagAuto();
