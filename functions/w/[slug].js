@@ -260,7 +260,7 @@ export async function onRequest(context) {
     <div class="progress-container"><div class="progress-bar" id="progress-bar"></div></div>
     <div class="progress-text" id="progress-text">0%</div>
     <div class="enter-btns" id="enter-btns">
-      <button onclick="enterGallery()">进入婚礼现场 →</button>
+      <button onclick="enterGallery()">翻阅纪念相册 →</button>
     </div>
   </div>
 
@@ -279,7 +279,7 @@ export async function onRequest(context) {
         <button type="submit" class="rsvp-submit" onclick="submitRSVP()">确认提交</button>
         <div class="rsvp-msg" id="rsvp-msg"></div>
       </form>
-      <div class="rsvp-skip"><a onclick="skipRSVP()">直接进入婚礼现场 →</a></div>
+      <div class="rsvp-skip"><a onclick="skipRSVP()">直接翻阅纪念相册 →</a></div>
       <div class="rsvp-names" id="rsvp-bottom-names"></div>
     </div>
   </div>
@@ -358,7 +358,7 @@ export async function onRequest(context) {
       </div>
       <div class="invite-actions">
         <button class="btn-invite-save" onclick="saveInvite()">💾 保存请帖</button>
-        <button class="btn-invite-enter" onclick="enterFromInvite()">进入婚礼现场 →</button>
+        <button class="btn-invite-enter" onclick="enterFromInvite()">翻阅纪念相册 →</button>
       </div>
     </div>
   </div>
@@ -485,6 +485,7 @@ export async function onRequest(context) {
         AVATAR_BRIDE = (data.images.avatar_bride && data.images.avatar_bride[0]) ? data.images.avatar_bride[0].url : (AVATARS[1] || AVATARS[0] || '');
         updateProgress(40);
         document.title = '囍 · ' + WEDDING.couple_name;
+        document.getElementById('loading-title').textContent = WEDDING.couple_name;
         // Update countdown
         if (WEDDING.wedding_date) {
           const datePart = WEDDING.wedding_date.split(' ')[0];
@@ -540,7 +541,6 @@ export async function onRequest(context) {
         initParticles();
         setSpeed(1);
         updateProgress(100);
-        document.getElementById('loading-title').textContent = WEDDING.couple_name;
         document.getElementById('enter-btns').classList.add('show');
         // 后台预加载图片，不阻塞 UI
         preloadImages();
