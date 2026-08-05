@@ -133,19 +133,18 @@ export async function onRequest(context) {
     .mag-img-page.active{opacity:1;transform:translateX(0) scale(1);z-index:2}
     .mag-img-page.prev{opacity:0;transform:translateX(-20px) scale(0.97);z-index:1}
     .mag-img-page.next{opacity:0;transform:translateX(20px) scale(0.97);z-index:1}
+    .mag-glow{position:absolute;inset:0;z-index:9;pointer-events:none;opacity:0;background:radial-gradient(ellipse at center,rgba(212,175,55,0.35) 0%,rgba(212,175,55,0.1) 40%,transparent 70%);transition:opacity 0.3s}
+    .mag-glow.active{opacity:1}
+    .mag-curl-shadow{position:absolute;top:0;bottom:0;width:60px;z-index:8;pointer-events:none;opacity:0;background:linear-gradient(90deg,rgba(0,0,0,0.18),transparent);transition:opacity 0.2s}
+    .mag-img-page::after{content:'';position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:10;opacity:0}
     @media(min-width:769px){
       .mag-img-page{transition:none}
       .mag-img-page.active{z-index:3;opacity:1;transform:translateX(0) scale(1)}
       .mag-img-page.next{z-index:2;opacity:0;transform:translateX(60px) scale(0.96)}
       .mag-img-page.prev{z-index:1;opacity:0;transform:translateX(-60px) scale(0.96)}
-      .mag-img-page.mg-out{animation:mgOut 0.7s cubic-bezier(0.4,0,0.2,1) forwards;z-index:4}
-      .mag-img-page.mg-in{animation:mgIn 0.7s cubic-bezier(0.4,0,0.2,1) forwards;z-index:3}
-      @keyframes mgOut{0%{transform:translateX(0) scale(1);opacity:1}100%{transform:translateX(-80px) scale(0.94);opacity:0}}
-      @keyframes mgIn{0%{transform:translateX(80px) scale(0.94);opacity:0}100%{transform:translateX(0) scale(1);opacity:1}}
-      .mag-img-page::after{content:'';position:absolute;top:0;left:0;width:100%;height:100%;background:linear-gradient(90deg,transparent 0%,rgba(184,134,11,0.08) 30%,rgba(184,134,11,0.18) 50%,rgba(184,134,11,0.08) 70%,transparent 100%);pointer-events:none;z-index:10;opacity:0;transition:opacity 0.3s ease}
-      .mag-img-page.mg-out::after,.mag-img-page.mg-in::after{opacity:1;animation:shimmer 0.7s ease}
-      @keyframes shimmer{0%{opacity:0}40%{opacity:1}100%{opacity:0}}
     }
+    .mag-style-btn{background:rgba(184,134,11,0.06);border:1px solid rgba(184,134,11,0.18);color:#8b7a6a;padding:4px 8px;border-radius:14px;font-size:10px;cursor:pointer;transition:all 0.3s;font-family:inherit;white-space:nowrap;min-height:28px;display:flex;align-items:center;justify-content:center}
+    .mag-style-btn.active{background:rgba(184,134,11,0.2);border-color:#b8860b;color:#8b6914}
     .mag-img-page img{position:relative;z-index:2;max-width:90%;max-height:90%;object-fit:contain;border-radius:4px;box-shadow:0 8px 40px rgba(0,0,0,0.15)}
     .mag-text-area{width:28%;min-width:170px;max-width:260px;display:flex;flex-direction:column;align-items:center;justify-content:space-evenly;padding:28px 20px 16px;background:linear-gradient(160deg,#fdf6e3 0%,#f5ede0 40%,#ede1d0 100%);position:relative;z-index:2;transition:opacity 0.4s ease;overflow-y:auto}
     .mag-text-area .mag-xi{font-size:clamp(36px,6vw,60px);color:#b8860b;text-shadow:0 0 20px rgba(184,134,11,0.15);margin-bottom:6px;animation:xiPulse 3s ease-in-out infinite;line-height:1}
@@ -294,6 +293,12 @@ export async function onRequest(context) {
     <div class="sep"></div>
     <button onclick="toggleMusic()" id="btnMusic">🎵 音乐</button>
     <button onclick="showCredits()">🎬 致谢</button>
+    <div class="sep"></div>
+    <span class="speed-label">翻页</span>
+    <button onclick="setMagStyle('warm',this)" class="mag-style-btn active" data-style="warm">🌅暖色</button>
+    <button onclick="setMagStyle('parallax',this)" class="mag-style-btn" data-style="parallax">📐视差</button>
+    <button onclick="setMagStyle('curl',this)" class="mag-style-btn" data-style="curl">📖翻书</button>
+    <button onclick="setMagStyle('fade',this)" class="mag-style-btn" data-style="fade">✨淡入</button>
   </div>
   <div class="hotzone" id="hotzone"></div>
   <div class="fullscreen-hint" id="fullscreen-hint">双击进入全屏</div>
@@ -791,6 +796,15 @@ export async function onRequest(context) {
       blurBg.id = 'mag-blur-bg';
       if (PHOTOS[0]) blurBg.style.backgroundImage = 'url('+PHOTOS[0].src+')';
       imgArea.appendChild(blurBg);
+      const glow = document.createElement('div');
+      glow.className = 'mag-glow';
+      glow.id = 'mag-glow';
+      imgArea.appendChild(glow);
+      const curlShadow = document.createElement('div');
+      curlShadow.className = 'mag-curl-shadow';
+      curlShadow.id = 'mag-curl-shadow';
+      curlShadow.style.right = '0';
+      imgArea.appendChild(curlShadow);
       for (let i = -1; i <= 1; i++) {
         const page = document.createElement('div');
         page.className = 'mag-img-page' + (i === 0 ? ' active' : (i < 0 ? ' prev' : ' next'));
@@ -856,6 +870,22 @@ export async function onRequest(context) {
     }
 
     let magAnimating = false;
+    let magStyle = localStorage.getItem('mag_style') || 'warm';
+
+    function setMagStyle(style, btn) {
+      magStyle = style;
+      localStorage.setItem('mag_style', style);
+      document.querySelectorAll('.mag-style-btn').forEach(b => b.classList.remove('active'));
+      if (btn) btn.classList.add('active');
+    }
+    // 初始化按钮状态
+    setTimeout(function() {
+      document.querySelectorAll('.mag-style-btn').forEach(function(b) {
+        if (b.dataset.style === magStyle) b.classList.add('active');
+        else b.classList.remove('active');
+      });
+    }, 0);
+
     async function magazineNav(dir) {
       if (PHOTOS.length === 0 || magAnimating) return;
       magAnimating = true;
@@ -880,46 +910,95 @@ export async function onRequest(context) {
       if (nextImg && PHOTOS[nextIdx]) { nextImg.src = PHOTOS[nextIdx].src; nextImg.decoding = 'async'; }
 
       const isMobile = window.innerWidth < 769;
-      const cleanup = ['mg-out','mg-in','prev','next','active'];
+      const cleanup = ['prev','next','active'];
+      var glowEl = document.getElementById('mag-glow');
+      var curlEl = document.getElementById('mag-curl-shadow');
 
-      // 混合动画：淡入淡出 + 滑动 + 缩放
-      var duration = isMobile ? 500 : 700;
-      var slideDist = isMobile ? 50 : 80;
-      var scaleFrom = isMobile ? 0.97 : 0.94;
+      // 参数
+      var cfg = {
+        warm:     { dur: isMobile ? 600 : 800, slide: 0,   scale: 1,    glow: true,  curl: false },
+        parallax: { dur: isMobile ? 500 : 700, slide: isMobile?40:60, scale: isMobile?0.97:0.95, glow: false, curl: false },
+        curl:     { dur: isMobile ? 600 : 800, slide: isMobile?30:50, scale: 1,    glow: false, curl: true  },
+        fade:     { dur: isMobile ? 500 : 700, slide: 0,   scale: isMobile?1.01:1.02, glow: false, curl: false }
+      }[magStyle] || { dur:700, slide:60, scale:0.95 };
 
-      // 准备：清除旧类，设置起始状态
-      pages.forEach(function(p) { p.classList.remove(...cleanup); p.style.animation = 'none'; });
+      // 准备
+      pages.forEach(function(p) { p.classList.remove(...cleanup); p.removeAttribute('style'); });
+      if (glowEl) { glowEl.classList.remove('active'); glowEl.style.opacity = '0'; }
+      if (curlEl) { curlEl.style.opacity = '0'; }
+
+      var outSlide = dir > 0 ? -cfg.slide : cfg.slide;
+      var inSlide  = dir > 0 ? cfg.slide : -cfg.slide;
+      var outScaleEnd = magStyle === 'fade' ? cfg.scale : cfg.scale;
+      var inScaleStart = magStyle === 'fade' ? (2 - cfg.scale) : cfg.scale;
+
       currentPage.style.opacity = '1';
       currentPage.style.transform = 'translateX(0) scale(1)';
-      nextPage.style.opacity = '0';
-      nextPage.style.transform = 'translateX(' + (dir > 0 ? slideDist : -slideDist) + 'px) scale(' + scaleFrom + ')';
-      nextPage.style.zIndex = '4';
       currentPage.style.zIndex = '3';
+      nextPage.style.opacity = magStyle === 'warm' ? '1' : '0';
+      nextPage.style.transform = 'translateX(' + inSlide + 'px) scale(' + (magStyle==='fade'?inScaleStart:cfg.scale) + ')';
+      nextPage.style.zIndex = '4';
 
-      // 翻页粒子（桌面端）
-      if (!isMobile) {
+      // 翻页粒子
+      if (!isMobile && magStyle !== 'warm') {
         var rect = currentPage.getBoundingClientRect();
         createPageParticles(rect.left + rect.width / 2, rect.top + rect.height / 2);
       }
 
-      // rAF 驱动的平滑动画
+      // rAF 动画
       await new Promise(function(resolve) {
         var start = performance.now();
-        var outDist = dir > 0 ? -slideDist : slideDist;
-        var inDist = dir > 0 ? slideDist : -slideDist;
+        var dur = cfg.dur;
         function tick(now) {
-          var t = Math.min((now - start) / duration, 1);
-          // ease-in-out cubic
+          var t = Math.min((now - start) / dur, 1);
           var ease = t < 0.5 ? 4*t*t*t : 1 - Math.pow(-2*t + 2, 3) / 2;
-          var outX = ease * outDist;
-          var inX = inDist * (1 - ease);
-          var outScale = 1 - ease * (1 - scaleFrom);
-          var inScale = scaleFrom + ease * (1 - scaleFrom);
-          var outOp = 1 - ease;
-          var inOp = ease;
-          currentPage.style.transform = 'translateX(' + outX + 'px) scale(' + outScale + ')';
+
+          // 通用计算
+          var outOp, inOp, outX, inX, outS, inS;
+
+          if (magStyle === 'warm') {
+            // 暖色溶解：交叉淡入淡出 + 暖金光晕
+            outOp = 1 - ease;
+            inOp = ease;
+            outX = 0; inX = 0;
+            outS = 1; inS = 1;
+            if (glowEl) {
+              var glowOp = Math.sin(t * Math.PI) * 0.8;
+              glowEl.style.opacity = glowOp;
+              if (t > 0 && t < 1) glowEl.classList.add('active');
+              else glowEl.classList.remove('active');
+            }
+          } else if (magStyle === 'parallax') {
+            // 视差滑动
+            outOp = 1 - ease;
+            inOp = ease;
+            outX = ease * outSlide;
+            inX = inSlide * (1 - ease * 1.1);
+            outS = 1 - ease * (1 - cfg.scale);
+            inS = cfg.scale + ease * (1 - cfg.scale);
+          } else if (magStyle === 'curl') {
+            // 翻书：滑动 + 边缘阴影
+            outOp = t < 0.8 ? 1 : 1 - (t - 0.8) / 0.2;
+            inOp = t < 0.2 ? 0 : (t - 0.2) / 0.8;
+            outX = ease * outSlide * 0.6;
+            inX = inSlide * (1 - ease);
+            outS = 1; inS = 1;
+            if (curlEl) {
+              curlEl.style.opacity = t < 0.1 ? t / 0.1 : (t > 0.8 ? (1 - t) / 0.2 : 1);
+              curlEl.style.width = (30 + ease * 40) + 'px';
+            }
+          } else {
+            // 经典淡入：纯淡入淡出 + 微缩放
+            outOp = 1 - ease;
+            inOp = ease;
+            outX = 0; inX = 0;
+            outS = 1 + ease * (cfg.scale - 1);
+            inS = (2 - cfg.scale) - ease * (1 - cfg.scale);
+          }
+
+          currentPage.style.transform = 'translateX(' + outX + 'px) scale(' + outS + ')';
           currentPage.style.opacity = outOp;
-          nextPage.style.transform = 'translateX(' + inX + 'px) scale(' + inScale + ')';
+          nextPage.style.transform = 'translateX(' + inX + 'px) scale(' + inS + ')';
           nextPage.style.opacity = inOp;
           if (t < 1) requestAnimationFrame(tick);
           else resolve();
@@ -928,11 +1007,11 @@ export async function onRequest(context) {
       });
 
       // 清理
-      currentPage.classList.remove(...cleanup);
       currentPage.removeAttribute('style');
-      nextPage.classList.remove(...cleanup);
-      nextPage.classList.add('active');
       nextPage.removeAttribute('style');
+      nextPage.classList.add('active');
+      if (glowEl) { glowEl.classList.remove('active'); glowEl.style.opacity = '0'; }
+      if (curlEl) { curlEl.style.opacity = '0'; }
       rebuildMagPages(nextIdx);
       magAnimating = false;
       updateMagText();
