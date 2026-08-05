@@ -417,6 +417,8 @@ export async function onRequest(context) {
     const slug = '${slug}';
     let PHOTOS = [];
     let AVATARS = [];
+    let AVATAR_GROOM = '';
+    let AVATAR_BRIDE = '';
     let WEDDING = {};
     let currentMode = 'gridwall';
     let isPaused = false;
@@ -444,6 +446,8 @@ export async function onRequest(context) {
           WEDDING._songs = data.songs || [];
           PHOTOS = data.images.gallery.map(img => ({ src: img.url, label: img.filename, quote: '' }));
           AVATARS = data.images.avatars.map(img => img.url);
+          AVATAR_GROOM = (data.images.avatar_groom && data.images.avatar_groom[0]) ? data.images.avatar_groom[0].url : (AVATARS[0] || '');
+          AVATAR_BRIDE = (data.images.avatar_bride && data.images.avatar_bride[0]) ? data.images.avatar_bride[0].url : (AVATARS[1] || AVATARS[0] || '');
           document.getElementById('loading-screen').style.display = 'none';
           document.getElementById('rsvp-screen').classList.add('hidden');
           buildGridwall();
@@ -464,6 +468,8 @@ export async function onRequest(context) {
         WEDDING._songs = data.songs || [];
         PHOTOS = data.images.gallery.map(img => ({ src: img.url, label: img.filename, quote: '' }));
         AVATARS = data.images.avatars.map(img => img.url);
+        AVATAR_GROOM = (data.images.avatar_groom && data.images.avatar_groom[0]) ? data.images.avatar_groom[0].url : (AVATARS[0] || '');
+        AVATAR_BRIDE = (data.images.avatar_bride && data.images.avatar_bride[0]) ? data.images.avatar_bride[0].url : (AVATARS[1] || AVATARS[0] || '');
         updateProgress(40);
         document.title = '囍 · ' + WEDDING.couple_name;
         // Update countdown
@@ -569,9 +575,11 @@ export async function onRequest(context) {
       // Populate avatars
       const av1 = document.getElementById('ic-avatar1');
       const av2 = document.getElementById('ic-avatar2');
-      if (AVATARS[0]) { av1.src = AVATARS[0]; } else { av1.style.display = 'none'; }
-      if (AVATARS.length > 1) { av2.src = AVATARS[1]; } else { av2.src = AVATARS[0] || ''; }
-      if (!AVATARS[0] && !AVATARS[1]) { av1.style.display = 'none'; av2.style.display = 'none'; }
+      const invAv1 = AVATAR_GROOM || AVATARS[0] || '';
+      const invAv2 = AVATAR_BRIDE || AVATARS[1] || AVATARS[0] || '';
+      if (invAv1) { av1.src = invAv1; } else { av1.style.display = 'none'; }
+      if (invAv2) { av2.src = invAv2; } else { av2.style.display = 'none'; }
+      if (!invAv1 && !invAv2) { av1.style.display = 'none'; av2.style.display = 'none'; }
       // Populate info
       document.getElementById('ic-names').textContent = WEDDING.couple_name;
       document.getElementById('ic-names-en').textContent = WEDDING.couple_name.toUpperCase();
@@ -797,8 +805,10 @@ export async function onRequest(context) {
       const textArea = document.createElement('div');
       textArea.className = 'mag-text-area';
       textArea.id = 'mag-text-area';
-      const avatarHtml = AVATARS.length >= 2
-        ? '<div class="avatar-container"><img class="avatar" src="'+AVATARS[0]+'" alt=""><span class="avatar-heart">♥</span><img class="avatar" src="'+AVATARS[1]+'" alt=""></div>'
+      const avatarLeft = AVATAR_GROOM || AVATARS[0] || '';
+      const avatarRight = AVATAR_BRIDE || AVATARS[1] || AVATARS[0] || '';
+      const avatarHtml = (avatarLeft || avatarRight)
+        ? '<div class="avatar-container"><img class="avatar" src="'+avatarLeft+'" alt=""><span class="avatar-heart">♥</span><img class="avatar" src="'+avatarRight+'" alt=""></div>'
         : (AVATARS.length === 1 ? '<div class="avatar-container"><img class="avatar" src="'+AVATARS[0]+'" alt=""></div>' : '');
       textArea.innerHTML = '<div class="mag-xi">囍</div>'
         + '<div class="mag-xi-line"></div>'

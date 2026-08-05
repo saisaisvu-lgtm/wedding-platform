@@ -67,6 +67,12 @@ export async function onRequestGet(context) {
     const avatar = await env.DB.prepare(
       'SELECT data, mime_type FROM images WHERE user_id = ? AND category = ? ORDER BY sort_order DESC LIMIT 1'
     ).bind(user.id, 'avatar').first();
+    const avatarGroom = await env.DB.prepare(
+      'SELECT data, mime_type FROM images WHERE user_id = ? AND category = ? ORDER BY sort_order DESC LIMIT 1'
+    ).bind(user.id, 'avatar_groom').first();
+    const avatarBride = await env.DB.prepare(
+      'SELECT data, mime_type FROM images WHERE user_id = ? AND category = ? ORDER BY sort_order DESC LIMIT 1'
+    ).bind(user.id, 'avatar_bride').first();
 
     return Response.json({
       ok: true,
@@ -107,7 +113,11 @@ export async function onRequestGet(context) {
       },
       // 头像 base64
       avatar_data: avatar ? `data:${avatar.mime_type};base64,${avatar.data}` : '',
+      avatar_groom_data: avatarGroom ? `data:${avatarGroom.mime_type};base64,${avatarGroom.data}` : (avatar ? `data:${avatar.mime_type};base64,${avatar.data}` : ''),
+      avatar_bride_data: avatarBride ? `data:${avatarBride.mime_type};base64,${avatarBride.data}` : '',
       images: {
+        avatar_groom: imagesWithUrl.filter(i => i.category === 'avatar_groom'),
+        avatar_bride: imagesWithUrl.filter(i => i.category === 'avatar_bride'),
         avatars: imagesWithUrl.filter(i => i.category === 'avatar'),
         credits: imagesWithUrl.filter(i => i.category === 'credits'),
         gallery: imagesWithUrl.filter(i => i.category === 'gallery'),

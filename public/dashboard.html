@@ -163,7 +163,9 @@
           <div class="form-group">
             <label>选择分类</label>
             <select id="uploadCategory">
-              <option value="avatar">头像照片</option>
+              <option value="avatar_groom">🤵 新郎头像</option>
+              <option value="avatar_bride">👰 新娘头像</option>
+              <option value="avatar">通用头像（旧）</option>
               <option value="credits">致谢照片</option>
               <option value="gallery">婚纱写真</option>
             </select>
@@ -182,7 +184,15 @@
           </div>
         </div>
         <div class="section">
-          <div class="section-title"><span class="icon">👤</span> 头像照片</div>
+          <div class="section-title"><span class="icon">🤵</span> 新郎头像</div>
+          <div class="image-grid" id="grid-avatar_groom"><div style="grid-column:1/-1;text-align:center;color:var(--text-muted);padding:20px;font-size:13px;">暂无新郎头像</div></div>
+        </div>
+        <div class="section">
+          <div class="section-title"><span class="icon">👰</span> 新娘头像</div>
+          <div class="image-grid" id="grid-avatar_bride"><div style="grid-column:1/-1;text-align:center;color:var(--text-muted);padding:20px;font-size:13px;">暂无新娘头像</div></div>
+        </div>
+        <div class="section">
+          <div class="section-title"><span class="icon">👤</span> 通用头像（兼容旧版）</div>
           <div class="image-grid" id="grid-avatar"><div style="grid-column:1/-1;text-align:center;color:var(--text-muted);padding:20px;font-size:13px;">暂无头像</div></div>
         </div>
         <div class="section">
@@ -414,13 +424,14 @@
     }
 
     function renderImages() {
-      const categories = ['avatar', 'credits', 'gallery'];
-      const counts = { avatar: 0, credits: 0, gallery: 0 };
+      const categories = ['avatar_groom', 'avatar_bride', 'avatar', 'credits', 'gallery'];
+      const counts = { avatar_groom: 0, avatar_bride: 0, avatar: 0, credits: 0, gallery: 0 };
       categories.forEach(cat => {
         const grid = document.getElementById(`grid-${cat}`);
         const imgs = currentImages.filter(i => i.category === cat);
         counts[cat] = imgs.length;
-        if (imgs.length === 0) { grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;color:var(--text-muted);padding:20px;font-size:13px;">暂无${cat === 'avatar' ? '头像' : cat === 'credits' ? '致谢照片' : '婚纱照'}</div>`; return; }
+        var emptyText = cat === 'avatar_groom' ? '新郎头像' : cat === 'avatar_bride' ? '新娘头像' : cat === 'avatar' ? '通用头像' : cat === 'credits' ? '致谢照片' : '婚纱照';
+        if (imgs.length === 0) { grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:var(--text-muted);padding:20px;font-size:13px;">暂无' + emptyText + '</div>'; return; }
         grid.innerHTML = imgs.map(img => `<div class="image-item"><img src="${img.url}" alt="${img.filename}" loading="lazy"><button class="delete-btn" onclick="deleteImage(${img.id})" title="删除">×</button></div>`).join('');
       });
       document.getElementById('statAvatars').textContent = counts.avatar;
@@ -1075,10 +1086,12 @@
       const venue = currentUser.wedding_venue || '';
       const inviteText = document.getElementById('cardInviteText').value.replace(/\n/g, '<br>');
 
-      // 头像位置（独立于姓名）
+      // 头像位置（独立于姓名，优先新郎/新娘分类）
+      const groomImg = (currentImages || []).find(i => i.category === 'avatar_groom');
+      const brideImg = (currentImages || []).find(i => i.category === 'avatar_bride');
       const avatarImgs = (currentImages || []).filter(i => i.category === 'avatar');
-      let av1Src = avatarImgs.length > 0 ? avatarImgs[0].url : '';
-      let av2Src = avatarImgs.length > 1 ? avatarImgs[1].url : av1Src;
+      let av1Src = groomImg ? groomImg.url : (avatarImgs.length > 0 ? avatarImgs[0].url : '');
+      let av2Src = brideImg ? brideImg.url : (avatarImgs.length > 1 ? avatarImgs[1].url : av1Src);
       if (cardAvatarsSwapped) { [av1Src, av2Src] = [av2Src, av1Src]; }
       const av1Html = av1Src
         ? '<img src="' + av1Src + '" alt="">'

@@ -30,6 +30,16 @@ export async function onRequestGet(context) {
       `SELECT data, mime_type FROM images WHERE user_id = ? AND category = 'avatar' ORDER BY sort_order DESC LIMIT 1`
     ).bind(userId).first();
 
+    // 从 images 表读取新郎头像
+    const avatarGroom = await env.DB.prepare(
+      `SELECT data, mime_type FROM images WHERE user_id = ? AND category = 'avatar_groom' ORDER BY sort_order DESC LIMIT 1`
+    ).bind(userId).first();
+
+    // 从 images 表读取新娘头像
+    const avatarBride = await env.DB.prepare(
+      `SELECT data, mime_type FROM images WHERE user_id = ? AND category = 'avatar_bride' ORDER BY sort_order DESC LIMIT 1`
+    ).bind(userId).first();
+
     // 从 images 表读取致谢照
     const credits = await env.DB.prepare(
       `SELECT data, mime_type FROM images WHERE user_id = ? AND category = 'credits' ORDER BY sort_order DESC LIMIT 1`
@@ -77,6 +87,8 @@ export async function onRequestGet(context) {
         default_guest_name: settings.default_guest_name || '嘉宾',
         bgm_url: user.bgm_url || settings.bgm_url || '',
         avatar_data: avatar ? `data:${avatar.mime_type};base64,${avatar.data}` : '',
+        avatar_groom_data: avatarGroom ? `data:${avatarGroom.mime_type};base64,${avatarGroom.data}` : (avatar ? `data:${avatar.mime_type};base64,${avatar.data}` : ''),
+        avatar_bride_data: avatarBride ? `data:${avatarBride.mime_type};base64,${avatarBride.data}` : '',
         credits_data: credits ? `data:${credits.mime_type};base64,${credits.data}` : '',
         site_url: env.SITE_URL || ''
       }
