@@ -134,20 +134,21 @@ export async function onRequest(context) {
     .mag-img-page.prev{opacity:0;transform:translateX(-30px);z-index:1}
     .mag-img-page.next{opacity:0;transform:translateX(30px);z-index:1}
     @media(min-width:769px){
-      .mag-img-page{transition:none}
-      .mag-img-page.active{z-index:3;opacity:1;transform:translateX(0)}
-      .mag-img-page.next{z-index:2;opacity:0;transform:translateX(40px)}
-      .mag-img-page.prev{z-index:1;opacity:0;transform:translateX(-40px)}
-      .mag-img-page.slide-out-left{animation:slideOutLeft 0.6s cubic-bezier(0.4,0,0.2,1) forwards;z-index:4}
-      .mag-img-page.slide-in-right{animation:slideInRight 0.6s cubic-bezier(0.4,0,0.2,1) forwards;z-index:3}
-      .mag-img-page.slide-out-right{animation:slideOutRight 0.6s cubic-bezier(0.4,0,0.2,1) forwards;z-index:4}
-      .mag-img-page.slide-in-left{animation:slideInLeft 0.6s cubic-bezier(0.4,0,0.2,1) forwards;z-index:3}
-      @keyframes slideOutLeft{0%{transform:translateX(0);opacity:1}100%{transform:translateX(-60px);opacity:0}}
-      @keyframes slideInRight{0%{transform:translateX(60px);opacity:0}100%{transform:translateX(0);opacity:1}}
-      @keyframes slideOutRight{0%{transform:translateX(0);opacity:1}100%{transform:translateX(60px);opacity:0}}
-      @keyframes slideInLeft{0%{transform:translateX(-60px);opacity:0}100%{transform:translateX(0);opacity:1}}
-      .mag-img-page::after{content:'';position:absolute;top:0;left:0;width:100%;height:100%;background:linear-gradient(90deg,transparent 0%,rgba(184,134,11,0.08) 40%,rgba(184,134,11,0.15) 50%,rgba(184,134,11,0.08) 60%,transparent 100%);pointer-events:none;z-index:10;opacity:0;transition:opacity 0.3s ease}
-      .mag-img-page.slide-out-left::after,.mag-img-page.slide-in-right::after,.mag-img-page.slide-out-right::after,.mag-img-page.slide-in-left::after{opacity:1;animation:shimmer 0.6s ease}
+      .mag-img-area{perspective:2000px}
+      .mag-img-page{transform:rotateY(0deg);transition:none}
+      .mag-img-page.active{z-index:3;opacity:1;transform:rotateY(0deg)}
+      .mag-img-page.next{z-index:2;opacity:1}
+      .mag-img-page.prev{z-index:1;opacity:0;transform:rotateY(-30deg)}
+      .mag-img-page.flip-out-left{animation:flipOutLeft 0.8s cubic-bezier(0.4,0,0.2,1) forwards;z-index:4}
+      .mag-img-page.flip-in-right{animation:flipInRight 0.8s cubic-bezier(0.4,0,0.2,1) forwards;z-index:3}
+      .mag-img-page.flip-out-right{animation:flipOutRight 0.8s cubic-bezier(0.4,0,0.2,1) forwards;z-index:4}
+      .mag-img-page.flip-in-left{animation:flipInLeft 0.8s cubic-bezier(0.4,0,0.2,1) forwards;z-index:3}
+      @keyframes flipOutLeft{0%{transform:rotateY(0deg);opacity:1}100%{transform:rotateY(-90deg);opacity:0.3}}
+      @keyframes flipInRight{0%{transform:rotateY(90deg);opacity:0.3}100%{transform:rotateY(0deg);opacity:1}}
+      @keyframes flipOutRight{0%{transform:rotateY(0deg);opacity:1}100%{transform:rotateY(90deg);opacity:0.3}}
+      @keyframes flipInLeft{0%{transform:rotateY(-90deg);opacity:0.3}100%{transform:rotateY(0deg);opacity:1}}
+      .mag-img-page::after{content:'';position:absolute;top:0;left:0;width:100%;height:100%;background:linear-gradient(90deg,transparent 0%,rgba(184,134,11,0.1) 40%,rgba(184,134,11,0.2) 50%,rgba(184,134,11,0.1) 60%,transparent 100%);pointer-events:none;z-index:10;opacity:0;transition:opacity 0.3s ease}
+      .mag-img-page.flip-out-left::after,.mag-img-page.flip-in-right::after,.mag-img-page.flip-out-right::after,.mag-img-page.flip-in-left::after{opacity:1;animation:shimmer 0.8s ease}
       @keyframes shimmer{0%,100%{opacity:0}50%{opacity:1}}
     }
     .mag-img-page img{position:relative;z-index:2;max-width:90%;max-height:90%;object-fit:contain;border-radius:4px;box-shadow:0 8px 40px rgba(0,0,0,0.15)}
@@ -884,7 +885,7 @@ export async function onRequest(context) {
       if (nextImg && PHOTOS[nextIdx]) { nextImg.src = PHOTOS[nextIdx].src; nextImg.decoding = 'async'; }
 
       const isMobile = window.innerWidth < 769;
-      const cleanup = ['slide-out-left','slide-in-right','slide-out-right','slide-in-left','prev','next','active'];
+      const cleanup = ['flip-out-left','flip-in-right','flip-out-right','flip-in-left','prev','next','active'];
 
       if (isMobile) {
         // 移动端：简单滑动
@@ -901,34 +902,33 @@ export async function onRequest(context) {
           magAnimating = false;
         }, 500);
       } else {
-        // 桌面端：2D 滑动翻页（无 rotateY，图片始终清晰）
-        var cleanup2 = ['slide-out-left','slide-in-right','slide-out-right','slide-in-left','prev','next','active'];
-        pages.forEach(function(p) { p.classList.remove(...cleanup2); p.style.animation = 'none'; });
-        nextPage.style.opacity = '0';
-        nextPage.style.transform = dir > 0 ? 'translateX(60px)' : 'translateX(-60px)';
-        currentPage.style.opacity = '1';
-        currentPage.style.transform = 'translateX(0)';
+        // 桌面端：3D 翻页 + 粒子 + 闪光
+        pages.forEach(function(p) { p.classList.remove(...cleanup); });
+        nextPage.style.opacity = '1';
+        nextPage.style.transform = dir > 0 ? 'rotateY(90deg)' : 'rotateY(-90deg)';
         requestAnimationFrame(function() {
           if (dir > 0) {
-            currentPage.classList.add('slide-out-left');
-            nextPage.classList.add('slide-in-right');
+            currentPage.classList.add('flip-out-left');
+            nextPage.classList.add('flip-in-right');
           } else {
-            currentPage.classList.add('slide-out-right');
-            nextPage.classList.add('slide-in-left');
+            currentPage.classList.add('flip-out-right');
+            nextPage.classList.add('flip-in-left');
           }
         });
         // 翻页粒子
         var rect = currentPage.getBoundingClientRect();
         createPageParticles(rect.left + rect.width / 2, rect.top + rect.height / 2);
         setTimeout(function() {
-          currentPage.classList.remove(...cleanup2);
-          currentPage.removeAttribute('style');
-          nextPage.classList.remove(...cleanup2);
+          currentPage.classList.remove(...cleanup);
+          currentPage.style.opacity = '0';
+          currentPage.style.transform = dir > 0 ? 'rotateY(-90deg)' : 'rotateY(90deg)';
+          nextPage.classList.remove(...cleanup);
           nextPage.classList.add('active');
-          nextPage.removeAttribute('style');
+          nextPage.style.transform = 'rotateY(0deg)';
+          nextPage.style.opacity = '1';
           rebuildMagPages(nextIdx);
           magAnimating = false;
-        }, 600);
+        }, 800);
       }
       updateMagText();
     }
