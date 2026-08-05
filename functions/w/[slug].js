@@ -141,8 +141,15 @@ export async function onRequest(context) {
       .mag-img-page.prev{z-index:1;opacity:0;transform:rotateY(-30deg)}
       .mag-img-page.flip-out-left{animation:flipOutLeft 0.8s cubic-bezier(0.4,0,0.2,1) forwards;z-index:4}
       .mag-img-page.flip-in-right{animation:flipInRight 0.8s cubic-bezier(0.4,0,0.2,1) forwards;z-index:3}
+      .mag-img-page.flip-out-right{animation:flipOutRight 0.8s cubic-bezier(0.4,0,0.2,1) forwards;z-index:4}
+      .mag-img-page.flip-in-left{animation:flipInLeft 0.8s cubic-bezier(0.4,0,0.2,1) forwards;z-index:3}
       @keyframes flipOutLeft{0%{transform:rotateY(0deg);opacity:1}100%{transform:rotateY(-90deg);opacity:0.3}}
       @keyframes flipInRight{0%{transform:rotateY(90deg);opacity:0.3}100%{transform:rotateY(0deg);opacity:1}}
+      @keyframes flipOutRight{0%{transform:rotateY(0deg);opacity:1}100%{transform:rotateY(90deg);opacity:0.3}}
+      @keyframes flipInLeft{0%{transform:rotateY(-90deg);opacity:0.3}100%{transform:rotateY(0deg);opacity:1}}
+      .mag-img-page::after{content:'';position:absolute;top:0;left:0;width:100%;height:100%;background:linear-gradient(90deg,transparent 0%,rgba(184,134,11,0.1) 40%,rgba(184,134,11,0.2) 50%,rgba(184,134,11,0.1) 60%,transparent 100%);pointer-events:none;z-index:10;opacity:0;transition:opacity 0.3s ease}
+      .mag-img-page.flip-out-left::after,.mag-img-page.flip-in-right::after,.mag-img-page.flip-out-right::after,.mag-img-page.flip-in-left::after{opacity:1;animation:shimmer 0.8s ease}
+      @keyframes shimmer{0%,100%{opacity:0}50%{opacity:1}}
     }
     .mag-img-page img{position:relative;z-index:2;max-width:90%;max-height:90%;object-fit:contain;border-radius:4px;box-shadow:0 8px 40px rgba(0,0,0,0.15)}
     @media(min-width:769px){
@@ -192,6 +199,11 @@ export async function onRequest(context) {
     .particles{position:fixed;inset:0;z-index:5;pointer-events:none;overflow:hidden}
     .particle{position:absolute;border-radius:50%;background:radial-gradient(circle,rgba(184,134,11,0.5),rgba(212,175,55,0.2));pointer-events:none;animation:particleFloat linear infinite}
     @keyframes particleFloat{0%{transform:translateY(100vh) rotate(0deg);opacity:0}10%{opacity:0.6}90%{opacity:0.3}100%{transform:translateY(-10vh) rotate(360deg);opacity:0}}
+    /* 翻页粒子 */
+    .page-particles{position:fixed;pointer-events:none;z-index:20;display:none}
+    @media(min-width:769px){.page-particles{display:block}}
+    .page-particle{position:absolute;width:3px;height:3px;background:#b8860b;border-radius:50%;animation:particleBurst 1s ease-out forwards}
+    @keyframes particleBurst{0%{transform:translate(0,0) scale(1);opacity:1}100%{transform:translate(var(--tx),var(--ty)) scale(0);opacity:0}}
 
     /* ====== 致谢 ====== */
     #credits-overlay{position:fixed;inset:0;z-index:120;background:rgba(253,246,227,0.95);display:none;align-items:center;justify-content:center;flex-direction:column;text-align:center;padding:40px;opacity:0;transition:opacity 0.5s;backdrop-filter:blur(8px)}
@@ -852,26 +864,110 @@ export async function onRequest(context) {
       }
     }
 
+    let magAnimating = false;
     function magazineNav(dir) {
-      if (PHOTOS.length === 0) return;
+      if (PHOTOS.length === 0 || magAnimating) return;
+      magAnimating = true;
+      const pages = document.querySelectorAll('.mag-img-page');
+      if (pages.length < 2) { magAnimating = false; return; }
+
+      const currentPage = pages[1]; // 当前 active 页
       magIndex += dir;
       if (magIndex < 0) magIndex = PHOTOS.length - 1;
       if (magIndex >= PHOTOS.length) magIndex = 0;
-      // 预加载相邻图片到缓存
+
+      // 预加载相邻图片
       for (let d = -2; d <= 2; d++) {
         const pi = ((magIndex + d) % PHOTOS.length + PHOTOS.length) % PHOTOS.length;
         cacheImage(PHOTOS[pi].src);
       }
-      // 虚拟翻页：只更新 3 个 DOM 节点的图片
-      const pages = document.querySelectorAll('.mag-img-page');
-      pages.forEach(page => {
-        const offset = parseInt(page.dataset.offset);
-        const idx = ((magIndex + offset) % PHOTOS.length + PHOTOS.length) % PHOTOS.length;
-        const img = page.querySelector('img');
-        if (img && PHOTOS[idx]) { img.src = PHOTOS[idx].src; img.decoding = 'async'; }
-        page.className = 'mag-img-page' + (offset === 0 ? ' active' : (offset < 0 ? ' prev' : ' next'));
-      });
+
+      // 找到目标页（next 方向用 pages[2]，prev 方向用 pages[0]）
+      const nextPage = dir > 0 ? pages[2] : pages[0];
+      const nextIdx = ((magIndex) % PHOTOS.length + PHOTOS.length) % PHOTOS.length;
+      const nextImg = nextPage.querySelector('img');
+      if (nextImg && PHOTOS[nextIdx]) { nextImg.src = PHOTOS[nextIdx].src; nextImg.decoding = 'async'; }
+
+      const isMobile = window.innerWidth < 769;
+      const cleanup = ['flip-out-left','flip-in-right','flip-out-right','flip-in-left','prev','next','active'];
+
+      if (isMobile) {
+        // 移动端：简单滑动
+        currentPage.classList.remove('active');
+        currentPage.classList.add(dir > 0 ? 'prev' : 'next');
+        nextPage.classList.remove('prev', 'next');
+        nextPage.classList.add('active');
+        setTimeout(function() {
+          currentPage.classList.remove('prev', 'next');
+          currentPage.style.opacity = '0';
+          currentPage.style.transform = dir > 0 ? 'translateX(-30px)' : 'translateX(30px)';
+          // 重排虚拟 DOM
+          rebuildMagPages(nextIdx);
+          magAnimating = false;
+        }, 500);
+      } else {
+        // 桌面端：3D 翻页 + 粒子 + 闪光
+        pages.forEach(function(p) { p.classList.remove(...cleanup); });
+        nextPage.style.opacity = '1';
+        nextPage.style.transform = dir > 0 ? 'rotateY(90deg)' : 'rotateY(-90deg)';
+        requestAnimationFrame(function() {
+          if (dir > 0) {
+            currentPage.classList.add('flip-out-left');
+            nextPage.classList.add('flip-in-right');
+          } else {
+            currentPage.classList.add('flip-out-right');
+            nextPage.classList.add('flip-in-left');
+          }
+        });
+        // 翻页粒子
+        var rect = currentPage.getBoundingClientRect();
+        createPageParticles(rect.left + rect.width / 2, rect.top + rect.height / 2);
+        setTimeout(function() {
+          currentPage.classList.remove(...cleanup);
+          currentPage.style.opacity = '0';
+          currentPage.style.transform = dir > 0 ? 'rotateY(-90deg)' : 'rotateY(90deg)';
+          nextPage.classList.remove(...cleanup);
+          nextPage.classList.add('active');
+          nextPage.style.transform = 'rotateY(0deg)';
+          nextPage.style.opacity = '1';
+          rebuildMagPages(nextIdx);
+          magAnimating = false;
+        }, 800);
+      }
       updateMagText();
+    }
+
+    function rebuildMagPages(centerIdx) {
+      // 重排 3 个虚拟 DOM 的 offset 和图片
+      var pages = document.querySelectorAll('.mag-img-page');
+      var offsets = [-1, 0, 1];
+      pages.forEach(function(page, i) {
+        var idx = ((centerIdx + offsets[i]) % PHOTOS.length + PHOTOS.length) % PHOTOS.length;
+        var img = page.querySelector('img');
+        if (img && PHOTOS[idx]) { img.src = PHOTOS[idx].src; }
+        page.dataset.offset = offsets[i];
+        page.className = 'mag-img-page' + (offsets[i] === 0 ? ' active' : (offsets[i] < 0 ? ' prev' : ' next'));
+      });
+    }
+
+    function createPageParticles(x, y) {
+      if (window.innerWidth < 769) return;
+      var container = document.createElement('div');
+      container.className = 'page-particles';
+      container.style.left = x + 'px';
+      container.style.top = y + 'px';
+      for (var i = 0; i < 12; i++) {
+        var p = document.createElement('div');
+        p.className = 'page-particle';
+        var angle = (Math.PI * 2 * i) / 12;
+        var dist = 40 + Math.random() * 60;
+        p.style.setProperty('--tx', Math.cos(angle) * dist + 'px');
+        p.style.setProperty('--ty', Math.sin(angle) * dist + 'px');
+        p.style.animationDelay = Math.random() * 0.2 + 's';
+        container.appendChild(p);
+      }
+      document.body.appendChild(container);
+      setTimeout(function() { container.remove(); }, 1200);
     }
 
     // Touch
