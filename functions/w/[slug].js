@@ -149,7 +149,7 @@ export async function onRequest(context) {
       .mag-img-page.next img,.mag-img-page.prev img{filter:blur(6px) brightness(0.85);transform:scale(0.92);opacity:0.7}
       .mag-img-page.active img{filter:none;transform:none;opacity:1}
     }
-    .mag-text-area{width:28%;min-width:170px;max-width:260px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:28px 20px 16px;background:linear-gradient(160deg,#fdf6e3 0%,#f5ede0 40%,#ede1d0 100%);position:relative;z-index:2;transition:opacity 0.4s ease;overflow-y:auto}
+    .mag-text-area{width:28%;min-width:170px;max-width:260px;display:flex;flex-direction:column;align-items:center;justify-content:space-evenly;padding:28px 20px 16px;background:linear-gradient(160deg,#fdf6e3 0%,#f5ede0 40%,#ede1d0 100%);position:relative;z-index:2;transition:opacity 0.4s ease;overflow-y:auto}
     .mag-text-area .mag-xi{font-size:clamp(36px,6vw,60px);color:#b8860b;text-shadow:0 0 20px rgba(184,134,11,0.15);margin-bottom:6px;animation:xiPulse 3s ease-in-out infinite;line-height:1}
     .mag-text-area .mag-xi-line{width:40px;height:1px;background:linear-gradient(90deg,transparent,#b8860b,transparent);margin-bottom:14px;opacity:0.5}
     .mag-text-area .mag-quote{font-size:clamp(11px,1.6vw,14px);color:#5a4a3a;line-height:1.9;text-align:center;margin-bottom:14px;letter-spacing:0.04em;font-style:italic;transition:opacity 0.3s;position:relative;padding:0 6px}
@@ -806,7 +806,6 @@ export async function onRequest(context) {
         + avatarHtml
         + '<div class="names-label">'+WEDDING.couple_name+'</div>'
         + '<div class="mag-thanks" id="mag-thanks">感谢每一位亲朋好友<br>在这个特别的日子里<br>见证我们的婚礼</div>'
-        + '<div style="flex:1"></div>'
         + '<div id="mag-qr-section" style="text-align:center;margin-top:12px;display:flex;flex-direction:column;align-items:center;">'
         + '<div id="mag-qr-box" style="width:68px;height:68px;background:#fff;border-radius:8px;padding:4px;box-shadow:0 2px 8px rgba(0,0,0,0.08);margin:0 auto 6px;"></div>'
         + '<div style="font-family:Ma Shan Zheng,cursive;font-size:13px;color:#6b4c3b;margin-bottom:1px;">📱 扫码送祝福</div>'
