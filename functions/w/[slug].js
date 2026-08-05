@@ -129,27 +129,22 @@ export async function onRequest(context) {
     .mag-container{position:absolute;inset:0;display:flex}
     .mag-img-area{flex:1;position:relative;overflow:hidden}
     .mag-img-area .blur-bg{position:absolute;inset:-20px;background-size:cover;background-position:center;filter:blur(30px) brightness(0.8) saturate(0.8);z-index:0;will-change:filter}
-    .mag-img-page{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;opacity:0;transform:translateX(30px);transition:all 0.5s cubic-bezier(0.4,0,0.2,1)}
-    .mag-img-page.active{opacity:1;transform:translateX(0);z-index:2}
-    .mag-img-page.prev{opacity:0;transform:translateX(-30px);z-index:1}
-    .mag-img-page.next{opacity:0;transform:translateX(30px);z-index:1}
+    .mag-img-page{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;opacity:0;transform:translateX(20px) scale(0.97);transition:opacity 0.5s cubic-bezier(0.4,0,0.2,1),transform 0.5s cubic-bezier(0.4,0,0.2,1)}
+    .mag-img-page.active{opacity:1;transform:translateX(0) scale(1);z-index:2}
+    .mag-img-page.prev{opacity:0;transform:translateX(-20px) scale(0.97);z-index:1}
+    .mag-img-page.next{opacity:0;transform:translateX(20px) scale(0.97);z-index:1}
     @media(min-width:769px){
-      .mag-img-area{perspective:2000px}
-      .mag-img-page{transform:rotateY(0deg);transition:none}
-      .mag-img-page.active{z-index:3;opacity:1;transform:rotateY(0deg)}
-      .mag-img-page.next{z-index:2;opacity:1}
-      .mag-img-page.prev{z-index:1;opacity:0;transform:rotateY(-30deg)}
-      .mag-img-page.flip-out-left{animation:flipOutLeft 0.8s cubic-bezier(0.4,0,0.2,1) forwards;z-index:4}
-      .mag-img-page.flip-in-right{animation:flipInRight 0.8s cubic-bezier(0.4,0,0.2,1) forwards;z-index:3}
-      .mag-img-page.flip-out-right{animation:flipOutRight 0.8s cubic-bezier(0.4,0,0.2,1) forwards;z-index:4}
-      .mag-img-page.flip-in-left{animation:flipInLeft 0.8s cubic-bezier(0.4,0,0.2,1) forwards;z-index:3}
-      @keyframes flipOutLeft{0%{transform:rotateY(0deg);opacity:1}100%{transform:rotateY(-90deg);opacity:0.3}}
-      @keyframes flipInRight{0%{transform:rotateY(90deg);opacity:0.3}100%{transform:rotateY(0deg);opacity:1}}
-      @keyframes flipOutRight{0%{transform:rotateY(0deg);opacity:1}100%{transform:rotateY(90deg);opacity:0.3}}
-      @keyframes flipInLeft{0%{transform:rotateY(-90deg);opacity:0.3}100%{transform:rotateY(0deg);opacity:1}}
-      .mag-img-page::after{content:'';position:absolute;top:0;left:0;width:100%;height:100%;background:linear-gradient(90deg,transparent 0%,rgba(184,134,11,0.1) 40%,rgba(184,134,11,0.2) 50%,rgba(184,134,11,0.1) 60%,transparent 100%);pointer-events:none;z-index:10;opacity:0;transition:opacity 0.3s ease}
-      .mag-img-page.flip-out-left::after,.mag-img-page.flip-in-right::after,.mag-img-page.flip-out-right::after,.mag-img-page.flip-in-left::after{opacity:1;animation:shimmer 0.8s ease}
-      @keyframes shimmer{0%,100%{opacity:0}50%{opacity:1}}
+      .mag-img-page{transition:none}
+      .mag-img-page.active{z-index:3;opacity:1;transform:translateX(0) scale(1)}
+      .mag-img-page.next{z-index:2;opacity:0;transform:translateX(60px) scale(0.96)}
+      .mag-img-page.prev{z-index:1;opacity:0;transform:translateX(-60px) scale(0.96)}
+      .mag-img-page.mg-out{animation:mgOut 0.7s cubic-bezier(0.4,0,0.2,1) forwards;z-index:4}
+      .mag-img-page.mg-in{animation:mgIn 0.7s cubic-bezier(0.4,0,0.2,1) forwards;z-index:3}
+      @keyframes mgOut{0%{transform:translateX(0) scale(1);opacity:1}100%{transform:translateX(-80px) scale(0.94);opacity:0}}
+      @keyframes mgIn{0%{transform:translateX(80px) scale(0.94);opacity:0}100%{transform:translateX(0) scale(1);opacity:1}}
+      .mag-img-page::after{content:'';position:absolute;top:0;left:0;width:100%;height:100%;background:linear-gradient(90deg,transparent 0%,rgba(184,134,11,0.08) 30%,rgba(184,134,11,0.18) 50%,rgba(184,134,11,0.08) 70%,transparent 100%);pointer-events:none;z-index:10;opacity:0;transition:opacity 0.3s ease}
+      .mag-img-page.mg-out::after,.mag-img-page.mg-in::after{opacity:1;animation:shimmer 0.7s ease}
+      @keyframes shimmer{0%{opacity:0}40%{opacity:1}100%{opacity:0}}
     }
     .mag-img-page img{position:relative;z-index:2;max-width:90%;max-height:90%;object-fit:contain;border-radius:4px;box-shadow:0 8px 40px rgba(0,0,0,0.15)}
     .mag-text-area{width:28%;min-width:170px;max-width:260px;display:flex;flex-direction:column;align-items:center;justify-content:space-evenly;padding:28px 20px 16px;background:linear-gradient(160deg,#fdf6e3 0%,#f5ede0 40%,#ede1d0 100%);position:relative;z-index:2;transition:opacity 0.4s ease;overflow-y:auto}
@@ -861,7 +856,7 @@ export async function onRequest(context) {
     }
 
     let magAnimating = false;
-    function magazineNav(dir) {
+    async function magazineNav(dir) {
       if (PHOTOS.length === 0 || magAnimating) return;
       magAnimating = true;
       const pages = document.querySelectorAll('.mag-img-page');
@@ -885,51 +880,61 @@ export async function onRequest(context) {
       if (nextImg && PHOTOS[nextIdx]) { nextImg.src = PHOTOS[nextIdx].src; nextImg.decoding = 'async'; }
 
       const isMobile = window.innerWidth < 769;
-      const cleanup = ['flip-out-left','flip-in-right','flip-out-right','flip-in-left','prev','next','active'];
+      const cleanup = ['mg-out','mg-in','prev','next','active'];
 
-      if (isMobile) {
-        // 移动端：简单滑动
-        currentPage.classList.remove('active');
-        currentPage.classList.add(dir > 0 ? 'prev' : 'next');
-        nextPage.classList.remove('prev', 'next');
-        nextPage.classList.add('active');
-        setTimeout(function() {
-          currentPage.classList.remove('prev', 'next');
-          currentPage.style.opacity = '0';
-          currentPage.style.transform = dir > 0 ? 'translateX(-30px)' : 'translateX(30px)';
-          // 重排虚拟 DOM
-          rebuildMagPages(nextIdx);
-          magAnimating = false;
-        }, 500);
-      } else {
-        // 桌面端：3D 翻页 + 粒子 + 闪光
-        pages.forEach(function(p) { p.classList.remove(...cleanup); });
-        nextPage.style.opacity = '1';
-        nextPage.style.transform = dir > 0 ? 'rotateY(90deg)' : 'rotateY(-90deg)';
-        requestAnimationFrame(function() {
-          if (dir > 0) {
-            currentPage.classList.add('flip-out-left');
-            nextPage.classList.add('flip-in-right');
-          } else {
-            currentPage.classList.add('flip-out-right');
-            nextPage.classList.add('flip-in-left');
-          }
-        });
-        // 翻页粒子
+      // 混合动画：淡入淡出 + 滑动 + 缩放
+      var duration = isMobile ? 500 : 700;
+      var slideDist = isMobile ? 50 : 80;
+      var scaleFrom = isMobile ? 0.97 : 0.94;
+
+      // 准备：清除旧类，设置起始状态
+      pages.forEach(function(p) { p.classList.remove(...cleanup); p.style.animation = 'none'; });
+      currentPage.style.opacity = '1';
+      currentPage.style.transform = 'translateX(0) scale(1)';
+      nextPage.style.opacity = '0';
+      nextPage.style.transform = 'translateX(' + (dir > 0 ? slideDist : -slideDist) + 'px) scale(' + scaleFrom + ')';
+      nextPage.style.zIndex = '4';
+      currentPage.style.zIndex = '3';
+
+      // 翻页粒子（桌面端）
+      if (!isMobile) {
         var rect = currentPage.getBoundingClientRect();
         createPageParticles(rect.left + rect.width / 2, rect.top + rect.height / 2);
-        setTimeout(function() {
-          currentPage.classList.remove(...cleanup);
-          currentPage.style.opacity = '0';
-          currentPage.style.transform = dir > 0 ? 'rotateY(-90deg)' : 'rotateY(90deg)';
-          nextPage.classList.remove(...cleanup);
-          nextPage.classList.add('active');
-          nextPage.style.transform = 'rotateY(0deg)';
-          nextPage.style.opacity = '1';
-          rebuildMagPages(nextIdx);
-          magAnimating = false;
-        }, 800);
       }
+
+      // rAF 驱动的平滑动画
+      await new Promise(function(resolve) {
+        var start = performance.now();
+        var outDist = dir > 0 ? -slideDist : slideDist;
+        var inDist = dir > 0 ? slideDist : -slideDist;
+        function tick(now) {
+          var t = Math.min((now - start) / duration, 1);
+          // ease-in-out cubic
+          var ease = t < 0.5 ? 4*t*t*t : 1 - Math.pow(-2*t + 2, 3) / 2;
+          var outX = ease * outDist;
+          var inX = inDist * (1 - ease);
+          var outScale = 1 - ease * (1 - scaleFrom);
+          var inScale = scaleFrom + ease * (1 - scaleFrom);
+          var outOp = 1 - ease;
+          var inOp = ease;
+          currentPage.style.transform = 'translateX(' + outX + 'px) scale(' + outScale + ')';
+          currentPage.style.opacity = outOp;
+          nextPage.style.transform = 'translateX(' + inX + 'px) scale(' + inScale + ')';
+          nextPage.style.opacity = inOp;
+          if (t < 1) requestAnimationFrame(tick);
+          else resolve();
+        }
+        requestAnimationFrame(tick);
+      });
+
+      // 清理
+      currentPage.classList.remove(...cleanup);
+      currentPage.removeAttribute('style');
+      nextPage.classList.remove(...cleanup);
+      nextPage.classList.add('active');
+      nextPage.removeAttribute('style');
+      rebuildMagPages(nextIdx);
+      magAnimating = false;
       updateMagText();
     }
 
