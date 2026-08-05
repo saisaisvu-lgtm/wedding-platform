@@ -462,17 +462,11 @@
       <div class="couple-names" id="coupleNames">新郎 🥂 新娘</div>
       <div class="couple-names-en" id="coupleNamesEn">GROOM & BRIDE</div>
 
-      <div class="photo-area" style="display:flex;gap:8px;background:none;box-shadow:none;">
-        <div style="flex:1;border-radius:12px;overflow:hidden;position:relative;background:linear-gradient(135deg,#fce4ec,#f3e5f5,#e8eaf6,#e0f2f1);box-shadow:0 3px 12px rgba(0,0,0,0.1),inset 0 0 0 3px rgba(255,255,255,0.5);">
-          <div class="firework"></div><div class="firework"></div>
-          <img id="groomPhoto" src="" alt="新郎" style="width:100%;height:100%;object-fit:cover;display:none;">
-          <div id="groomPlaceholder" style="height:100%;display:flex;align-items:center;justify-content:center;font-family:'ZCOOL KuaiLe',cursive;color:#8b2252;font-size:0.85rem;opacity:0.6;">🤵 新郎</div>
-        </div>
-        <div style="flex:1;border-radius:12px;overflow:hidden;position:relative;background:linear-gradient(135deg,#fce4ec,#f3e5f5,#e8eaf6,#e0f2f1);box-shadow:0 3px 12px rgba(0,0,0,0.1),inset 0 0 0 3px rgba(255,255,255,0.5);">
-          <div class="firework"></div><div class="firework"></div>
-          <img id="bridePhoto" src="" alt="新娘" style="width:100%;height:100%;object-fit:cover;display:none;">
-          <div id="bridePlaceholder" style="height:100%;display:flex;align-items:center;justify-content:center;font-family:'ZCOOL KuaiLe',cursive;color:#8b2252;font-size:0.85rem;opacity:0.6;">👰 新娘</div>
-        </div>
+      <div class="photo-area">
+        <div class="firework"></div><div class="firework"></div><div class="firework"></div>
+        <div class="firework"></div><div class="firework"></div>
+        <img id="couplePhoto" src="" alt="合照">
+        <div class="photo-placeholder" id="photoPlaceholder">📷 放置合照</div>
       </div>
 
       <div class="date-time" id="weddingDate">0000.00.00</div>
@@ -769,21 +763,13 @@
     if (mask) { mask.classList.add('hidden'); setTimeout(() => mask.remove(), 600); }
   }
 
-  function renderAvatars(groomData, brideData, fallbackData) {
-    var groomSrc = groomData || fallbackData || '';
-    var brideSrc = brideData || '';
-    if (groomSrc) {
-      var gImg = document.getElementById('groomPhoto');
-      var gPh = document.getElementById('groomPlaceholder');
-      gImg.src = groomSrc.startsWith('data:') ? groomSrc : 'data:image/jpeg;base64,' + groomSrc;
-      gImg.style.display = 'block'; gPh.style.display = 'none';
-    }
-    if (brideSrc) {
-      var bImg = document.getElementById('bridePhoto');
-      var bPh = document.getElementById('bridePlaceholder');
-      bImg.src = brideSrc.startsWith('data:') ? brideSrc : 'data:image/jpeg;base64,' + brideSrc;
-      bImg.style.display = 'block'; bPh.style.display = 'none';
-    }
+  function renderAvatar(data) {
+    if (!data) return;
+    const img = document.getElementById('couplePhoto');
+    const ph = document.getElementById('photoPlaceholder');
+    img.src = data.startsWith('data:') ? data : 'data:image/jpeg;base64,' + data;
+    img.style.display = 'block';
+    ph.style.display = 'none';
   }
 
   // ====== 数据加载 ======
@@ -797,7 +783,7 @@
           const merged = { ...json.wedding, ...(json.invitation || {}) };
           if (json.site_url) siteUrl = json.site_url;
           renderWedding(merged);
-          renderAvatars(json.avatar_groom_data, json.avatar_bride_data, json.avatar_data);
+          if (json.avatar_data) renderAvatar(json.avatar_data);
           return true;
         }
       }
@@ -813,7 +799,7 @@
         if (json.ok && json.data) {
           if (json.data.site_url) siteUrl = json.data.site_url;
           renderWedding(json.data);
-          renderAvatars(json.data.avatar_groom_data || json.data.avatar_data, json.data.avatar_bride_data, json.data.avatar_data);
+          if (json.data.avatar_data) renderAvatar(json.data.avatar_data);
           return true;
         }
       }
@@ -841,7 +827,7 @@
       kids_text: params.get('kt') || 'These two kids are getting married'
     });
     const photo = params.get('photo') || params.get('avatar');
-    if (photo) renderAvatars(photo, '', '');
+    if (photo) renderAvatar(photo);
   }
 
   async function init() {
