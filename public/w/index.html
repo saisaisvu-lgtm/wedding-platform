@@ -483,17 +483,11 @@
     }
     
     @media (min-width: 769px) {
-      #magazine {
-        perspective: 2000px;
-        transform-style: preserve-3d;
-      }
-      
       .mag-page {
         transform: rotateY(0deg);
         transition: none;
         backface-visibility: hidden;
         -webkit-backface-visibility: hidden;
-        transform-style: preserve-3d;
       }
       
       .mag-page.active {
@@ -2541,33 +2535,65 @@
           currentPage.style.opacity = '0';
           currentPage.style.transform = direction === 'next' ? 'translateX(-30px)' : 'translateX(30px)';
         } else {
-          // Random animation selection
-          const animations = [
-            { out: 'flip-out-left', in: 'flip-in-right', initOut: 'rotateY(0deg)', initIn: 'rotateY(90deg)', finalOut: 'rotateY(-90deg)', finalIn: 'rotateY(0deg)' },
-            { out: 'flip-out-right', in: 'flip-in-left', initOut: 'rotateY(0deg)', initIn: 'rotateY(-90deg)', finalOut: 'rotateY(90deg)', finalIn: 'rotateY(0deg)' },
-          ];
-          const anim = animations[Math.floor(Math.random() * animations.length)];
-          pages.forEach(p => p.classList.remove(...cleanup));
-          nextPage.style.opacity = '1';
-          nextPage.style.transform = anim.initIn;
-          requestAnimationFrame(() => {
-            currentPage.classList.add(anim.out);
-            nextPage.classList.add(anim.in);
+          // JS-driven flip: perspective only exists during animation
+          const magazine = document.getElementById('magazine');
+          const goLeft = Math.random() > 0.5;
+          const duration = 800;
+          
+          // Setup: add 3D context
+          magazine.style.perspective = '2000px';
+          magazine.style.transformStyle = 'preserve-3d';
+          
+          // Prepare pages
+          pages.forEach(p => {
+            p.classList.remove(...cleanup, 'active');
+            p.style.animation = 'none';
           });
+          currentPage.style.opacity = '1';
+          currentPage.style.transform = 'rotateY(0deg)';
+          currentPage.style.backfaceVisibility = 'hidden';
+          nextPage.style.opacity = '1';
+          nextPage.style.transform = goLeft ? 'rotateY(90deg)' : 'rotateY(-90deg)';
+          nextPage.style.backfaceVisibility = 'hidden';
+          nextPage.style.zIndex = '4';
+          currentPage.style.zIndex = '3';
+          
           const rect = currentPage.getBoundingClientRect();
           createPageParticles(rect.left + rect.width / 2, rect.top + rect.height / 2);
-          await new Promise(r => setTimeout(r, 800));
-          // Thoroughly clean up: remove all animation/state classes, reset transforms
-          currentPage.classList.remove(...cleanup, 'active');
-          currentPage.style.opacity = '0';
-          currentPage.style.transform = 'none';
-          currentPage.style.animation = 'none';
-          nextPage.classList.remove(...cleanup);
+          
+          // Animate with requestAnimationFrame
+          await new Promise(resolve => {
+            const start = performance.now();
+            const outAngle = goLeft ? -90 : 90;
+            const inAngle = goLeft ? 90 : -90;
+            function tick(now) {
+              const t = Math.min((now - start) / duration, 1);
+              // ease-in-out cubic
+              const ease = t < 0.5 ? 4*t*t*t : 1 - Math.pow(-2*t + 2, 3) / 2;
+              const outRot = ease * outAngle;
+              const inRot = inAngle + ease * (-inAngle); // from inAngle to 0
+              const outOp = 1 - ease * 0.7;
+              const inOp = 0.3 + ease * 0.7;
+              currentPage.style.transform = `rotateY(${outRot}deg)`;
+              currentPage.style.opacity = outOp;
+              nextPage.style.transform = `rotateY(${inRot}deg)`;
+              nextPage.style.opacity = inOp;
+              if (t < 1) requestAnimationFrame(tick);
+              else resolve();
+            }
+            requestAnimationFrame(tick);
+          });
+          
+          // Cleanup: completely remove 3D context
+          currentPage.classList.remove('active');
+          currentPage.style.cssText = 'opacity:0; transform:none;';
           nextPage.classList.add('active');
-          nextPage.style.transform = 'none';
-          nextPage.style.animation = 'none';
-          nextPage.style.opacity = '1';
-          // Force reflow to apply clean state
+          nextPage.style.cssText = 'opacity:1; transform:none;';
+          nextPage.style.zIndex = '';
+          // Remove perspective from parent — pages now render in 2D
+          magazine.style.perspective = '';
+          magazine.style.transformStyle = '';
+          // Force reflow
           void nextPage.offsetHeight;
         }
         currentIndex = nextIndex;
