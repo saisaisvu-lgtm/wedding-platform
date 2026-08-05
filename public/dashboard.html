@@ -512,43 +512,53 @@
     fileInput.addEventListener('change', () => { if (fileInput.files.length) handleUpload(fileInput.files); });
 
     // 图片压缩：canvas 重绘，保持画质
-    function compressImage(file, maxSize) {
+    function compressImage(file, maxSize, category) {
+      // 智能压缩：缩放 + WebP，肉眼无损
+      // 头像最大 800px，相册最大 1600px，保持清晰度
+      const maxDim = (category && category.startsWith('avatar')) ? 800 : 1600;
       return new Promise((resolve, reject) => {
-        if (file.size <= maxSize) { resolve(file); return; }
         const url = URL.createObjectURL(file);
         const img = new Image();
         img.onload = () => {
           URL.revokeObjectURL(url);
           let { width, height } = img;
-          // 计算目标尺寸：按比例缩放到文件大小对应的比例
-          const ratio = Math.sqrt(maxSize / file.size) * 0.95;
-          if (ratio < 1) {
-            width = Math.round(width * ratio);
-            height = Math.round(height * ratio);
+          let changed = false;
+
+          // 1. 缩放到合理尺寸（如果超过最大边）
+          if (width > maxDim || height > maxDim) {
+            const scale = maxDim / Math.max(width, height);
+            width = Math.round(width * scale);
+            height = Math.round(height * scale);
+            changed = true;
           }
-          // 确保最小尺寸
-          width = Math.max(width, 300);
-          height = Math.max(height, 300);
+
+          // 2. 如果不需要压缩且文件不大，直接返回
+          if (!changed && file.size <= (maxSize || 2 * 1024 * 1024)) {
+            resolve(file); return;
+          }
+
           const canvas = document.createElement('canvas');
           canvas.width = width;
           canvas.height = height;
           const ctx = canvas.getContext('2d');
           ctx.drawImage(img, 0, 0, width, height);
-          // 选择输出格式：PNG 转 JPEG 以获得更好的压缩率
-          let outType = file.type;
-          let quality = 0.92;
-          if (file.type === 'image/png' || file.type === 'image/gif') {
-            outType = 'image/jpeg';
-            quality = 0.90;
-          }
+
+          // 3. 优先 WebP（体积比 JPEG 小 30-50%，画质相同）
+          const useWebP = true; // 所有现代浏览器都支持
+          const outType = useWebP ? 'image/webp' : 'image/jpeg';
+          const quality = useWebP ? 0.85 : 0.88; // WebP 0.85 ≈ JPEG 0.92 画质
+
           canvas.toBlob((blob) => {
             if (!blob) { reject(new Error('压缩失败')); return; }
-            const ext = outType === 'image/jpeg' ? '.jpg' : (outType === 'image/webp' ? '.webp' : '.png');
+            const ext = useWebP ? '.webp' : '.jpg';
             const newName = file.name.replace(/\.[^.]+$/, ext);
             const result = new File([blob], newName, { type: outType });
-            // 如果压缩后仍然太大，递归压缩
-            if (result.size > maxSize) {
-              compressImage(result, maxSize).then(resolve).catch(reject);
+            // 如果还超过限制，降低质量再压一次
+            if (maxSize && result.size > maxSize) {
+              canvas.toBlob((blob2) => {
+                if (!blob2) { resolve(result); return; }
+                resolve(new File([blob2], newName, { type: outType }));
+              }, outType, 0.75);
             } else {
               resolve(result);
             }
@@ -568,18 +578,17 @@
       for (let i = 0; i < files.length; i++) {
         let file = files[i];
         status.textContent = `处理中 (${i + 1}/${files.length})...`;
-        // 压缩过大的图片
-        if (file.size > MAX_UPLOAD_SIZE) {
-          status.textContent = `压缩中 (${i + 1}/${files.length})...`;
-          try {
-            const before = (file.size / 1024 / 1024).toFixed(1);
-            file = await compressImage(file, MAX_UPLOAD_SIZE);
-            const after = (file.size / 1024 / 1024).toFixed(1);
-            status.textContent = `已压缩 ${before}MB → ${after}MB，上传中...`;
-          } catch (err) {
-            showAlert(imagesAlert, `${files[i].name}: 压缩失败，跳过`);
-            continue;
-          }
+        // 所有图片都压缩（缩放+WebP），优化加载速度
+        status.textContent = `压缩中 (${i + 1}/${files.length})...`;
+        try {
+          const before = (file.size / 1024 / 1024).toFixed(1);
+          file = await compressImage(file, MAX_UPLOAD_SIZE, category);
+          const after = (file.size / 1024 / 1024).toFixed(1);
+          if (before !== after) status.textContent = `已压缩 ${before}MB → ${after}MB，上传中...`;
+          else status.textContent = `上传中 (${i + 1}/${files.length})...`;
+        } catch (err) {
+          showAlert(imagesAlert, `${files[i].name}: 压缩失败，跳过`);
+          continue;
         }
         status.textContent = `上传中 (${i + 1}/${files.length})...`;
         const formData = new FormData(); formData.append('file', file); formData.append('category', category);
