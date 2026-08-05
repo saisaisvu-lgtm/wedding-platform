@@ -15,7 +15,7 @@ export async function onRequestPost(context) {
   try {
     const formData = await request.formData();
     const file = formData.get('file');
-    const category = formData.get('category') || 'gallery'; // avatar / credits / gallery
+    const category = formData.get('category') || 'gallery'; // avatar / avatar_groom / avatar_bride / credits / gallery
 
     if (!file || !(file instanceof File)) {
       return Response.json({ ok: false, error: '请选择文件' }, { status: 400, headers: getCorsHeaders(env) });
@@ -29,7 +29,7 @@ export async function onRequestPost(context) {
       return Response.json({ ok: false, error: '文件大小不能超过 2MB' }, { status: 400, headers: getCorsHeaders(env) });
     }
 
-    if (!['avatar', 'credits', 'gallery'].includes(category)) {
+    if (!['avatar', 'avatar_groom', 'avatar_bride', 'credits', 'gallery'].includes(category)) {
       return Response.json({ ok: false, error: '无效的图片分类' }, { status: 400, headers: getCorsHeaders(env) });
     }
 
