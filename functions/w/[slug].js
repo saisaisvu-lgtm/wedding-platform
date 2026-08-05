@@ -133,10 +133,15 @@ export async function onRequest(context) {
     .mag-img-page.active{opacity:1;transform:translateX(0) scale(1);z-index:2}
     .mag-img-page.prev{opacity:0;transform:translateX(-20px) scale(0.97);z-index:1}
     .mag-img-page.next{opacity:0;transform:translateX(20px) scale(0.97);z-index:1}
-    .mag-glow{position:absolute;inset:0;z-index:9;pointer-events:none;opacity:0;background:radial-gradient(ellipse at center,rgba(212,175,55,0.35) 0%,rgba(212,175,55,0.1) 40%,transparent 70%);transition:opacity 0.3s}
+    .mag-glow{position:absolute;inset:0;z-index:9;pointer-events:none;opacity:0}
     .mag-glow.active{opacity:1}
-    .mag-curl-shadow{position:absolute;top:0;bottom:0;width:60px;z-index:8;pointer-events:none;opacity:0;background:linear-gradient(90deg,rgba(0,0,0,0.18),transparent);transition:opacity 0.2s}
+    .mag-glow-inner{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 50%,rgba(255,200,80,0.6) 0%,rgba(212,175,55,0.3) 30%,rgba(196,30,58,0.15) 60%,transparent 80%)}
+    .mag-glow-ring{position:absolute;top:50%;left:50%;width:120%;height:120%;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(ellipse,transparent 30%,rgba(255,215,100,0.25) 50%,transparent 70%)}
+    .mag-curl-shadow{position:absolute;top:0;bottom:0;z-index:8;pointer-events:none;opacity:0}
+    .mag-curl-shadow-inner{position:absolute;top:0;bottom:0;right:0;background:linear-gradient(90deg,transparent,rgba(0,0,0,0.06) 40%,rgba(0,0,0,0.18) 80%,rgba(0,0,0,0.25))}
+    .mag-curl-highlight{position:absolute;top:0;bottom:0;right:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.12) 85%,rgba(255,255,255,0.25))}
     .mag-img-page::after{content:'';position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:10;opacity:0}
+    .mag-img-page img{transition:filter 0.3s ease}
     @media(min-width:769px){
       .mag-img-page{transition:none}
       .mag-img-page.active{z-index:3;opacity:1;transform:translateX(0) scale(1)}
@@ -799,11 +804,12 @@ export async function onRequest(context) {
       const glow = document.createElement('div');
       glow.className = 'mag-glow';
       glow.id = 'mag-glow';
+      glow.innerHTML = '<div class="mag-glow-inner"></div><div class="mag-glow-ring"></div>';
       imgArea.appendChild(glow);
       const curlShadow = document.createElement('div');
       curlShadow.className = 'mag-curl-shadow';
       curlShadow.id = 'mag-curl-shadow';
-      curlShadow.style.right = '0';
+      curlShadow.innerHTML = '<div class="mag-curl-shadow-inner" style="width:80px"></div><div class="mag-curl-highlight" style="width:80px"></div>';
       imgArea.appendChild(curlShadow);
       for (let i = -1; i <= 1; i++) {
         const page = document.createElement('div');
@@ -914,104 +920,152 @@ export async function onRequest(context) {
       var glowEl = document.getElementById('mag-glow');
       var curlEl = document.getElementById('mag-curl-shadow');
 
-      // 参数
-      var cfg = {
-        warm:     { dur: isMobile ? 600 : 800, slide: 0,   scale: 1,    glow: true,  curl: false },
-        parallax: { dur: isMobile ? 500 : 700, slide: isMobile?40:60, scale: isMobile?0.97:0.95, glow: false, curl: false },
-        curl:     { dur: isMobile ? 600 : 800, slide: isMobile?30:50, scale: 1,    glow: false, curl: true  },
-        fade:     { dur: isMobile ? 500 : 700, slide: 0,   scale: isMobile?1.01:1.02, glow: false, curl: false }
-      }[magStyle] || { dur:700, slide:60, scale:0.95 };
-
-      // 准备
+      // ===== 准备 =====
       pages.forEach(function(p) { p.classList.remove(...cleanup); p.removeAttribute('style'); });
-      if (glowEl) { glowEl.classList.remove('active'); glowEl.style.opacity = '0'; }
+      if (glowEl) { glowEl.style.opacity = '0'; }
       if (curlEl) { curlEl.style.opacity = '0'; }
+      var curlInner = curlEl ? curlEl.querySelector('.mag-curl-shadow-inner') : null;
+      var curlHigh   = curlEl ? curlEl.querySelector('.mag-curl-highlight') : null;
+      var curImg = currentPage.querySelector('img');
+      var nxtImg = nextPage.querySelector('img');
 
-      var outSlide = dir > 0 ? -cfg.slide : cfg.slide;
-      var inSlide  = dir > 0 ? cfg.slide : -cfg.slide;
-      var outScaleEnd = magStyle === 'fade' ? cfg.scale : cfg.scale;
-      var inScaleStart = magStyle === 'fade' ? (2 - cfg.scale) : cfg.scale;
+      // ===== 动画参数 =====
+      var M = {
+        warm: { dur: isMobile ? 1000 : 1400 },
+        parallax: { dur: isMobile ? 700 : 900 },
+        curl: { dur: isMobile ? 800 : 1000 },
+        fade: { dur: isMobile ? 600 : 800 }
+      }[magStyle] || { dur: 900 };
 
-      currentPage.style.opacity = '1';
-      currentPage.style.transform = 'translateX(0) scale(1)';
-      currentPage.style.zIndex = '3';
-      nextPage.style.opacity = magStyle === 'warm' ? '1' : '0';
-      nextPage.style.transform = 'translateX(' + inSlide + 'px) scale(' + (magStyle==='fade'?inScaleStart:cfg.scale) + ')';
-      nextPage.style.zIndex = '4';
+      // ===== 初始状态 =====
+      if (magStyle === 'warm') {
+        // 暖色溶解：两页重叠，交叉淡入淡出
+        currentPage.style.opacity = '1';
+        currentPage.style.transform = 'scale(1)';
+        currentPage.style.zIndex = '3';
+        nextPage.style.opacity = '0';
+        nextPage.style.transform = 'scale(1.03)';
+        nextPage.style.zIndex = '4';
+      } else if (magStyle === 'parallax') {
+        // 视差：两页反向滑动
+        var pSlide = isMobile ? 100 : 180;
+        currentPage.style.opacity = '1';
+        currentPage.style.transform = 'translateX(0)';
+        currentPage.style.zIndex = '3';
+        nextPage.style.opacity = '1';
+        nextPage.style.transform = 'translateX(' + (dir > 0 ? pSlide : -pSlide) + ')';
+        nextPage.style.zIndex = '4';
+      } else if (magStyle === 'curl') {
+        // 翻书：当前页裁剪收起，下一页从底层显现
+        currentPage.style.opacity = '1';
+        currentPage.style.transform = 'translateX(0)';
+        currentPage.style.zIndex = '4';
+        currentPage.style.clipPath = 'inset(0 0 0 0)';
+        nextPage.style.opacity = '1';
+        nextPage.style.transform = 'scale(0.97)';
+        nextPage.style.zIndex = '3';
+        if (curlEl) curlEl.style.opacity = '1';
+      } else {
+        // 经典淡入：纯淡入淡出，无位移
+        currentPage.style.opacity = '1';
+        currentPage.style.transform = 'scale(1)';
+        currentPage.style.zIndex = '3';
+        nextPage.style.opacity = '0';
+        nextPage.style.transform = 'scale(1)';
+        nextPage.style.zIndex = '4';
+      }
 
-      // 翻页粒子
-      if (!isMobile && magStyle !== 'warm') {
+      // 粒子
+      if (!isMobile) {
         var rect = currentPage.getBoundingClientRect();
         createPageParticles(rect.left + rect.width / 2, rect.top + rect.height / 2);
       }
 
-      // rAF 动画
+      // ===== rAF 动画 =====
       await new Promise(function(resolve) {
         var start = performance.now();
-        var dur = cfg.dur;
+        var dur = M.dur;
         function tick(now) {
           var t = Math.min((now - start) / dur, 1);
           var ease = t < 0.5 ? 4*t*t*t : 1 - Math.pow(-2*t + 2, 3) / 2;
 
-          // 通用计算
-          var outOp, inOp, outX, inX, outS, inS;
-
           if (magStyle === 'warm') {
-            // 暖色溶解：交叉淡入淡出 + 暖金光晕
-            outOp = 1 - ease;
-            inOp = ease;
-            outX = 0; inX = 0;
-            outS = 1; inS = 1;
+            // 暖色溶解：交叉淡入 + 缩放呼吸 + 金色光晕脉冲
+            var outOp = 1 - ease;
+            var inOp = ease;
+            var outS = 1 + ease * 0.03;     // 微微放大退出
+            var inS = 1.03 - ease * 0.03;   // 从大缩到正常
+            currentPage.style.opacity = outOp;
+            currentPage.style.transform = 'scale(' + outS + ')';
+            nextPage.style.opacity = inOp;
+            nextPage.style.transform = 'scale(' + inS + ')';
             if (glowEl) {
-              var glowOp = Math.sin(t * Math.PI) * 0.8;
+              // 光晕：先亮后暗，峰值在 t=0.4
+              var glowOp = Math.sin(t * Math.PI) * 0.95;
               glowEl.style.opacity = glowOp;
-              if (t > 0 && t < 1) glowEl.classList.add('active');
-              else glowEl.classList.remove('active');
             }
+            // 图片暖色滤镜
+            var warmth = Math.sin(t * Math.PI) * 0.15;
+            if (curImg) curImg.style.filter = 'brightness(' + (1 + warmth) + ') saturate(' + (1 + warmth * 0.5) + ')';
+            if (nxtImg) nxtImg.style.filter = 'brightness(' + (1 + warmth) + ') saturate(' + (1 + warmth * 0.5) + ')';
+
           } else if (magStyle === 'parallax') {
-            // 视差滑动
-            outOp = 1 - ease;
-            inOp = ease;
-            outX = ease * outSlide;
-            inX = inSlide * (1 - ease * 1.1);
-            outS = 1 - ease * (1 - cfg.scale);
-            inS = cfg.scale + ease * (1 - cfg.scale);
+            // 视差：反向滑动 + 速度差 + 微旋转
+            var pSlide = isMobile ? 100 : 180;
+            var outX = ease * (dir > 0 ? -pSlide : pSlide);
+            var inX  = (dir > 0 ? pSlide : -pSlide) * (1 - ease);
+            var outRot = ease * (dir > 0 ? -2 : 2);   // 微旋转
+            var inRot  = (dir > 0 ? 2 : -2) * (1 - ease);
+            var outOp = 1 - ease * 0.8;  // 不完全消失
+            var inOp = 0.2 + ease * 0.8; // 从淡开始
+            currentPage.style.transform = 'translateX(' + outX + 'px) rotate(' + outRot + 'deg)';
+            currentPage.style.opacity = outOp;
+            nextPage.style.transform = 'translateX(' + inX + 'px) rotate(' + inRot + 'deg)';
+            nextPage.style.opacity = inOp;
+
           } else if (magStyle === 'curl') {
-            // 翻书：滑动 + 边缘阴影
-            outOp = t < 0.8 ? 1 : 1 - (t - 0.8) / 0.2;
-            inOp = t < 0.2 ? 0 : (t - 0.2) / 0.8;
-            outX = ease * outSlide * 0.6;
-            inX = inSlide * (1 - ease);
-            outS = 1; inS = 1;
+            // 翻书：clip-path 从右向左裁剪 + 阴影移动
+            var clipRight = ease * 100; // 0% → 100%
+            currentPage.style.clipPath = 'inset(0 ' + clipRight + '% 0 0)';
+            // 下一页从缩放恢复
+            var inS = 0.97 + ease * 0.03;
+            var inOp = t < 0.15 ? 0 : (t - 0.15) / 0.85;
+            nextPage.style.transform = 'scale(' + inS + ')';
+            nextPage.style.opacity = inOp;
+            // 阴影跟随裁剪边缘
             if (curlEl) {
-              curlEl.style.opacity = t < 0.1 ? t / 0.1 : (t > 0.8 ? (1 - t) / 0.2 : 1);
-              curlEl.style.width = (30 + ease * 40) + 'px';
+              var edgeX = (100 - clipRight);
+              curlEl.style.left = edgeX + '%';
+              curlEl.style.width = (40 + ease * 30) + 'px';
+              var shadowOp = t < 0.05 ? t / 0.05 : (t > 0.85 ? (1 - t) / 0.15 : 1);
+              curlEl.style.opacity = shadowOp;
             }
+
           } else {
-            // 经典淡入：纯淡入淡出 + 微缩放
-            outOp = 1 - ease;
-            inOp = ease;
-            outX = 0; inX = 0;
-            outS = 1 + ease * (cfg.scale - 1);
-            inS = (2 - cfg.scale) - ease * (1 - cfg.scale);
+            // 经典淡入：纯透明度过渡 + 极微呼吸缩放
+            var outOp = 1 - ease;
+            var inOp = ease;
+            var breathe = Math.sin(t * Math.PI) * 0.008; // 极微呼吸
+            currentPage.style.opacity = outOp;
+            currentPage.style.transform = 'scale(' + (1 + breathe) + ')';
+            nextPage.style.opacity = inOp;
+            nextPage.style.transform = 'scale(' + (1 - breathe) + ')';
           }
 
-          currentPage.style.transform = 'translateX(' + outX + 'px) scale(' + outS + ')';
-          currentPage.style.opacity = outOp;
-          nextPage.style.transform = 'translateX(' + inX + 'px) scale(' + inS + ')';
-          nextPage.style.opacity = inOp;
           if (t < 1) requestAnimationFrame(tick);
           else resolve();
         }
         requestAnimationFrame(tick);
       });
 
-      // 清理
+      // ===== 清理 =====
+      if (curImg) curImg.style.filter = '';
+      if (nxtImg) nxtImg.style.filter = '';
       currentPage.removeAttribute('style');
       nextPage.removeAttribute('style');
       nextPage.classList.add('active');
-      if (glowEl) { glowEl.classList.remove('active'); glowEl.style.opacity = '0'; }
-      if (curlEl) { curlEl.style.opacity = '0'; }
+      if (glowEl) glowEl.style.opacity = '0';
+      if (curlEl) curlEl.style.opacity = '0';
       rebuildMagPages(nextIdx);
       magAnimating = false;
       updateMagText();
