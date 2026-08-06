@@ -170,6 +170,12 @@ export async function onRequest(context) {
     /* ====== Lyrics Player ====== */
     .lyrics-player{position:fixed;bottom:0;left:0;right:0;z-index:90;background:linear-gradient(0deg,rgba(253,246,227,0.95) 0%,rgba(253,246,227,0.7) 70%,transparent 100%);padding:12px 20px 16px;display:none;flex-direction:column;align-items:center;gap:8px}
     .lyrics-player.active{display:flex}
+    /* 杂志模式：歌词播放器嵌入图片区域下方 */
+    .mag-lyrics-wrap{position:absolute;bottom:0;left:0;right:0;z-index:8;display:none;flex-direction:column;align-items:center;gap:6px;padding:10px 16px 14px;background:linear-gradient(0deg,rgba(253,246,227,0.95) 0%,rgba(253,246,227,0.6) 60%,transparent 100%)}
+    .mag-lyrics-wrap.active{display:flex}
+    .mag-lyrics-wrap .lyrics-player-inner{gap:12px}
+    .mag-lyrics-wrap .lyrics-singer-avatar{width:36px;height:36px}
+    .mag-lyrics-wrap .lyrics-text-display{font-size:clamp(12px,2vw,16px)}
     .lyrics-player-inner{display:flex;align-items:center;gap:16px;max-width:600px;width:100%}
     .lyrics-singer-avatar{width:40px;height:40px;border-radius:50%;object-fit:cover;border:2px solid rgba(184,134,11,0.4);flex-shrink:0;transition:all 0.3s;opacity:0.5}
     .lyrics-singer-avatar.active{border-color:#b8860b;opacity:1;box-shadow:0 0 12px rgba(184,134,11,0.3);animation:singerPulse 1s ease-in-out infinite}
@@ -787,6 +793,12 @@ export async function onRequest(context) {
         page.appendChild(img);
         imgArea.appendChild(page);
       }
+      // 歌词播放器（杂志模式下嵌入图片区域下方）
+      var lyricsWrap = document.createElement('div');
+      lyricsWrap.className = 'mag-lyrics-wrap';
+      lyricsWrap.id = 'mag-lyrics-wrap';
+      lyricsWrap.innerHTML = '<div class="lyrics-player-inner"><img class="lyrics-singer-avatar" id="mag-lyrics-avatar-1" src="" alt=""><div class="lyrics-text-display" id="mag-lyrics-display"></div><img class="lyrics-singer-avatar" id="mag-lyrics-avatar-2" src="" alt=""></div><div class="lyrics-song-info" id="mag-lyrics-song-info"></div>';
+      imgArea.appendChild(lyricsWrap);
       container.appendChild(imgArea);
 
       // 侧边栏
@@ -1101,6 +1113,16 @@ export async function onRequest(context) {
       document.getElementById('magazine').style.display = mode === 'magazine' ? 'block' : 'none';
       document.getElementById('btn-gridwall').classList.toggle('active', mode === 'gridwall');
       document.getElementById('btn-magazine').classList.toggle('active', mode === 'magazine');
+      // 切换歌词播放器显示：杂志模式用嵌入式，照片墙用全局式
+      var globalPlayer = document.getElementById('lyrics-player');
+      var magWrap = document.getElementById('mag-lyrics-wrap');
+      if (mode === 'magazine') {
+        if (globalPlayer) globalPlayer.classList.remove('active');
+        if (magWrap && musicPlaying) magWrap.classList.add('active');
+      } else {
+        if (magWrap) magWrap.classList.remove('active');
+        if (globalPlayer && musicPlaying) globalPlayer.classList.add('active');
+      }
       stopMagAuto();
       if (mode === 'magazine') {
         magIndex = 0;
@@ -1159,16 +1181,27 @@ export async function onRequest(context) {
 
     function startLyricsPlayer() {
       // Find first song with lyrics
-      const songs = WEDDING._songs || [];
-      const songWithLyrics = songs.find(s => s.lyrics && s.lyrics.length > 0);
+      var songs = WEDDING._songs || [];
+      var songWithLyrics = songs.find(s => s.lyrics && s.lyrics.length > 0);
       if (!songWithLyrics) return;
       currentSongLyrics = songWithLyrics.lyrics;
       currentSongOffset = songWithLyrics.lyrics_offset || 0;
-      // Set avatars
-      if (AVATAR_GROOM || AVATARS[0]) document.getElementById('lyrics-avatar-1').src = AVATAR_GROOM || AVATARS[0];
-      if (AVATAR_BRIDE || AVATARS[1] || AVATARS[0]) document.getElementById('lyrics-avatar-2').src = AVATAR_BRIDE || AVATARS[1] || AVATARS[0];
-      document.getElementById('lyrics-song-info').textContent = songWithLyrics.song_name + (songWithLyrics.artist ? ' · ' + songWithLyrics.artist : '');
+      var av1Src = AVATAR_GROOM || AVATARS[0] || '';
+      var av2Src = AVATAR_BRIDE || AVATARS[1] || AVATARS[0] || '';
+      var songInfo = songWithLyrics.song_name + (songWithLyrics.artist ? ' · ' + songWithLyrics.artist : '');
+      // 全局歌词播放器（照片墙模式）
+      if (av1Src) document.getElementById('lyrics-avatar-1').src = av1Src;
+      if (av2Src) document.getElementById('lyrics-avatar-2').src = av2Src;
+      document.getElementById('lyrics-song-info').textContent = songInfo;
       document.getElementById('lyrics-player').classList.add('active');
+      // 杂志模式歌词播放器
+      var magWrap = document.getElementById('mag-lyrics-wrap');
+      if (magWrap) {
+        if (av1Src) document.getElementById('mag-lyrics-avatar-1').src = av1Src;
+        if (av2Src) document.getElementById('mag-lyrics-avatar-2').src = av2Src;
+        document.getElementById('mag-lyrics-song-info').textContent = songInfo;
+        magWrap.classList.add('active');
+      }
       lyricsLineIdx = 0; lyricsCharIdx = 0;
       typeLyricsChar();
     }
@@ -1176,52 +1209,61 @@ export async function onRequest(context) {
     function stopLyricsPlayer() {
       clearTimeout(lyricsPlayerTimer);
       document.getElementById('lyrics-player').classList.remove('active');
+      var magWrap = document.getElementById('mag-lyrics-wrap');
+      if (magWrap) magWrap.classList.remove('active');
     }
 
     function typeLyricsChar() {
       if (!currentSongLyrics || lyricsLineIdx >= currentSongLyrics.length) {
-        // Song finished, restart
         lyricsLineIdx = 0; lyricsCharIdx = 0;
         lyricsPlayerTimer = setTimeout(typeLyricsChar, 3000);
         return;
       }
-      const line = currentSongLyrics[lyricsLineIdx];
-      const text = line.text || '';
-      const singer = line.singer || 'partner1';
-      const display = document.getElementById('lyrics-display');
-      const av1 = document.getElementById('lyrics-avatar-1');
-      const av2 = document.getElementById('lyrics-avatar-2');
+      var line = currentSongLyrics[lyricsLineIdx];
+      var text = line.text || '';
+      var singer = line.singer || 'partner1';
+      var display = document.getElementById('lyrics-display');
+      var magDisplay = document.getElementById('mag-lyrics-display');
+      var av1 = document.getElementById('lyrics-avatar-1');
+      var av2 = document.getElementById('lyrics-avatar-2');
+      var magAv1 = document.getElementById('mag-lyrics-avatar-1');
+      var magAv2 = document.getElementById('mag-lyrics-avatar-2');
 
-      // Update singer avatar
-      if (singer === 'partner1') {
-        av1.classList.add('active'); av2.classList.remove('active');
-      } else {
-        av1.classList.remove('active'); av2.classList.add('active');
-      }
+      // 更新歌手头像（全局 + 杂志）
+      [av1, magAv1].forEach(function(el) { if (el) el.classList.toggle('active', singer === 'partner1'); });
+      [av2, magAv2].forEach(function(el) { if (el) el.classList.toggle('active', singer !== 'partner1'); });
 
       if (lyricsCharIdx === 0) {
-        display.innerHTML = '<span class="cursor"></span>';
-        // Spawn music notes
+        if (display) display.innerHTML = '<span class="cursor"></span>';
+        if (magDisplay) magDisplay.innerHTML = '<span class="cursor"></span>';
         spawnNote();
       }
 
       if (lyricsCharIdx < text.length) {
-        const charSpan = document.createElement('span');
-        charSpan.className = 'char';
-        charSpan.textContent = text[lyricsCharIdx];
-        const cursor = display.querySelector('.cursor');
-        if (cursor) display.insertBefore(charSpan, cursor);
-        requestAnimationFrame(() => charSpan.classList.add('visible'));
+        var ch = text[lyricsCharIdx];
+        [display, magDisplay].forEach(function(d) {
+          if (!d) return;
+          var charSpan = document.createElement('span');
+          charSpan.className = 'char';
+          charSpan.textContent = ch;
+          var cursor = d.querySelector('.cursor');
+          if (cursor) d.insertBefore(charSpan, cursor);
+          requestAnimationFrame(function() { charSpan.classList.add('visible'); });
+        });
         lyricsCharIdx++;
         lyricsPlayerTimer = setTimeout(typeLyricsChar, Math.max(60, 120));
       } else {
-        const cursor = display.querySelector('.cursor');
-        if (cursor) cursor.remove();
+        [display, magDisplay].forEach(function(d) { if (d) { var c = d.querySelector('.cursor'); if (c) c.remove(); } });
         lyricsLineIdx++; lyricsCharIdx = 0;
-        const delay = Math.max(1500, (line.duration || 3000));
-        lyricsPlayerTimer = setTimeout(() => {
-          display.style.transition = 'opacity 0.3s'; display.style.opacity = '0';
-          setTimeout(() => { display.style.opacity = '1'; typeLyricsChar(); }, 350);
+        var delay = Math.max(1500, (line.duration || 3000));
+        lyricsPlayerTimer = setTimeout(function() {
+          [display, magDisplay].forEach(function(d) {
+            if (d) { d.style.transition = 'opacity 0.3s'; d.style.opacity = '0'; }
+          });
+          setTimeout(function() {
+            [display, magDisplay].forEach(function(d) { if (d) d.style.opacity = '1'; });
+            typeLyricsChar();
+          }, 350);
         }, delay);
       }
     }
