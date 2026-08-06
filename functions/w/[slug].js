@@ -102,13 +102,36 @@ export async function onRequest(context) {
     .btn-invite-enter:active{transform:scale(0.96)}
 
     /* ====== 控制栏 ====== */
-    .controls{position:fixed;top:0;left:0;right:0;z-index:100;display:none;align-items:center;justify-content:center;gap:4px;padding:8px;padding-top:max(8px,env(safe-area-inset-top));background:rgba(255,255,255,0.85);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid rgba(184,134,11,0.1);flex-wrap:wrap;min-height:44px;opacity:0;transform:translateY(-100%);transition:opacity 0.4s,transform 0.4s}
+    .controls{position:fixed;top:0;left:0;right:0;z-index:100;display:none;align-items:center;justify-content:center;gap:4px;padding:6px 8px;padding-top:max(6px,env(safe-area-inset-top));background:rgba(255,255,255,0.85);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid rgba(184,134,11,0.1);flex-wrap:wrap;min-height:40px;opacity:0;transform:translateY(-100%);transition:opacity 0.4s,transform 0.4s}
     .controls.show{display:flex;opacity:1;transform:translateY(0)}
     .controls button{background:rgba(184,134,11,0.08);border:1px solid rgba(184,134,11,0.25);color:#6b5a4a;padding:6px 12px;border-radius:20px;font-size:11px;cursor:pointer;transition:all 0.3s;font-family:inherit;white-space:nowrap;min-height:32px;display:flex;align-items:center;justify-content:center}
     .controls button:active{background:rgba(184,134,11,0.2);border-color:#b8860b;transform:scale(0.95)}
     .controls button.active{background:rgba(184,134,11,0.2);border-color:#b8860b;color:#8b6914}
     .controls .sep{width:1px;height:14px;background:rgba(184,134,11,0.15);margin:0 2px}
     .controls .speed-label{font-size:10px;color:#8b7a6a;margin-left:2px}
+    .controls .ctrl-group-extra{display:none}
+    .controls .btn-more{display:none}
+    /* 移动端抽屉 */
+    .mobile-drawer{position:fixed;left:0;right:0;bottom:0;z-index:101;background:rgba(255,253,248,0.97);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-top:1px solid rgba(184,134,11,0.15);border-radius:16px 16px 0 0;padding:12px 16px;padding-bottom:max(12px,env(safe-area-inset-bottom));transform:translateY(100%);transition:transform 0.35s cubic-bezier(0.4,0,0.2,1);display:flex;flex-wrap:wrap;gap:6px;justify-content:center;align-items:center;box-shadow:0 -4px 20px rgba(0,0,0,0.08)}
+    .mobile-drawer.open{transform:translateY(0)}
+    .mobile-drawer .drawer-handle{position:absolute;top:6px;left:50%;transform:translateX(-50%);width:32px;height:4px;background:rgba(184,134,11,0.2);border-radius:2px}
+    .mobile-drawer button{background:rgba(184,134,11,0.08);border:1px solid rgba(184,134,11,0.2);color:#6b5a4a;padding:6px 12px;border-radius:16px;font-size:11px;cursor:pointer;font-family:inherit;white-space:nowrap;min-height:30px}
+    .mobile-drawer button:active{background:rgba(184,134,11,0.2);transform:scale(0.95)}
+    .mobile-drawer button.active{background:rgba(184,134,11,0.2);border-color:#b8860b;color:#8b6914}
+    .mobile-drawer .sep{width:1px;height:14px;background:rgba(184,134,11,0.15)}
+    .mobile-drawer .drawer-label{font-size:9px;color:#a08060;letter-spacing:0.05em}
+    .drawer-overlay{position:fixed;inset:0;z-index:100;background:rgba(0,0,0,0.15);opacity:0;pointer-events:none;transition:opacity 0.3s}
+    .drawer-overlay.show{opacity:1;pointer-events:auto}
+    @media(max-width:768px){
+      .controls .ctrl-group-extra{display:none!important}
+      .controls .btn-more{display:flex!important}
+      .controls{gap:3px;padding:4px 6px;padding-top:max(4px,env(safe-area-inset-top));min-height:36px}
+      .controls button{padding:4px 10px;min-height:28px;font-size:10px}
+    }
+    @media(min-width:769px){
+      .mobile-drawer,.drawer-overlay{display:none!important}
+      .controls .btn-more{display:none!important}
+    }
 
     /* ====== 照片墙 ====== */
     #gridwall{position:fixed;inset:0;z-index:10;overflow:hidden;background:#f5f3ef;display:none}
@@ -290,16 +313,34 @@ export async function onRequest(context) {
     <button id="btn-magazine" onclick="switchMode('magazine')">📖 杂志</button>
     <div class="sep"></div>
     <button onclick="togglePause()" id="btnPause">⏸</button>
+    <div class="sep ctrl-group-extra"></div>
+    <span class="speed-label ctrl-group-extra">节奏</span>
+    <button onclick="setSpeed(0.5,this)" class="speed-btn ctrl-group-extra" data-speed="slow">慢</button>
+    <button onclick="setSpeed(1,this)" class="speed-btn active ctrl-group-extra" data-speed="normal">正常</button>
+    <button onclick="setSpeed(2,this)" class="speed-btn ctrl-group-extra" data-speed="fast">快</button>
+    <div class="sep ctrl-group-extra"></div>
+    <button onclick="toggleMusic()" id="btnMusic" class="ctrl-group-extra">🎵 音乐</button>
+    <button onclick="showCredits()" class="ctrl-group-extra">🎬 致谢</button>
+    <div class="sep ctrl-group-extra"></div>
+    <span class="speed-label ctrl-group-extra">翻页</span>
+    <button onclick="setMagStyle('warm',this)" class="mag-style-btn ctrl-group-extra active" data-style="warm">🌅暖色</button>
+    <button onclick="setMagStyle('parallax',this)" class="mag-style-btn ctrl-group-extra" data-style="parallax">📐视差</button>
+    <button onclick="setMagStyle('curl',this)" class="mag-style-btn ctrl-group-extra" data-style="curl">📖翻书</button>
+    <button onclick="setMagStyle('fade',this)" class="mag-style-btn ctrl-group-extra" data-style="fade">✨淡入</button>
+    <button onclick="toggleDrawer()" class="btn-more">⋯</button>
+  </div>
+  <div class="drawer-overlay" id="drawer-overlay" onclick="toggleDrawer()"></div>
+  <div class="mobile-drawer" id="mobile-drawer">
+    <div class="drawer-handle"></div>
+    <span class="drawer-label">节奏</span>
+    <button onclick="setSpeed(0.5,this)">慢</button>
+    <button onclick="setSpeed(1,this)" class="active">正常</button>
+    <button onclick="setSpeed(2,this)">快</button>
     <div class="sep"></div>
-    <span class="speed-label">节奏</span>
-    <button onclick="setSpeed(0.5,this)" class="speed-btn" data-speed="slow">慢</button>
-    <button onclick="setSpeed(1,this)" class="speed-btn active" data-speed="normal">正常</button>
-    <button onclick="setSpeed(2,this)" class="speed-btn" data-speed="fast">快</button>
-    <div class="sep"></div>
-    <button onclick="toggleMusic()" id="btnMusic">🎵 音乐</button>
+    <button onclick="toggleMusic()" id="btnMusic-drawer">🎵 音乐</button>
     <button onclick="showCredits()">🎬 致谢</button>
     <div class="sep"></div>
-    <span class="speed-label">翻页</span>
+    <span class="drawer-label">翻页风格</span>
     <button onclick="setMagStyle('warm',this)" class="mag-style-btn active" data-style="warm">🌅暖色</button>
     <button onclick="setMagStyle('parallax',this)" class="mag-style-btn" data-style="parallax">📐视差</button>
     <button onclick="setMagStyle('curl',this)" class="mag-style-btn" data-style="curl">📖翻书</button>
@@ -716,7 +757,7 @@ export async function onRequest(context) {
     }
     function showGallery() {
       document.getElementById('gridwall').style.display = 'block';
-      document.getElementById('controls-bar').classList.add('show');
+      if (window.innerWidth < 769) { showControlsMobile(); } else { document.getElementById('controls-bar').classList.add('show'); }
       const bgmSrc = WEDDING.bgm_url || WEDDING.bgm_data;
       if (bgmSrc) { document.getElementById('bgm').src = bgmSrc; }
     }
@@ -882,7 +923,8 @@ export async function onRequest(context) {
       magStyle = style;
       localStorage.setItem('mag_style', style);
       document.querySelectorAll('.mag-style-btn').forEach(b => b.classList.remove('active'));
-      if (btn) btn.classList.add('active');
+      // 激活所有匹配 data-style 的按钮（控制栏 + 抽屉）
+      document.querySelectorAll('.mag-style-btn[data-style="' + style + '"]').forEach(b => b.classList.add('active'));
     }
     // 初始化按钮状态
     setTimeout(function() {
@@ -1151,6 +1193,15 @@ export async function onRequest(context) {
       }
     }
 
+    // ====== 移动端抽屉 ======
+    function toggleDrawer() {
+      var drawer = document.getElementById('mobile-drawer');
+      var overlay = document.getElementById('drawer-overlay');
+      var isOpen = drawer.classList.contains('open');
+      drawer.classList.toggle('open');
+      overlay.classList.toggle('show');
+    }
+
     // ====== 暂停/速度 ======
     function togglePause() {
       isPaused = !isPaused;
@@ -1177,11 +1228,16 @@ export async function onRequest(context) {
     function toggleMusic() {
       const bgm = document.getElementById('bgm');
       const btn = document.getElementById('btnMusic');
+      const btnD = document.getElementById('btnMusic-drawer');
       if (musicPlaying) {
-        bgm.pause(); btn.classList.remove('active'); btn.textContent = '🎵 音乐';
+        bgm.pause();
+        if (btn) { btn.classList.remove('active'); btn.textContent = '🎵 音乐'; }
+        if (btnD) { btnD.classList.remove('active'); btnD.textContent = '🎵 音乐'; }
         stopLyricsPlayer();
       } else {
-        bgm.play().catch(()=>{}); btn.classList.add('active'); btn.textContent = '🎵 播放中';
+        bgm.play().catch(()=>{});
+        if (btn) { btn.classList.add('active'); btn.textContent = '🎵 播放中'; }
+        if (btnD) { btnD.classList.add('active'); btnD.textContent = '🎵 播放中'; }
         startLyricsPlayer();
       }
       musicPlaying = !musicPlaying;
@@ -1308,7 +1364,20 @@ export async function onRequest(context) {
         controls.style.transform = 'translateY(-100%)';
       }
     });
-    document.addEventListener('touchstart', e => { if (e.touches[0].clientY < 40) { hotzone.classList.add('visible'); document.getElementById('controls-bar').classList.add('show'); setTimeout(()=>hotzone.classList.remove('visible'),2000); } }, {passive:true});
+    let controlsAutoHide = null;
+    function showControlsMobile() {
+      var c = document.getElementById('controls-bar');
+      c.classList.add('show');
+      clearTimeout(controlsAutoHide);
+      controlsAutoHide = setTimeout(function() { c.classList.remove('show'); }, 5000);
+    }
+    document.addEventListener('touchstart', e => {
+      if (e.touches[0].clientY < 50) {
+        hotzone.classList.add('visible');
+        showControlsMobile();
+        setTimeout(()=>hotzone.classList.remove('visible'),2000);
+      }
+    }, {passive:true});
 
     // Double-click fullscreen
     let lastTap = 0;
