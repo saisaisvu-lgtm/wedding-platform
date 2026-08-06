@@ -664,13 +664,25 @@ export async function onRequest(context) {
       document.getElementById('btn-magazine').classList.add('active');
       switchMode('magazine');
       document.getElementById('controls-bar').classList.add('show');
-      // 音乐
-      const bgmSrc = WEDDING.bgm_url || WEDDING.bgm_data;
+      // 音乐准备
+      var bgmSrc = WEDDING.bgm_url || WEDDING.bgm_data;
       if (bgmSrc) {
-        document.getElementById('bgm').src = bgmSrc;
-        if (savedMusic === '1') { document.getElementById('bgm').play().catch(function(){}); musicPlaying = true; }
+        var bgm = document.getElementById('bgm');
+        bgm.src = bgmSrc;
+        // 浏览器禁止自动播放，需用户交互后启动
+        if (savedMusic === '1') {
+          var tryPlay = function() {
+            if (musicPlaying) return;
+            bgm.play().then(function() {
+              musicPlaying = true;
+              startLyricsPlayer();
+            }).catch(function() {});
+          };
+          document.addEventListener('click', tryPlay, { once: true });
+          document.addEventListener('touchstart', tryPlay, { once: true });
+        }
       }
-      // 自动播放
+      // 自动翻页
       if (savedPause !== '1' && !isPaused) { startMagAuto(); }
     }
 
@@ -1126,13 +1138,16 @@ export async function onRequest(context) {
 
     // ====== 音乐 ======
     function toggleMusic() {
-      const bgm = document.getElementById('bgm');
+      var bgm = document.getElementById('bgm');
       if (musicPlaying) {
         bgm.pause(); stopLyricsPlayer();
+        musicPlaying = false;
       } else {
-        bgm.play().catch(function(){}); startLyricsPlayer();
+        bgm.play().then(function() {
+          musicPlaying = true;
+          startLyricsPlayer();
+        }).catch(function() {});
       }
-      musicPlaying = !musicPlaying;
     }
 
     // === Lyrics Player ===
