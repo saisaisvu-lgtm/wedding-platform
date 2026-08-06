@@ -298,6 +298,32 @@
               </span>
             </label>
           </div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px;">
+            <div style="padding:12px;background:var(--bg-subtle);border-radius:var(--radius);border:1px solid var(--border);">
+              <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:8px;">显示区域</div>
+              <div style="display:flex;gap:4px;">
+                <button class="btn btn-sm btn-outline danmaku-area-btn active" data-area="full" onclick="setDanmakuAreaDash('full',this)" style="flex:1;font-size:12px;">全屏</button>
+                <button class="btn btn-sm btn-outline danmaku-area-btn" data-area="top" onclick="setDanmakuAreaDash('top',this)" style="flex:1;font-size:12px;">上半</button>
+                <button class="btn btn-sm btn-outline danmaku-area-btn" data-area="bottom" onclick="setDanmakuAreaDash('bottom',this)" style="flex:1;font-size:12px;">下半</button>
+              </div>
+            </div>
+            <div style="padding:12px;background:var(--bg-subtle);border-radius:var(--radius);border:1px solid var(--border);">
+              <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:8px;">滚动速度</div>
+              <div style="display:flex;gap:4px;">
+                <button class="btn btn-sm btn-outline danmaku-speed-btn" data-speed="slow" onclick="setDanmakuSpeedDash('slow',this)" style="flex:1;font-size:12px;">慢</button>
+                <button class="btn btn-sm btn-outline danmaku-speed-btn active" data-speed="normal" onclick="setDanmakuSpeedDash('normal',this)" style="flex:1;font-size:12px;">正常</button>
+                <button class="btn btn-sm btn-outline danmaku-speed-btn" data-speed="fast" onclick="setDanmakuSpeedDash('fast',this)" style="flex:1;font-size:12px;">快</button>
+              </div>
+            </div>
+            <div style="padding:12px;background:var(--bg-subtle);border-radius:var(--radius);border:1px solid var(--border);">
+              <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:8px;">字体大小</div>
+              <div style="display:flex;gap:4px;">
+                <button class="btn btn-sm btn-outline danmaku-size-btn" data-size="small" onclick="setDanmakuSizeDash('small',this)" style="flex:1;font-size:12px;">小</button>
+                <button class="btn btn-sm btn-outline danmaku-size-btn active" data-size="medium" onclick="setDanmakuSizeDash('medium',this)" style="flex:1;font-size:12px;">中</button>
+                <button class="btn btn-sm btn-outline danmaku-size-btn" data-size="large" onclick="setDanmakuSizeDash('large',this)" style="flex:1;font-size:12px;">大</button>
+              </div>
+            </div>
+          </div>
         </div>
         <div class="section">
           <div class="section-title"><span class="icon">💬</span> 弹幕审核</div>
@@ -446,7 +472,7 @@
         tab.classList.add('active');
         document.getElementById(`tab-${tab.dataset.tab}`).classList.add('active');
         if (tab.dataset.tab === 'card') refreshCard();
-        if (tab.dataset.tab === 'danmaku') { loadDanmakuSetting(); loadDanmaku(); }
+        if (tab.dataset.tab === 'danmaku') { loadDanmakuSetting(); loadDanmakuDisplaySettings(); loadDanmaku(); }
       });
     });
 
@@ -948,6 +974,35 @@
       localStorage.setItem('danmaku_enabled_' + currentUser.slug, isOn ? '1' : '0');
       updateToggleUI(isOn);
     };
+
+    // 弹幕显示区域/速度/字号设置（保存到 localStorage，婚礼页面读取）
+    window.setDanmakuAreaDash = function(area, btn) {
+      if (!currentUser) return;
+      localStorage.setItem('danmaku_area_' + currentUser.slug, area);
+      document.querySelectorAll('.danmaku-area-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    };
+    window.setDanmakuSpeedDash = function(speed, btn) {
+      if (!currentUser) return;
+      localStorage.setItem('danmaku_speed_' + currentUser.slug, speed);
+      document.querySelectorAll('.danmaku-speed-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    };
+    window.setDanmakuSizeDash = function(size, btn) {
+      if (!currentUser) return;
+      localStorage.setItem('danmaku_size_' + currentUser.slug, size);
+      document.querySelectorAll('.danmaku-size-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    };
+    function loadDanmakuDisplaySettings() {
+      if (!currentUser) return;
+      var area = localStorage.getItem('danmaku_area_' + currentUser.slug) || 'full';
+      var speed = localStorage.getItem('danmaku_speed_' + currentUser.slug) || 'normal';
+      var size = localStorage.getItem('danmaku_size_' + currentUser.slug) || 'medium';
+      document.querySelectorAll('.danmaku-area-btn').forEach(b => b.classList.toggle('active', b.dataset.area === area));
+      document.querySelectorAll('.danmaku-speed-btn').forEach(b => b.classList.toggle('active', b.dataset.speed === speed));
+      document.querySelectorAll('.danmaku-size-btn').forEach(b => b.classList.toggle('active', b.dataset.size === size));
+    }
 
     function updateToggleUI(isOn) {
       const slider = document.getElementById('danmakuSlider');

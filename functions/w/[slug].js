@@ -238,21 +238,7 @@ export async function onRequest(context) {
     .danmaku-item{position:absolute;white-space:nowrap;font-size:clamp(16px,3vw,24px);font-weight:600;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,0.4),0 0 8px rgba(0,0,0,0.2);pointer-events:none;will-change:transform;animation:danmakuFly linear forwards}
     @keyframes danmakuFly{from{transform:translateX(100vw)}to{transform:translateX(-100%)}}
 
-    /* 弹幕设置面板 */
-    #danmaku-settings{position:fixed;top:50%;right:16px;transform:translateY(-50%);z-index:81;background:rgba(30,25,20,0.88);backdrop-filter:blur(12px);border:1px solid rgba(201,169,110,0.2);border-radius:14px;padding:16px;width:180px;display:none;pointer-events:auto}
-    #danmaku-settings.active{display:block}
-    #danmaku-settings .ds-title{font-size:12px;color:rgba(201,169,110,0.8);letter-spacing:0.1em;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between}
-    #danmaku-settings .ds-title .ds-close{cursor:pointer;font-size:14px;opacity:0.5;transition:opacity 0.2s}
-    #danmaku-settings .ds-title .ds-close:hover{opacity:1}
-    #danmaku-settings .ds-group{margin-bottom:12px}
-    #danmaku-settings .ds-label{font-size:10px;color:rgba(255,255,255,0.4);letter-spacing:0.08em;margin-bottom:6px}
-    #danmaku-settings .ds-row{display:flex;gap:4px}
-    #danmaku-settings .ds-btn{flex:1;padding:5px 0;border-radius:6px;border:1px solid rgba(255,255,255,0.1);background:transparent;color:rgba(255,255,255,0.6);font-size:11px;cursor:pointer;text-align:center;transition:all 0.2s;font-family:inherit}
-    #danmaku-settings .ds-btn:hover{border-color:rgba(201,169,110,0.4);color:#fff}
-    #danmaku-settings .ds-btn.active{background:rgba(201,169,110,0.2);border-color:rgba(201,169,110,0.5);color:#c9a96e;font-weight:600}
-    #danmaku-settings-toggle{position:fixed;top:50%;right:16px;transform:translateY(-50%);z-index:82;width:36px;height:36px;border-radius:50%;background:rgba(30,25,20,0.7);border:1px solid rgba(201,169,110,0.2);color:#c9a96e;font-size:16px;cursor:pointer;display:none;align-items:center;justify-content:center;transition:all 0.2s;pointer-events:auto}
-    #danmaku-settings-toggle:hover{background:rgba(30,25,20,0.9);border-color:rgba(201,169,110,0.4)}
-    #danmaku-settings-toggle.active{display:flex}
+
 
 
     /* ====== 热区提示 ====== */
@@ -424,44 +410,7 @@ export async function onRequest(context) {
   <!-- 弹幕蒙版 -->
   <div id="danmaku-overlay"></div>
 
-  <!-- 弹幕设置按钮 -->
-  <button id="danmaku-settings-toggle" onclick="toggleDanmakuSettings()">⚙</button>
 
-  <!-- 弹幕设置面板 -->
-  <div id="danmaku-settings">
-    <div class="ds-title">弹幕设置 <span class="ds-close" onclick="toggleDanmakuSettings()">✕</span></div>
-    <div class="ds-group">
-      <div class="ds-label">显示区域</div>
-      <div class="ds-row">
-        <button class="ds-btn active" data-area="full" onclick="setDanmakuArea('full',this)">全屏</button>
-        <button class="ds-btn" data-area="top" onclick="setDanmakuArea('top',this)">上半</button>
-        <button class="ds-btn" data-area="bottom" onclick="setDanmakuArea('bottom',this)">下半</button>
-      </div>
-    </div>
-    <div class="ds-group">
-      <div class="ds-label">滚动速度</div>
-      <div class="ds-row">
-        <button class="ds-btn" data-speed="slow" onclick="setDanmakuSpeed('slow',this)">慢</button>
-        <button class="ds-btn active" data-speed="normal" onclick="setDanmakuSpeed('normal',this)">正常</button>
-        <button class="ds-btn" data-speed="fast" onclick="setDanmakuSpeed('fast',this)">快</button>
-      </div>
-    </div>
-    <div class="ds-group">
-      <div class="ds-label">字体大小</div>
-      <div class="ds-row">
-        <button class="ds-btn" data-size="small" onclick="setDanmakuSize('small',this)">小</button>
-        <button class="ds-btn active" data-size="medium" onclick="setDanmakuSize('medium',this)">中</button>
-        <button class="ds-btn" data-size="large" onclick="setDanmakuSize('large',this)">大</button>
-      </div>
-    </div>
-    <div class="ds-group" style="margin-bottom:0;">
-      <div class="ds-label">弹幕开关</div>
-      <div class="ds-row">
-        <button class="ds-btn active" id="ds-on" onclick="toggleDanmaku(true)">开</button>
-        <button class="ds-btn" id="ds-off" onclick="toggleDanmaku(false)">关</button>
-      </div>
-    </div>
-  </div>
 
 
 
@@ -1450,10 +1399,10 @@ export async function onRequest(context) {
     let danmakuHistory = []; // 一小时内弹幕缓存
     let danmakuHistoryIdx = 0;
     let danmakuLoopTimer = null;
-    let danmakuSettingsOpen = false;
-    let danmakuArea = 'full'; // full / top / bottom
-    let danmakuSpeed = 'normal'; // slow / normal / fast
-    let danmakuFontSize = 'medium'; // small / medium / large
+    // 弹幕设置从 localStorage 读取（在控制台弹幕设置中配置）
+    let danmakuArea = localStorage.getItem('danmaku_area_' + slug) || 'full';
+    let danmakuSpeed = localStorage.getItem('danmaku_speed_' + slug) || 'normal';
+    let danmakuFontSize = localStorage.getItem('danmaku_size_' + slug) || 'medium';
     const DANMAKU_COLORS = ['#ffffff','#ff6b6b','#ffd93d','#6bcb77','#4d96ff','#ff922b','#cc5de8','#20c997'];
     const SPEED_MAP = { slow: 12, normal: 8, fast: 5 };
     const SIZE_MAP = { small: 'clamp(12px,2vw,18px)', medium: 'clamp(16px,3vw,24px)', large: 'clamp(22px,4vw,32px)' };
@@ -1483,9 +1432,8 @@ export async function onRequest(context) {
         }
       } catch (e) { console.warn('Danmaku QR gen failed:', e); }
 
-      // 显示弹幕蒙版和设置按钮
+      // 显示弹幕蒙版
       document.getElementById('danmaku-overlay').classList.add('active');
-      document.getElementById('danmaku-settings-toggle').classList.add('active');
 
       // 加载一小时内历史弹幕
       loadDanmakuHistory();
@@ -1580,38 +1528,7 @@ export async function onRequest(context) {
       setTimeout(function() { el.remove(); }, duration * 1000 + 500);
     }
 
-    // 弹幕设置
-    window.toggleDanmakuSettings = function() {
-      danmakuSettingsOpen = !danmakuSettingsOpen;
-      document.getElementById('danmaku-settings').classList.toggle('active', danmakuSettingsOpen);
-    };
 
-    window.setDanmakuArea = function(area, btn) {
-      danmakuArea = area;
-      document.querySelectorAll('#danmaku-settings [data-area]').forEach(function(b) { b.classList.remove('active'); });
-      btn.classList.add('active');
-    };
-
-    window.setDanmakuSpeed = function(speed, btn) {
-      danmakuSpeed = speed;
-      document.querySelectorAll('#danmaku-settings [data-speed]').forEach(function(b) { b.classList.remove('active'); });
-      btn.classList.add('active');
-    };
-
-    window.setDanmakuSize = function(size, btn) {
-      danmakuFontSize = size;
-      document.querySelectorAll('#danmaku-settings [data-size]').forEach(function(b) { b.classList.remove('active'); });
-      btn.classList.add('active');
-    };
-
-    window.toggleDanmaku = function(on) {
-      danmakuEnabled = on;
-      document.getElementById('danmaku-overlay').classList.toggle('active', on);
-      document.getElementById('ds-on').classList.toggle('active', on);
-      document.getElementById('ds-off').classList.toggle('active', !on);
-      if (on && danmakuHistory.length > 0) startDanmakuLoop();
-      if (!on && danmakuLoopTimer) { clearInterval(danmakuLoopTimer); danmakuLoopTimer = null; }
-    };
 
     // 杂志模式下启动弹幕
     const origSwitchMode = switchMode;
@@ -1630,8 +1547,6 @@ export async function onRequest(context) {
       } else {
         if (danmakuTimer) { clearInterval(danmakuTimer); danmakuTimer = null; }
         if (danmakuLoopTimer) { clearInterval(danmakuLoopTimer); danmakuLoopTimer = null; }
-        document.getElementById('danmaku-settings-toggle').classList.remove('active');
-        document.getElementById('danmaku-settings').classList.remove('active');
       }
     };
 
