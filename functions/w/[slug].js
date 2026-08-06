@@ -1150,8 +1150,8 @@ export async function onRequest(context) {
       currentSongLyrics = songWithLyrics.lyrics;
       currentSongOffset = songWithLyrics.lyrics_offset || 0;
       // Set avatars
-      if (AVATARS[0]) document.getElementById('lyrics-avatar-1').src = AVATARS[0];
-      if (AVATARS[1]) document.getElementById('lyrics-avatar-2').src = AVATARS[1] || AVATARS[0];
+      if (AVATAR_GROOM || AVATARS[0]) document.getElementById('lyrics-avatar-1').src = AVATAR_GROOM || AVATARS[0];
+      if (AVATAR_BRIDE || AVATARS[1] || AVATARS[0]) document.getElementById('lyrics-avatar-2').src = AVATAR_BRIDE || AVATARS[1] || AVATARS[0];
       document.getElementById('lyrics-song-info').textContent = songWithLyrics.song_name + (songWithLyrics.artist ? ' · ' + songWithLyrics.artist : '');
       document.getElementById('lyrics-player').classList.add('active');
       lyricsLineIdx = 0; lyricsCharIdx = 0;
