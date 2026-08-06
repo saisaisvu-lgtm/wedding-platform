@@ -82,6 +82,7 @@
       <button class="tab" data-tab="songs">🎵 歌曲管理</button>
       <button class="tab" data-tab="rsvp">💌 回执管理</button>
       <button class="tab" data-tab="danmaku">💬 弹幕审核</button>
+      <button class="tab" data-tab="playback">🎬 播放设置</button>
       <button class="tab" data-tab="card">📨 邀请卡片</button>
     </div>
 
@@ -343,6 +344,48 @@
       </div>
     </div>
 
+    <!-- 播放设置 Tab -->
+    <div id="tab-playback" class="tab-content">
+      <div class="card">
+        <div class="section">
+          <div class="section-title"><span class="icon">🎬</span> 播放设置</div>
+          <p style="font-size:14px;color:var(--text-secondary);margin-bottom:18px;line-height:1.8;">设置婚礼预览页面的默认播放模式和音乐。保存后宾客打开页面即按此配置显示。</p>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-bottom:16px;">
+          <div style="padding:16px;background:var(--bg-subtle);border-radius:var(--radius);border:1px solid var(--border);">
+            <div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:10px;">默认模式</div>
+            <div style="display:flex;gap:6px;">
+              <button class="btn btn-sm btn-outline pb-mode-btn" data-mode="gridwall" onclick="setPBMode('gridwall',this)">🧱 照片墙</button>
+              <button class="btn btn-sm btn-outline pb-mode-btn active" data-mode="magazine" onclick="setPBMode('magazine',this)">📖 杂志</button>
+            </div>
+          </div>
+          <div style="padding:16px;background:var(--bg-subtle);border-radius:var(--radius);border:1px solid var(--border);">
+            <div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:10px;">翻页风格</div>
+            <div style="display:flex;gap:4px;flex-wrap:wrap;">
+              <button class="btn btn-sm btn-outline pb-style-btn active" data-style="warm" onclick="setPBStyle('warm',this)">🌅暖色</button>
+              <button class="btn btn-sm btn-outline pb-style-btn" data-style="parallax" onclick="setPBStyle('parallax',this)">📐视差</button>
+              <button class="btn btn-sm btn-outline pb-style-btn" data-style="curl" onclick="setPBStyle('curl',this)">📖翻书</button>
+              <button class="btn btn-sm btn-outline pb-style-btn" data-style="fade" onclick="setPBStyle('fade',this)">✨淡入</button>
+            </div>
+          </div>
+          <div style="padding:16px;background:var(--bg-subtle);border-radius:var(--radius);border:1px solid var(--border);">
+            <div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:10px;">滚动节奏</div>
+            <div style="display:flex;gap:6px;">
+              <button class="btn btn-sm btn-outline pb-speed-btn" data-speed="0.5" onclick="setPBSpeed(0.5,this)">慢</button>
+              <button class="btn btn-sm btn-outline pb-speed-btn active" data-speed="1" onclick="setPBSpeed(1,this)">正常</button>
+              <button class="btn btn-sm btn-outline pb-speed-btn" data-speed="2" onclick="setPBSpeed(2,this)">快</button>
+            </div>
+          </div>
+          <div style="padding:16px;background:var(--bg-subtle);border-radius:var(--radius);border:1px solid var(--border);">
+            <div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:10px;">背景音乐</div>\            <div style="display:flex;gap:6px;">
+              <button class="btn btn-sm btn-outline pb-music-btn" data-music="0" onclick="setPBMusic(0,this)">🔇 关闭</button>
+              <button class="btn btn-sm btn-outline pb-music-btn active" data-music="1" onclick="setPBMusic(1,this)">🎵 自动播放</button>\            </div>
+          </div>
+        </div>
+        <div style="padding:12px;background:rgba(184,134,11,0.06);border-radius:var(--radius);border:1px solid rgba(184,134,11,0.15);font-size:13px;color:var(--text-muted);line-height:1.6;">💡 设置保存后即时生效。宾客打开婚礼页面时自动应用这些配置。</div>
+      </div>
+    </div>
+
     <!-- Card Tab -->
     <div id="tab-card" class="tab-content">
       <div class="card">
@@ -473,6 +516,7 @@
         document.getElementById(`tab-${tab.dataset.tab}`).classList.add('active');
         if (tab.dataset.tab === 'card') refreshCard();
         if (tab.dataset.tab === 'danmaku') { loadDanmakuSetting(); loadDanmakuDisplaySettings(); loadDanmaku(); }
+        if (tab.dataset.tab === 'playback') { loadPlaybackSettings(); }
       });
     });
 
@@ -1003,6 +1047,42 @@
       document.querySelectorAll('.danmaku-speed-btn').forEach(b => b.classList.toggle('active', b.dataset.speed === speed));
       document.querySelectorAll('.danmaku-size-btn').forEach(b => b.classList.toggle('active', b.dataset.size === size));
     }
+
+    // ===== 播放设置 ======
+    function loadPlaybackSettings() {
+      if (!currentUser) return;
+      var mode = localStorage.getItem('mag_mode_' + currentUser.slug) || 'magazine';
+      var style = localStorage.getItem('mag_style') || 'warm';
+      var speed = localStorage.getItem('mag_speed_' + currentUser.slug) || '1';
+      var music = localStorage.getItem('mag_music_' + currentUser.slug) || '1';
+      document.querySelectorAll('.pb-mode-btn').forEach(b => b.classList.toggle('active', b.dataset.mode === mode));
+      document.querySelectorAll('.pb-style-btn').forEach(b => b.classList.toggle('active', b.dataset.style === style));
+      document.querySelectorAll('.pb-speed-btn').forEach(b => b.classList.toggle('active', b.dataset.speed === speed));
+      document.querySelectorAll('.pb-music-btn').forEach(b => b.classList.toggle('active', b.dataset.music === music));
+    }
+    window.setPBMode = function(mode, btn) {
+      if (!currentUser) return;
+      localStorage.setItem('mag_mode_' + currentUser.slug, mode);
+      document.querySelectorAll('.pb-mode-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    };
+    window.setPBStyle = function(style, btn) {
+      localStorage.setItem('mag_style', style);
+      document.querySelectorAll('.pb-style-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    };
+    window.setPBSpeed = function(speed, btn) {
+      if (!currentUser) return;
+      localStorage.setItem('mag_speed_' + currentUser.slug, String(speed));
+      document.querySelectorAll('.pb-speed-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    };
+    window.setPBMusic = function(on, btn) {
+      if (!currentUser) return;
+      localStorage.setItem('mag_music_' + currentUser.slug, String(on));
+      document.querySelectorAll('.pb-music-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    };
 
     function updateToggleUI(isOn) {
       const slider = document.getElementById('danmakuSlider');
