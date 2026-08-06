@@ -656,34 +656,34 @@ export async function onRequest(context) {
       var savedSpeed = localStorage.getItem('mag_speed_' + slug);
       var savedStyle = localStorage.getItem('mag_style') || 'warm';
       var savedMusic = localStorage.getItem('mag_music_' + slug);
-      var savedPause = localStorage.getItem('mag_pause_' + slug);
+      var savedMode = localStorage.getItem('mag_mode_' + slug) || 'magazine';
       if (savedSpeed) { setSpeed(parseFloat(savedSpeed)); }
       if (savedStyle) { magStyle = savedStyle; }
-      // 默认显示杂志
-      document.getElementById('magazine').style.display = 'block';
-      document.getElementById('btn-magazine').classList.add('active');
-      switchMode('magazine');
+      // 显示模式（控制台设置）
+      switchMode(savedMode);
       document.getElementById('controls-bar').classList.add('show');
       // 音乐准备
       var bgmSrc = WEDDING.bgm_url || WEDDING.bgm_data;
-      if (bgmSrc) {
+      if (bgmSrc && savedMusic !== '0') {
         var bgm = document.getElementById('bgm');
         bgm.src = bgmSrc;
-        // 浏览器禁止自动播放，需用户交互后启动
-        if (savedMusic === '1') {
-          var tryPlay = function() {
-            if (musicPlaying) return;
-            bgm.play().then(function() {
-              musicPlaying = true;
-              startLyricsPlayer();
-            }).catch(function() {});
-          };
-          document.addEventListener('click', tryPlay, { once: true });
-          document.addEventListener('touchstart', tryPlay, { once: true });
-        }
+        // 浏览器禁止自动播放，持续监听用户交互直到成功播放
+        var musicStarted = false;
+        var tryPlay = function() {
+          if (musicStarted) return;
+          bgm.play().then(function() {
+            musicStarted = true;
+            musicPlaying = true;
+            startLyricsPlayer();
+            document.removeEventListener('click', tryPlay);
+            document.removeEventListener('touchstart', tryPlay);
+          }).catch(function() {});
+        };
+        document.addEventListener('click', tryPlay);
+        document.addEventListener('touchstart', tryPlay);
       }
       // 自动翻页
-      if (savedPause !== '1' && !isPaused) { startMagAuto(); }
+      if (savedMode === 'magazine') { startMagAuto(); }
     }
 
     // ====== RSVP ======
