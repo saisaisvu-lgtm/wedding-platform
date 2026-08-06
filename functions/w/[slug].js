@@ -1399,6 +1399,7 @@ export async function onRequest(context) {
     let danmakuHistory = []; // 一小时内弹幕缓存
     let danmakuHistoryIdx = 0;
     let danmakuLoopTimer = null;
+    let danmakuCleanupTimer = null;
     // 弹幕设置从 localStorage 读取（在控制台弹幕设置中配置）
     let danmakuArea = localStorage.getItem('danmaku_area_' + slug) || 'full';
     let danmakuSpeed = localStorage.getItem('danmaku_speed_' + slug) || 'normal';
@@ -1441,6 +1442,13 @@ export async function onRequest(context) {
       // 轮询新弹幕
       pollDanmaku();
       danmakuTimer = setInterval(pollDanmaku, 2000);
+
+      // 每10分钟自动清理所有弹幕
+      danmakuCleanupTimer = setInterval(function() {
+        fetch('/api/danmaku-autoclear?slug=' + encodeURIComponent(slug), { method: 'DELETE' })
+          .then(function() { danmakuHistory = []; danmakuHistoryIdx = 0; })
+          .catch(function() {});
+      }, 10 * 60 * 1000);
     }
 
     async function loadDanmakuHistory() {
@@ -1547,6 +1555,7 @@ export async function onRequest(context) {
       } else {
         if (danmakuTimer) { clearInterval(danmakuTimer); danmakuTimer = null; }
         if (danmakuLoopTimer) { clearInterval(danmakuLoopTimer); danmakuLoopTimer = null; }
+        if (danmakuCleanupTimer) { clearInterval(danmakuCleanupTimer); danmakuCleanupTimer = null; }
       }
     };
 
